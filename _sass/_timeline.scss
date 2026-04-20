@@ -1,0 +1,51 @@
+.item {
+    padding-top: 50px;
+    min-height: 150px;
+    position: relative;
+}
+.item:before,
+.last-item:after {
+    background: var(--body-bg);
+    border: 8px solid var(--gray-800);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    content: "";
+    margin-left: 1rem;
+    position: relative;
+    z-index: 1;
+    left: calc(2% - 36px);
+}
+.vertical-line {
+    width: 8px;
+    background-color: var(--gray-800);
+    position: absolute;
+    left: calc(2% - 5px);
+    top: 0;
+    bottom: 0;
+}
+.item .card-panel {
+    margin: 0;
+    margin: 2rem 0 0 3rem;
+}
+.item-date {
+    margin-top: -43px;
+    margin-left: 4rem;
+}
+.last-item {
+    padding-top: 30px;
+    height: 20px;
+    position: relative;
+}
+
+.card-panel {
+    transition: box-shadow 0.25s;
+    padding: 24px;
+    margin: 0.5rem 0 1rem 0;
+    border-radius: 2px;
+    background-color: var(--gray-800);
+}
+.card-title {
+    margin-top: 0.5rem;
+}
