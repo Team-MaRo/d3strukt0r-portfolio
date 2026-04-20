@@ -1,0 +1,4 @@
+This is a Brave Rewards publisher verification file.
+
+Domain: d3strukt0r.github.io
+Token: ada71fac27a7a813bdc6bff584f5b57122dccddb2744f0bb429d631ded3e4c5d
