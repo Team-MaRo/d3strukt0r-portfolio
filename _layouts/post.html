@@ -2,30 +2,37 @@
 layout: default
 ---
 
-<article class="post">
-    <h1 class="post-title">{{ page.title }}</h1>
-    <time datetime="{{ page.date | date_to_xmlschema }}" class="post-date">
-        {{ page.date | date_to_string }}
-    </time>
-    {{ content }}
-</article>
+{% assign words = content | number_of_words %}
+{% assign read_time = words | divided_by: 200 | plus: 1 %}
 
-{% if site.related_posts != empty %}
-<aside class="related">
-    <h3>Related posts</h3>
-    <ul class="related-posts">
-        {% for post in site.related_posts limit:3 %}
-        <li>
-            <a href="{{ site.baseurl }}{{ post.url }}">
-                {{ post.title }}
-                <small>
-                    <time datetime="{{ post.date | date_to_xmlschema }}">
-                        {{ post.date | date_to_string }}
-                    </time>
-                </small>
-            </a>
-        </li>
-        {% endfor %}
-    </ul>
-</aside>
-{% endif %}
+<section class="ta-section">
+  <div class="ta-page-head">
+    <div class="ta-hnum" data-reveal>~/blog/{{ page.date | date: "%Y-%m-%d" }}-{{ page.slug }}.md</div>
+    <div class="ta-hcode" data-reveal data-delay="1"><span class="ta-dim">$</span> cat ./{{ page.slug }}.md</div>
+    <h1 class="ta-h1" data-reveal data-delay="2">{{ page.title }}</h1>
+    <div class="ta-post-meta" data-reveal data-delay="3">
+      <span><span class="ta-key">date</span>: <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y-%m-%d" }}</time></span>
+      <span><span class="ta-key">read</span>: ~{{ read_time }} min</span>
+      {% if page.tags.size > 0 %}<span><span class="ta-key">tags</span>: {{ page.tags | join: ", " }}</span>{% endif %}
+    </div>
+  </div>
+
+  <article class="ta-glass ta-about-main ta-content" data-reveal>
+    {{ content }}
+  </article>
+
+  <nav class="ta-post-nav" aria-label="post navigation">
+    {% if page.previous %}
+      <a class="ta-blog-entry prev cursor-hover" href="{{ page.previous.url | relative_url }}">
+        <div class="ta-blog-date">← {{ page.previous.date | date: "%Y-%m-%d" }}</div>
+        <div class="ta-blog-name">{{ page.previous.title }}</div>
+      </a>
+    {% else %}<span></span>{% endif %}
+    {% if page.next %}
+      <a class="ta-blog-entry next cursor-hover" href="{{ page.next.url | relative_url }}">
+        <div class="ta-blog-date">{{ page.next.date | date: "%Y-%m-%d" }} →</div>
+        <div class="ta-blog-name">{{ page.next.title }}</div>
+      </a>
+    {% else %}<span></span>{% endif %}
+  </nav>
+</section>

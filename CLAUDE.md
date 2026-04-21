@@ -4,33 +4,63 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Personal website for Manuele, built with Jekyll and deployed to GitHub Pages at https://www.d3strukt0r.dev. Based on the dark-poole theme (https://github.com/andrewhwanpark/dark-poole).
+Personal website for Manuele, built with Jekyll and deployed to GitHub Pages at https://www.d3strukt0r.dev. Design is "Terminal Aurora" — dev-coded glassmorphism (indigo/pink aurora blobs on near-black, JetBrains Mono / Space Grotesk / Inter, frosted glass cards, custom cursor, EN/DE + dark/light toggles, terminal easter egg).
 
 ## Commands
 
-- `bundle install` — install Ruby gem dependencies.
-- `bundle exec jekyll serve --livereload` — run local dev server with live reload.
-- `bundle exec jekyll build` — produce the static site in `_site/`.
+- `bundle install` — install Ruby gems.
+- `bundle exec jekyll serve --livereload` — local dev server.
+- `bundle exec jekyll build` — static build into `_site/`.
+- `bundle lock --add-platform …` — re-lock after Gemfile platform changes.
 
-Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/). Devcontainer at `.devcontainer/` (Ruby 3.2 base + Yarn-key refresh — see inline comment in `Dockerfile` for why).
 
-## Architecture
+## Architecture — two-tier rendering
 
-Standard Jekyll layout with one custom collection:
+The site splits rendering responsibilities so content pages stay fast while the home page gets the full interactive prototype.
 
-- `_layouts/` — `default.html` wraps every page; `page.html` and `post.html` extend it.
-- `_includes/head.html` — shared `<head>`; pulls SEO/feed plugin output.
-- `_sass/` — partials imported by `styles.scss` (compiled with `style: :compressed`).
-- `_posts/` — blog posts; listed via `/archive` and paginated (1 post/page, see `_config.yml`).
-- `_steps/` — **custom collection** for CV/timeline entries (`output: false`, i.e. not rendered as standalone pages — consumed by `about.md` via the timeline styles in `_sass/_timeline.scss`).
+### Global shell (every page)
+
+Rendered by Liquid + a small vanilla-JS runtime. No React.
+
+- `_layouts/default.html` — loads Google Fonts, `assets/css/main.css`, `assets/js/ta-shell.js`.
+- `_includes/ta-{bg,nav,footer}.html` — background blobs + grid overlay, fixed nav with brand/clock/EN-DE/theme toggles, footer.
+- `_includes/head.html` — `<head>` with SEO, favicons, font link (Google Fonts URL lives here — can't be `@import`ed from SCSS because Dart Sass rejects `;` in URLs).
+- `assets/js/ta-shell.js` — all client behavior on non-home pages: theme toggle (writes `body.light|.dark` + `localStorage['portfolio:theme']`), language toggle (writes `localStorage['portfolio:lang']`, swaps `[data-en]`/`[data-de]` text, dispatches `ta:lang` CustomEvent), clock, `IntersectionObserver`-based reveal for `[data-reveal]`, custom cursor (hidden on touch via `(hover: hover) and (pointer: fine)`), terminal easter egg on `~`/`` ` ``/typing `sudo` with commands: help, whoami, skills, experience, contact, github, linkedin, anime, matrix, sudo, clear, exit.
+
+### Home page only (`index.html` → `_layouts/home.html`)
+
+Loads React 18 + Babel-standalone from unpkg (integrity-pinned) and mounts the design's portfolio sections into `#ta-root`.
+
+- `assets/js/portfolio/content.js` — bilingual content blob on `window.PORTFOLIO_CONTENT`.
+- `assets/js/portfolio/hooks.jsx` — `useLang` (listens for shell's `ta:lang` event to stay in sync), `useTheme`, `useGitHubRepos`/`useGitHubUser` (cached in `sessionStorage`, unauthenticated `api.github.com`), `useContribGraph`, `Reveal`.
+- `assets/js/portfolio/terminal.jsx` — section components (`TAHero`, `TAStats`, `TAAbout`, `TASkills`, `TAGitHub`, `TAProjects`, `TAExperience`, `TAMeta`, `TAContact`). **The `TANav`, `TAFooter`, `TABg`, `CustomCursor`, `Terminal` components in this file are dead code** — the shell provides them; `TerminalAurora` does not render them. Keep them defined for reference but don't wire them back in.
+- `_layouts/home.html` injects `site.posts` into `PORTFOLIO_CONTENT.blog` via Liquid before the JSX mounts, so the writing card shows real posts.
+
+### Content pages
+
+- `_layouts/page.html` — wraps Markdown in `.ta-glass.ta-about-main.ta-content` card. Used by `about.md`, `archive.md`, `404.html`.
+- `_layouts/post.html` — terminal-styled post with filename/date/read-time header, glass body, prev/next.
+- **Markdown tables inside HTML blocks don't render** (kramdown skips Markdown in `<article>` without `markdown="1"`). On `about.md` the Qualifications section is hand-authored HTML using design classes (`.ta-meta-grid`, `.ta-lang-row`, `.ta-cert-row`, `.ta-side-skillrow`) — don't convert back to tables.
+
+### Styles
+
+- `_sass/_terminal.scss` — verbatim design CSS, namespaced under `.ta`.
+- `_sass/_terminal-content.scss` — Markdown-in-glass rules (headings, tables, code, etc.) + reveal animation + easter-egg modal styles + post/archive/404 helpers.
+- `assets/css/main.scss` — Jekyll SCSS entry: `@use "terminal"; @use "terminal-content";`. **Must not be named `terminal.scss`** — a sibling `.scss` with the same name as an `@use`/`@import` target causes a self-import cycle (`expected "{"` error).
+
+## Collections & content
+
+- `_posts/` — blog posts.
+- `_steps/` — CV timeline entries (`output: false`). Consumed by `about.md` which renders them as `.ta-exp-row` rows, sorted reverse-chronologically.
 - `assets/` — static assets; files under `assets/img` get `image: true` front matter defaulted in.
-- `.well-known/` — served as-is (e.g. verification files).
-- Root pages: `index.html` (home), `about.md`, `archive.md`, `atom.xml`, `404.html`.
+- `.well-known/` — served as-is.
+- Root pages: `index.html`, `about.md`, `archive.md`, `atom.xml`, `404.html`.
 
-Plugins in use: `jekyll-feed`, `jekyll-gist`, `jekyll-paginate`, `jekyll-seo-tag`, `jekyll-sitemap`.
+Plugins: `jekyll-feed`, `jekyll-gist`, `jekyll-seo-tag`, `jekyll-sitemap`. `jekyll-paginate` was removed when home stopped being a paginated blog.
 
-Site metadata (title, url, author, nav links) lives in `_config.yml` — remember Jekyll does **not** hot-reload `_config.yml`, restart the server after changes.
+Site metadata (`title`, `url`, `author`, `nav`) in `_config.yml`. Jekyll does **not** hot-reload `_config.yml` — restart the server after changes.
 
 ## Deployment
 
-Deployed via GitHub Pages. The `CNAME.tmp` file is the custom domain placeholder. `.github/workflows/` contains only repo-hygiene automation (Dependabot automerge/validate, labels, stale bot, greetings) — no site build/deploy workflow; Pages builds the site itself.
+GitHub Pages builds the site itself — `.github/workflows/` only contain repo-hygiene automation (Dependabot, labels, stale, greetings), no build/deploy workflow. Custom domain in `CNAME.tmp`.
