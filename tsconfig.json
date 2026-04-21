@@ -1,0 +1,22 @@
+{
+  "extends": "@iwf-web/tsconfig/react-strict/tsconfig.json",
+  "include": [
+    "**/.server/**/*.ts",
+    "**/.server/**/*.tsx",
+    "**/.client/**/*.ts",
+    "**/.client/**/*.tsx",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/.react-router/types/**/*"
+  ],
+  "compilerOptions": {
+    "types": ["node", "vite/client"],
+    "rootDirs": [".", "./.react-router/types"],
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./app/*"]
+    },
+    "resolveJsonModule": true,
+    "allowJs": true
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "site_title": "Manuele",
+    "tagline": "Full-Stack Web Developer"
+  },
+  "nav": {
+    "about": "./about",
+    "stack": "./stack",
+    "work": "./work",
+    "blog": "./blog",
+    "cv": "./cv",
+    "contact": "./contact"
+  },
+  "hero": {
+    "whoami_cmd": "~$ whoami",
+    "name_label": "name",
+    "role_label": "role",
+    "loc_label": "loc",
+    "online": "online",
+    "title": "Business-Web-Software bauen, ein Commit nach dem anderen.",
+    "sub": "5+ Jahre Produktions-Symfony & React bei IWF Web Solutions. Wirtschaftsinformatik-Absolvent. Fünf Sprachen. Anime auf dem zweiten Monitor.",
+    "cta_work": "$ ls ./work",
+    "cta_contact": "$ echo \"hi\" | mail",
+    "now_title": "~/NOW.md",
+    "now": [
+      "Im Einsatz bei IWF Web Solutions",
+      "Offen für Freelance-Anfragen",
+      "Lerne: Rust, am Wochenende",
+      "Schaue: S-Tier Anime"
+    ],
+    "stack_title": "~/daily.stack"
+  },
+  "about": {
+    "num": "01",
+    "code": "cat ./about.md",
+    "title": "Über mich",
+    "paragraphs": [
+      "Ich bin Manuele — Schweizer Full-Stack Developer. Die letzten fünf Jahre habe ich bei IWF Web Solutions Symfony-Backends und React-Frontends für echte Unternehmen gebaut.",
+      "Vor dem Coden habe ich den Kaufmann EFZ mit BM gemacht und Wirtschaftsinformatik an der FHNW studiert. Diese Mischung ist mein Vorteil: Ich lese eine Bilanz, scope ein Feature und liefere es aus.",
+      "Ausserhalb der Arbeit debugge ich meistens ein Nebenprojekt, übe eine meiner fünf Sprachen oder schaue Anime."
+    ],
+    "identity_title": "~/identity.json"
+  },
+  "skills": {
+    "num": "02",
+    "code": "ls -la ./stack",
+    "title": "Daily Stack",
+    "groups": {
+      "backend": "backend",
+      "frontend": "frontend",
+      "tools": "tools",
+      "business": "wirtschaft"
+    }
+  },
+  "stats": {
+    "years": "Jahre Erfahrung",
+    "languages": "Sprachen gesprochen",
+    "certs": "Zertifizierungen",
+    "anime": "Anime geschaut"
+  },
+  "github": {
+    "code": "gh stat --user D3strukt0r",
+    "repos": "repos",
+    "followers": "Follower",
+    "joined": "beigetreten",
+    "contributions": "Beiträge/Jahr",
+    "weeks": "26 Wochen",
+    "fetching": "lade Repos von api.github.com…"
+  },
+  "work": {
+    "num": "03",
+    "code": "git log --projects",
+    "title": "Projekte",
+    "no_desc": "// keine Beschreibung"
+  },
+  "career": {
+    "num": "04",
+    "code": "cat CAREER.log",
+    "title": "Werdegang"
+  },
+  "meta_section": {
+    "num": "05",
+    "code": "cat ./meta/*",
+    "title": "Meta",
+    "languages": "./languages",
+    "certificates": "./certificates",
+    "writing": "./writing",
+    "open_blog": "$ open ./blog →"
+  },
+  "contact": {
+    "code": "echo \"hi@d3strukt0r.dev\" | mail",
+    "title": "Lass uns etwas bauen.",
+    "sub": "Festanstellung, Freelance, oder einfach um über Anime zu reden — mein Postfach ist offen.",
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "twitter": "X/Twitter"
+  },
+  "footer": {
+    "tip_prefix": "Tipp: drücke",
+    "tip_or": "oder tippe",
+    "tip_suffix": "für das Terminal"
+  },
+  "terminal": {
+    "hint": "drücke",
+    "hint_suffix": "für das Terminal"
+  },
+  "location": "Schweiz",
+  "archive": {
+    "title": "Blog",
+    "code": "ls -lah ./blog"
+  },
+  "about_page": {
+    "title": "Über mich",
+    "code": "cat ./about.md",
+    "lead": "Hey — ich bin Manuele. Schweizer Full-Stack Web Developer, entwickle Symfony + React bei IWF Web Solutions. Wirtschaftsinformatik-Absolvent (FHNW), fünf Sprachen, Anime auf dem zweiten Monitor.",
+    "body": "Diese Seite ist zugleich mein CV. Alle Einträge kommen aus dem Repo (content/steps/), so bleibt alles synchron, wenn ich die Quelldateien aktualisiere — kein separates Resume.",
+    "timeline": "Werdegang",
+    "timeline_code": "cat CAREER.log | tac",
+    "qualifications": "Qualifikationen",
+    "qualifications_code": "ls ./qualifications",
+    "tech_stack": "Tech Stack",
+    "stack_code": "ls ./stack",
+    "elsewhere": "Anderswo",
+    "elsewhere_code": "cat ./elsewhere.txt",
+    "legend": {
+      "basic": "grundlagen",
+      "standard": "standard",
+      "good": "gut",
+      "expert": "experte"
+    },
+    "languages_title": "./sprachen",
+    "certs_title": "./zertifikate",
+    "programs_title": "./programme",
+    "certs_on_request": "Zertifikate auf Anfrage — ",
+    "email_me": "schreib mir",
+    "github_link": "Aktuelle Liste der Nebenprojekte auf meinem"
+  },
+  "fourohfour": {
+    "title": "In der Leere verloren.",
+    "sub": "Diese URL lässt sich nicht auflösen. Vielleicht ein alter Link, vielleicht ein Tippfehler — ab nach Hause.",
+    "home": "cd ~"
+  }
+}

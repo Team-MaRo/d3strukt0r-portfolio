@@ -1,0 +1,54 @@
+import {mkdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {reactRouter} from '@react-router/dev/vite';
+import type {Plugin} from 'vite';
+import {defineConfig} from 'vite';
+import sitemap from 'vite-plugin-sitemap';
+import {ALLOW_ALL, robots} from 'vite-plugin-robots-ts';
+
+import {mdFrontmatter} from './vite/plugins/md-frontmatter';
+import {loadPosts} from './vite/plugins/posts';
+import {staticArtifacts} from './vite/plugins/static-artifacts';
+
+const SITE_URL = 'https://www.d3strukt0r.dev';
+const OUT_DIR = 'build/client';
+const POSTS_DIR = join(process.cwd(), 'content', 'posts');
+
+const blogRoutes = loadPosts(POSTS_DIR).map((p) => `/blog/${p.slug}`);
+const absOutDir = join(process.cwd(), OUT_DIR);
+
+// react-router v7 runs Vite with multiple environments (client, SSR). Scope
+// sitemap + robots to the client build so their `closeBundle` hooks don't fire
+// for the SSR output (which lives at `build/server/`).
+function clientOnly(plugin: Plugin): Plugin {
+  return {...plugin, applyToEnvironment: (env) => env.name === 'client'};
+}
+
+// Ensure the client outDir exists before sitemap/robots try to write into it.
+// Their `closeBundle` hooks run before react-router has flushed assets to disk
+// on a cold build.
+mkdirSync(absOutDir, {recursive: true});
+
+export default defineConfig({
+  plugins: [
+    reactRouter(),
+    mdFrontmatter(),
+    clientOnly(sitemap({
+      hostname: SITE_URL,
+      outDir: OUT_DIR,
+      dynamicRoutes: ['/', '/about', '/archive', ...blogRoutes],
+      generateRobotsTxt: false,
+    })),
+    clientOnly(robots({
+      content: `${ALLOW_ALL}\n`,
+      sitemap: `${SITE_URL}/sitemap.xml`,
+    })),
+    staticArtifacts({
+      outDir: absOutDir,
+      postsDir: POSTS_DIR,
+      siteUrl: SITE_URL,
+      author: {name: 'Manuele', email: 'gh-contact@d3st.dev'},
+    }),
+  ],
+  resolve: {tsconfigPaths: true},
+});
