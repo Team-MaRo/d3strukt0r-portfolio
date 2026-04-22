@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install deps first for better layer caching.
 # Corepack reads the pnpm version from the `packageManager` field in package.json.
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
 
 # Build the SPA + emit 404.html/sitemap.xml/robots.txt/atom.xml.

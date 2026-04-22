@@ -20,13 +20,45 @@ export function CustomCursor() {
     if (!enabled) {
       return;
     }
-    const s = {x: 0, y: 0, rx: 0, ry: 0, hover: false};
+    const s = {x: 0, y: 0, rx: 0, ry: 0, hover: false, seen: false};
+    const show = () => {
+      if (dot.current) {
+        dot.current.style.opacity = '1';
+      }
+      if (ring.current) {
+        ring.current.style.opacity = '1';
+      }
+    };
+    const hide = () => {
+      if (dot.current) {
+        dot.current.style.opacity = '0';
+      }
+      if (ring.current) {
+        ring.current.style.opacity = '0';
+      }
+    };
     const onMove = (e: MouseEvent) => {
       s.x = e.clientX; s.y = e.clientY;
+      if (!s.seen) {
+        // First real position: snap the ring so it doesn't lerp from (0,0).
+        s.rx = s.x; s.ry = s.y;
+        s.seen = true;
+        show();
+      }
       if (dot.current) {
         dot.current.style.transform = `translate3d(${e.clientX - 4}px,${e.clientY - 4}px,0)`;
       }
     };
+    const onEnter = (e: MouseEvent) => {
+      s.x = e.clientX; s.y = e.clientY;
+      s.rx = s.x; s.ry = s.y;
+      s.seen = true;
+      if (dot.current) {
+        dot.current.style.transform = `translate3d(${e.clientX - 4}px,${e.clientY - 4}px,0)`;
+      }
+      show();
+    };
+    const onLeave = () => hide();
     const onOver = (e: MouseEvent) => {
       const t = e.target as Element | null;
       const hov = !!t?.closest?.('a, button, [role="button"], input, textarea, .cursor-hover');
@@ -52,10 +84,16 @@ export function CustomCursor() {
     loop();
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseover', onOver);
+    document.addEventListener('mouseleave', onLeave);
+    document.addEventListener('mouseenter', onEnter);
+    window.addEventListener('blur', onLeave);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseover', onOver);
+      document.removeEventListener('mouseleave', onLeave);
+      document.removeEventListener('mouseenter', onEnter);
+      window.removeEventListener('blur', onLeave);
     };
   }, [enabled]);
 
@@ -70,8 +108,9 @@ export function CustomCursor() {
         style={{
           position: 'fixed', top: 0, left: 0, width: 28, height: 28, borderRadius: '50%',
           border: `1.5px solid ${RING}`, pointerEvents: 'none', zIndex: 9999,
-          transition: 'width .18s, height .18s, border-color .18s, background .18s',
+          transition: 'width .18s, height .18s, border-color .18s, background .18s, opacity .15s',
           mixBlendMode: 'difference',
+          opacity: 0,
         }}
       />
       <div
@@ -80,6 +119,8 @@ export function CustomCursor() {
         style={{
           position: 'fixed', top: 0, left: 0, width: 8, height: 8, borderRadius: '50%',
           background: COLOR, pointerEvents: 'none', zIndex: 10000,
+          transition: 'opacity .15s',
+          opacity: 0,
         }}
       />
     </>

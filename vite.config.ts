@@ -1,15 +1,15 @@
+import type {Plugin} from 'vite';
 import {mkdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {reactRouter} from '@react-router/dev/vite';
-import type {Plugin} from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import {defineConfig} from 'vite';
-import sitemap from 'vite-plugin-sitemap';
 import {ALLOW_ALL, robots} from 'vite-plugin-robots-ts';
-
-import {mdFrontmatter} from './vite/plugins/md-frontmatter';
-import {loadPosts} from './vite/plugins/posts';
-import {staticArtifacts} from './vite/plugins/static-artifacts';
-import {yamlLoader} from './vite/plugins/yaml-loader';
+import sitemap from 'vite-plugin-sitemap';
+import {mdFrontmatter} from './app/vite/plugins/md-frontmatter';
+import {loadPosts} from './app/vite/plugins/posts';
+import {staticArtifacts} from './app/vite/plugins/static-artifacts';
+import {yamlLoader} from './app/vite/plugins/yaml-loader';
 
 const SITE_URL = 'https://www.d3strukt0r.dev';
 const OUT_DIR = 'build/client';
@@ -32,6 +32,7 @@ mkdirSync(absOutDir, {recursive: true});
 
 export default defineConfig({
   plugins: [
+    tailwindcss(),
     reactRouter(),
     mdFrontmatter(),
     yamlLoader(),

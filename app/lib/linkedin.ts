@@ -11,24 +11,21 @@
 // is missing, the DE value is surfaced — so partial translations degrade
 // gracefully instead of going blank.
 
-import type {
-  Certification, Education, Language, Position, Profile, Project, Skill,
-} from '../../bin/linkedin/schema';
-
-import positionsDe from '../../content/linkedin/positions.de.yml?parsed';
-import positionsEnRaw from '../../content/linkedin/positions.en.yml?parsed';
-import educationDe from '../../content/linkedin/education.de.yml?parsed';
-import educationEnRaw from '../../content/linkedin/education.en.yml?parsed';
+import type {Certification, Education, Language, Position, Profile, Project, Skill} from '../../bin/linkedin/schema';
 import certificationsDe from '../../content/linkedin/certifications.de.yml?parsed';
 import certificationsEnRaw from '../../content/linkedin/certifications.en.yml?parsed';
+import educationDe from '../../content/linkedin/education.de.yml?parsed';
+import educationEnRaw from '../../content/linkedin/education.en.yml?parsed';
 import languagesDe from '../../content/linkedin/languages.de.yml?parsed';
 import languagesEnRaw from '../../content/linkedin/languages.en.yml?parsed';
-import skillsDe from '../../content/linkedin/skills.de.yml?parsed';
-import skillsEnRaw from '../../content/linkedin/skills.en.yml?parsed';
-import projectsDe from '../../content/linkedin/projects.de.yml?parsed';
-import projectsEnRaw from '../../content/linkedin/projects.en.yml?parsed';
+import positionsDe from '../../content/linkedin/positions.de.yml?parsed';
+import positionsEnRaw from '../../content/linkedin/positions.en.yml?parsed';
 import profileDe from '../../content/linkedin/profile.de.yml?parsed';
 import profileEnRaw from '../../content/linkedin/profile.en.yml?parsed';
+import projectsDe from '../../content/linkedin/projects.de.yml?parsed';
+import projectsEnRaw from '../../content/linkedin/projects.en.yml?parsed';
+import skillsDe from '../../content/linkedin/skills.de.yml?parsed';
+import skillsEnRaw from '../../content/linkedin/skills.en.yml?parsed';
 
 const positionsEn = (positionsEnRaw ?? []) as Array<Partial<Position>>;
 export const educationEn = (educationEnRaw ?? []) as Array<Partial<Education>>;
@@ -147,9 +144,9 @@ const POSITION_ENTRIES: ExpEntry[] = positions.map((p, i) => {
     locationEn: pickStr(en, p, 'location'),
     durationDe: duration(p.startedOn, p.finishedOn, 'de'),
     durationEn: duration(p.startedOn, p.finishedOn, 'en'),
-    employmentTypeDe: (p.employmentTypeDe ?? en?.employmentTypeDe ?? p.employmentType ?? en?.employmentType ?? '') as string,
-    employmentTypeEn: (en?.employmentType ?? p.employmentType ?? '') as string,
-    stack: (en?.stack ?? p.stack ?? []) as string[],
+    employmentTypeDe: (p.employmentTypeDe ?? en?.employmentTypeDe ?? p.employmentType ?? en?.employmentType ?? ''),
+    employmentTypeEn: (en?.employmentType ?? p.employmentType ?? ''),
+    stack: (en?.stack ?? p.stack ?? []),
     descriptionDe: p.description,
     descriptionEn: pickStr(en, p, 'description'),
   };

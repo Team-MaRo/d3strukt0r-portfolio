@@ -1,14 +1,15 @@
 {
-  "name": "d3strukt0r-portfolio",
+  "name": "@d3strukt0r/portfolio",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "dev": "react-router dev",
     "build": "react-router build",
+    "dev": "react-router dev",
     "start": "react-router-serve ./build/client",
+    "start:server": "react-router-serve ./build/server/index.js",
     "preview": "vite preview --outDir build/client",
     "typecheck": "react-router typegen && tsc --noEmit",
     "lint": "eslint .",
@@ -31,6 +32,7 @@
     "@iwf-web/eslint-coding-standard": "^1.1.0",
     "@iwf-web/tsconfig": "^1.1.0",
     "@react-router/dev": "^7.14.2",
+    "@tailwindcss/vite": "^4.2.4",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
@@ -42,6 +44,7 @@
     "js-yaml": "^4.1.1",
     "marked": "^18.0.2",
     "sass": "^1.99.0",
+    "tailwindcss": "^4.2.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^8.0.9",

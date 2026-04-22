@@ -105,8 +105,8 @@ export interface GhContrib {
   weeks: number[][];
 }
 
-interface JogruberEntry { date: string; count: number; level: number }
-interface JogruberResp { total: Record<string, number>; contributions: JogruberEntry[] }
+interface JogruberEntry {date: string; count: number; level: number}
+interface JogruberResp {total: Record<string, number>; contributions: JogruberEntry[]}
 
 export function useContributions(user = 'D3strukt0r') {
   const [data, setData] = useState<GhContrib | null>(null);
@@ -122,17 +122,19 @@ export function useContributions(user = 'D3strukt0r') {
         const weeksCount = 26;
         const days = 7;
         const sorted = [...resp.contributions].sort((a, b) => a.date.localeCompare(b.date));
-        const grid: number[][] = Array.from({length: weeksCount}, () => Array<number>(days).fill(0));
+        const grid: number[][] = Array.from({length: weeksCount}).fill(Array.from({length: days}).fill(0));
         // Row 0 = Monday, row 6 = Sunday. Column 25 = current week.
-        const lastDate = sorted.length ? new Date(sorted[sorted.length - 1]!.date + 'T00:00:00Z') : new Date();
+        const lastDate = sorted.length ? new Date(`${sorted.at(-1)!.date}T00:00:00Z`) : new Date();
         // Anchor: Monday of the last week shown (week 25).
         const anchor = new Date(lastDate);
         const lastDow = (anchor.getUTCDay() + 6) % 7; // Mon=0..Sun=6
         anchor.setUTCDate(anchor.getUTCDate() - lastDow - (weeksCount - 1) * days);
         for (const e of sorted) {
-          const date = new Date(e.date + 'T00:00:00Z');
+          const date = new Date(`${e.date}T00:00:00Z`);
           const offset = Math.floor((date.getTime() - anchor.getTime()) / 86400000);
-          if (offset < 0 || offset >= weeksCount * days) continue;
+          if (offset < 0 || offset >= weeksCount * days) {
+            continue;
+          }
           const w = Math.floor(offset / days);
           const d = offset % days;
           grid[w]![d] = Math.max(0, Math.min(4, e.level));

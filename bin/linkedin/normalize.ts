@@ -16,7 +16,7 @@ export function parseDate(raw: string | null | undefined): string | null {
   if (!s) {
     return null;
   }
-  const m = /^([A-Za-z]{3})\s+(\d{4})$/.exec(s);
+  const m = /^([A-Z]{3})\s+(\d{4})$/i.exec(s);
   if (m) {
     const mo = MONTHS[m[1] as keyof typeof MONTHS];
     return mo ? `${m[2]}-${mo}` : null;
@@ -54,11 +54,11 @@ export function proficiencyToStars(prof: string): number {
 export function normalizePosition(row: Record<string, string>): Position {
   return {
     company: row['Company Name'] ?? '',
-    title: row['Title'] ?? '',
-    location: row['Location'] ?? '',
+    title: row.Title ?? '',
+    location: row.Location ?? '',
     startedOn: parseDate(row['Started On']),
     finishedOn: parseDate(row['Finished On']),
-    description: (row['Description'] ?? '').trim(),
+    description: (row.Description ?? '').trim(),
   };
 }
 
@@ -68,16 +68,16 @@ export function normalizeEducation(row: Record<string, string>): Education {
     degree: row['Degree Name'] ?? '',
     startedOn: parseDate(row['Start Date']),
     finishedOn: parseDate(row['End Date']),
-    notes: (row['Notes'] ?? '').trim(),
-    activities: (row['Activities'] ?? '').trim(),
+    notes: (row.Notes ?? '').trim(),
+    activities: (row.Activities ?? '').trim(),
   };
 }
 
 export function normalizeCertification(row: Record<string, string>): Certification {
   return {
-    name: row['Name'] ?? '',
-    authority: row['Authority'] ?? '',
-    url: row['Url'] ?? '',
+    name: row.Name ?? '',
+    authority: row.Authority ?? '',
+    url: row.Url ?? '',
     licenseNumber: row['License Number'] ?? '',
     startedOn: parseDate(row['Started On']),
     finishedOn: parseDate(row['Finished On']),
@@ -85,23 +85,23 @@ export function normalizeCertification(row: Record<string, string>): Certificati
 }
 
 export function normalizeLanguage(row: Record<string, string>): Language {
-  const proficiency = row['Proficiency'] ?? '';
+  const proficiency = row.Proficiency ?? '';
   return {
-    name: row['Name'] ?? '',
+    name: row.Name ?? '',
     proficiency,
     stars: proficiencyToStars(proficiency),
   };
 }
 
 export function normalizeSkill(row: Record<string, string>): Skill {
-  return {name: row['Name'] ?? ''};
+  return {name: row.Name ?? ''};
 }
 
 export function normalizeProject(row: Record<string, string>): Project {
   return {
-    title: row['Title'] ?? '',
-    description: (row['Description'] ?? '').trim(),
-    url: row['Url'] ?? '',
+    title: row.Title ?? '',
+    description: (row.Description ?? '').trim(),
+    url: row.Url ?? '',
     startedOn: parseDate(row['Started On']),
     finishedOn: parseDate(row['Finished On']),
   };
@@ -113,9 +113,9 @@ export function normalizeProfile(row: Record<string, string>): Profile {
   // surfaced elsewhere (SOCIALS in data.ts).
   return {
     firstName: row['First Name'] ?? '',
-    headline: (row['Headline'] ?? '').trim(),
-    summary: (row['Summary'] ?? '').trim(),
-    industry: row['Industry'] ?? '',
+    headline: (row.Headline ?? '').trim(),
+    summary: (row.Summary ?? '').trim(),
+    industry: row.Industry ?? '',
     geoLocation: row['Geo Location'] ?? '',
   };
 }

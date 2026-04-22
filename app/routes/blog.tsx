@@ -1,7 +1,6 @@
 import type {Route} from './+types/blog';
 import {useTranslation} from 'react-i18next';
 import {Link} from 'react-router';
-
 import {posts} from '~/lib/content';
 
 export function meta(_: Route.MetaArgs) {

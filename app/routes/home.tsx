@@ -1,6 +1,5 @@
 import type {Route} from './+types/home';
 import {useEffect, useState} from 'react';
-
 import {useTranslation} from 'react-i18next';
 import {useContribGraph, useContributions, useGithubRepos, useGithubUser} from '~/hooks/useGithub';
 import {posts} from '~/lib/content';
@@ -310,27 +309,27 @@ function Experience() {
           .sort((a, b) => b.endKey.localeCompare(a.endKey))
           .slice(0, 3)
           .map((e, i) => {
-          const dur = de ? e.durationDe : e.durationEn;
-          const emp = de ? e.employmentTypeDe : e.employmentTypeEn;
-          const loc = de ? e.locationDe : e.locationEn;
-          const meta = [dur, emp, loc].filter(Boolean).join(' · ');
-          return (
-            <div key={i} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
-              <div className="ta-exp-timestamp">[{e.period}]</div>
-              <div className="ta-exp-body">
-                <div className="ta-exp-company">
-                  {e.company} <span className="ta-dim">/ {de ? e.roleDe : e.roleEn}</span>
-                </div>
-                {meta && <div className="ta-exp-dur">{meta}</div>}
-                {e.stack.length > 0 && (
-                  <div className="ta-exp-stack">
-                    {e.stack.map((s) => <span key={s} className="ta-chip sm">{s}</span>)}
+            const dur = de ? e.durationDe : e.durationEn;
+            const emp = de ? e.employmentTypeDe : e.employmentTypeEn;
+            const loc = de ? e.locationDe : e.locationEn;
+            const meta = [dur, emp, loc].filter(Boolean).join(' · ');
+            return (
+              <div key={i} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
+                <div className="ta-exp-timestamp">[{e.period}]</div>
+                <div className="ta-exp-body">
+                  <div className="ta-exp-company">
+                    {e.company} <span className="ta-dim">/ {de ? e.roleDe : e.roleEn}</span>
                   </div>
-                )}
+                  {meta && <div className="ta-exp-dur">{meta}</div>}
+                  {e.stack.length > 0 && (
+                    <div className="ta-exp-stack">
+                      {e.stack.map((s) => <span key={s} className="ta-chip sm">{s}</span>)}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </section>
   );

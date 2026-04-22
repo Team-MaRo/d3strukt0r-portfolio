@@ -35,7 +35,7 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 ### Stack
 
 - **Vite 5** with `vite-tsconfig-paths` (the `~/` alias maps to `app/`). Sass configured with `api: "modern-compiler"` in `vite.config.ts`.
-- **Sass** — indented `.sass` syntax in `app/styles/*.sass`. *Not* SCSS — renaming to `.scss` will break the parser.
+- **Tailwind v4** (`@tailwindcss/vite`) + **Sass** (SCSS syntax) for structural CSS. See the Styling section.
 - **react-i18next** + `i18next-browser-languagedetector`. Translations in `app/locales/{en,de}.json`; detected from `localStorage['portfolio:lang']` → navigator. `t()` returns strings; pass `{ returnObjects: true }` for arrays.
 - **marked** + **gray-matter** for Markdown content (blog posts + CV steps).
 
@@ -66,7 +66,7 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 `app/lib/content.ts` loads posts + steps at build time via `import.meta.glob(..., { query: "?raw", eager: true })`, parses with `gray-matter`, renders body with `marked`.
 
-`app/lib/linkedin.ts` loads the YAMLs through `vite/plugins/yaml-loader.ts` (registered as `*.yml?parsed`) and exposes typed arrays + derived views (`EXPERIENCE`, `CERTIFICATES`, `LANGUAGES`) consumed by home/about/terminal.
+`app/lib/linkedin.ts` loads the YAMLs through `app/vite/plugins/yaml-loader.ts` (registered as `*.yml?parsed`) and exposes typed arrays + derived views (`EXPERIENCE`, `CERTIFICATES`, `LANGUAGES`) consumed by home/about/terminal.
 
 `app/lib/data.ts` re-exports the LinkedIn-sourced lists plus hand-authored items (stats, socials, skill groups, tech-stack bars). UI strings live in `app/locales/*.json`.
 
@@ -74,11 +74,24 @@ Sensitive + useless CSVs inside `data/linkedin/basic/` are gitignored (see `.git
 
 ### Styling
 
-- `app/styles/main.sass` — entry, `@use "terminal"` + `@use "terminal-content"`.
-- `_terminal.sass` — core design tokens (`--bg`, `--accent`, …) and all `.ta-*` component rules.
-- `_terminal-content.sass` — Markdown-in-glass rules (post/page bodies), scroll-reveal animation, easter-egg modal.
+- **Tailwind v4** (`@tailwindcss/vite`) + **Sass** (SCSS braces syntax). Two imports in `app/root.tsx`, in this order:
+  1. `./styles/tailwind.css` — Tailwind entry (base + theme + utilities).
+  2. `./styles/main.scss` — `@use "terminal"; @use "terminal-content"` — the `.ta-*` design system.
+- `app/styles/tailwind.css`:
+  - `@import "tailwindcss"`.
+  - `@custom-variant dark (&:where(body.dark, body.dark *))` — ties `dark:` to `useTheme`'s `body.dark` / `body.light` toggle, not `prefers-color-scheme`.
+  - `@theme inline { … }` — Tailwind tokens (`--color-accent`, `--color-fg-mute`, `--color-line`, `--color-glass`, `--font-sans`/`--font-mono`/`--font-display`, `--container-max`) map onto the runtime CSS custom properties declared on `.ta` / `.ta.light` in `terminal.scss`. Utilities like `bg-accent`, `text-fg-mute`, `border-line` therefore re-theme automatically when the toggle flips.
+  - `@utility` blocks — this is where to put reusable class bundles that use `@apply`. Custom class names compose with Tailwind variants (e.g. `hover:ta-accent`).
+- `app/styles/terminal.scss` — core design tokens on `.ta` / `.ta.light` plus all `.ta-*` component rules. Uses Sass `&` nesting, `@media` queries, `@keyframes`. Each partial wraps its contents in `@layer components { … }` so Tailwind utilities used directly in JSX still win on cascade.
+- `app/styles/terminal-content.scss` — Markdown-in-glass rules (post / page bodies), scroll-reveal animation, easter-egg modal.
+- `app/styles/main.scss` — single `@use` entry.
 
-All selectors are namespaced under `.ta`; theme flips via `.ta.light` / `.ta.dark` on `<body>`.
+All selectors are namespaced under `.ta`; theme flips via `.ta.light` / `.ta.dark` on `<body>` (`useTheme()` in `app/hooks/useTheme.ts`). The `.ta` block in `terminal.scss` is the source of truth for actual colour values; `@theme inline` in `tailwind.css` just wires Tailwind's naming onto those runtime vars.
+
+**`@apply` inside `.scss` does not expand.** Tailwind's Vite plugin runs on CSS imports but does not re-scan Sass-preprocessed output in this project's plugin order — `@apply` lines pass through to the bundle as unprocessed text and get hoisted out of their selector block. Workarounds for reusable Tailwind class bundles:
+1. Put the `@apply` inside an `@utility ta-name { @apply … }` block in `tailwind.css`. Best when you want a named class.
+2. Use Tailwind utilities directly in JSX. Best when the composition is one-off.
+Don't use bare `@apply` in `.scss` selectors.
 
 ### Static artifacts
 
@@ -86,9 +99,9 @@ SEO + SPA-fallback artifacts are emitted by Vite plugins (`vite.config.ts`), no 
 
 - `vite-plugin-sitemap` → `sitemap.xml` (home, `/about`, `/archive`, and every blog post URL via `dynamicRoutes`). Scoped to the client environment; `generateRobotsTxt: false` because we use the dedicated robots plugin.
 - `vite-plugin-robots-ts` → `robots.txt` (`ALLOW_ALL` + `Sitemap:` hint).
-- `vite/plugins/static-artifacts.ts` → `404.html` (copy of `index.html` for the SPA fallback on GitHub Pages / nginx `error_page`) + `atom.xml` (up to 20 most recent posts).
-- `vite/plugins/md-frontmatter.ts` → parses `*.md?parsed` imports at build time so `gray-matter` / `marked` / `js-yaml` stay out of the client bundle.
-- `vite/plugins/posts.ts` → shared post loader reused by the sitemap `dynamicRoutes` and the atom feed.
+- `app/vite/plugins/static-artifacts.ts` → `404.html` (copy of `index.html` for the SPA fallback on GitHub Pages / nginx `error_page`) + `atom.xml` (up to 20 most recent posts).
+- `app/vite/plugins/md-frontmatter.ts` → parses `*.md?parsed` imports at build time so `gray-matter` / `marked` / `js-yaml` stay out of the client bundle.
+- `app/vite/plugins/posts.ts` → shared post loader reused by the sitemap `dynamicRoutes` and the atom feed.
 
 `public/CNAME` (`www.d3strukt0r.dev`) is copied verbatim by Vite.
 
@@ -112,7 +125,6 @@ SEO + SPA-fallback artifacts are emitted by Vite plugins (`vite.config.ts`), no 
 ## Gotchas
 
 - **Hash routing is *not* used** — the SPA fallback trick (`404.html = index.html`, nginx `try_files`) lets every URL serve the SPA and the client router take over. If you need hash routing later, swap out the app-level router instead of the fallback.
-- **`.sass` vs `.scss`** — indented syntax. Do not rename to `.scss`; the files will not parse.
 - **React Router framework types** — run `pnpm run typecheck` (which triggers `react-router typegen`) before manually editing `.react-router/types/**`. Route modules import from `./+types/<route>`.
 - **i18n arrays** — `t('hero.now', { returnObjects: true })`. Without the option you get the key back as a string.
 - **`.dockerignore`** — must not list `docker` (the folder) or `docker/nginx.conf` disappears from the build context and the `COPY` step fails.

@@ -1,6 +1,5 @@
 import type {Route} from './+types/post';
 import {Link, useParams} from 'react-router';
-
 import {postBySlug, posts} from '~/lib/content';
 
 export function meta({params}: Route.MetaArgs) {

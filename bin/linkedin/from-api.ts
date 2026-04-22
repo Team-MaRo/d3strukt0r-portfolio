@@ -8,9 +8,10 @@
 // share the same "Human-label" column names as the CSV export, so the same
 // normalizers apply.
 
+import type {FileHeader} from './schema';
 import {join} from 'node:path';
-import process from 'node:process';
 
+import process from 'node:process';
 import {
   normalizeCertification,
   normalizeEducation,
@@ -21,7 +22,6 @@ import {
   normalizeSkill,
   sortByRecent,
 } from './normalize';
-import type {FileHeader} from './schema';
 import {writeYaml} from './yaml';
 
 const TOKEN = process.env.LINKEDIN_DMA_TOKEN;

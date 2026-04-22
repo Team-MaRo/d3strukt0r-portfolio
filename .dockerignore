@@ -1,13 +1,27 @@
-node_modules
-build
-.react-router
-.cache
-.git
-.github
-.vscode
-.DS_Store
-*.log
-.env
-Dockerfile
-compose.yml
-.dockerignore
+# https://stackoverflow.com/a/51429852/4156752
+# Whitelist pattern: ignore everything, then re-allow what the Docker build
+# actually needs. Keeps the build context small + deterministic — stray
+# local files, caches, secrets in gitignored folders can't leak into the image.
+
+# Ignore everything
+*
+
+# Allow source + config read by `pnpm install` and `pnpm run build`
+!/.docker
+!/app
+!/bin
+!/content
+!/public
+!/package.json
+!/pnpm-lock.yaml
+!/pnpm-workspace.yaml
+!/react-router.config.ts
+!/tsconfig.json
+!/vite.config.ts
+
+# Re-ignore noise that could sneak in through the allowed directories
+**/node_modules
+**/.DS_Store
+**/Thumbs.db
+**/*.log
+**/*~

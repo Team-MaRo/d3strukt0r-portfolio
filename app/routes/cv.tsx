@@ -1,7 +1,7 @@
 import type {Route} from './+types/cv';
 import {useTranslation} from 'react-i18next';
+import profilePicture from '~/assets/profile-picture-2018.06.23.jpg';
 import {steps} from '~/lib/content';
-
 import {CERTIFICATES, LANGUAGES, QUALIFICATIONS, SOCIALS} from '~/lib/data';
 
 export function meta(_: Route.MetaArgs) {
@@ -30,7 +30,7 @@ export default function CV() {
         <div className="ta-about-side">
           <div className="ta-glass ta-profile-card" data-reveal>
             <img
-              src="/img/profile-picture-2018.06.23.jpg"
+              src={profilePicture}
               alt="Manuele"
               className="ta-profile-img"
               loading="eager"

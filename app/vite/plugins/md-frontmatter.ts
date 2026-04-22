@@ -4,19 +4,14 @@ import matter from 'gray-matter';
 import {marked} from 'marked';
 
 export function slugify(text: string): string {
-  return text.toLowerCase().trim()
-    .replace(/`/g, '')
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+  return text.toLowerCase().trim().replace(/`/g, '').replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
 function extractHeadings(md: string): Array<{level: number; text: string; slug: string}> {
   const out: Array<{level: number; text: string; slug: string}> = [];
   let inCode = false;
   for (const line of md.split('\n')) {
-    if (/^```/.test(line)) {
+    if (line.startsWith('```')) {
       inCode = !inCode;
       continue;
     }

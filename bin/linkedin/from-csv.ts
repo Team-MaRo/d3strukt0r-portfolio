@@ -4,11 +4,12 @@
 // each row into the shared schema, writes YAML. Run with:
 //   pnpm run sync:linkedin:csv
 
+import type {FileHeader} from './schema';
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import process from 'node:process';
-import {parse} from 'csv-parse/sync';
 
+import {parse} from 'csv-parse/sync';
 import {
   normalizeCertification,
   normalizeEducation,
@@ -19,7 +20,6 @@ import {
   normalizeSkill,
   sortByRecent,
 } from './normalize';
-import type {FileHeader} from './schema';
 import {writeYaml} from './yaml';
 
 const ROOT = process.cwd();
@@ -44,7 +44,7 @@ function findCsv(filename: string): string | null {
 
 function parseCsv(path: string): Array<Record<string, string>> {
   const raw = readFileSync(path, 'utf8');
-  return parse(raw, {columns: true, skip_empty_lines: true, trim: true}) as Array<Record<string, string>>;
+  return parse(raw, {columns: true, skip_empty_lines: true, trim: true});
 }
 
 function load<T>(filename: string, normalize: (row: Record<string, string>) => T): T[] {

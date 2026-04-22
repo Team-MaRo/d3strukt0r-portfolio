@@ -1,6 +1,5 @@
 import type {Route} from './+types/not-found';
 import {useTranslation} from 'react-i18next';
-
 import {Link, useLocation} from 'react-router';
 
 export function meta(_: Route.MetaArgs) {

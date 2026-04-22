@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/* Tailwind's `dark:` variant follows our JS toggle (body.dark) instead of
+   prefers-color-scheme. useTheme() toggles body.dark / body.light. */
+@custom-variant dark (&:where(body.dark, body.dark *));
+
+/* Design tokens. `@theme inline` wires Tailwind's naming onto the runtime
+   CSS custom properties declared on `.ta` / `.ta.light` in terminal.scss —
+   so utilities like `bg-accent`, `text-fg-mute`, `border-line` re-theme
+   automatically when the toggle flips. The `.ta` block in terminal.scss
+   remains the source of truth for the actual colour values. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-fg: var(--fg);
+  --color-fg-dim: var(--fg-dim);
+  --color-fg-mute: var(--fg-mute);
+  --color-line: var(--border);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-ok: var(--ok);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+
+  --container-max: 1280px;
+}

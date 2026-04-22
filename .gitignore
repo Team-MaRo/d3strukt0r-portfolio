@@ -5,6 +5,7 @@ build/
 .env
 .DS_Store
 *.log
+.claude/settings.local.json
 
 # LinkedIn export: sensitive (PII, private conversations, ID verification)
 data/linkedin/**/Profile.csv

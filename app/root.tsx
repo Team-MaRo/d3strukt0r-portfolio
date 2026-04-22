@@ -1,15 +1,7 @@
 import type {Route} from './+types/root';
 import {useEffect} from 'react';
 import {I18nextProvider, useTranslation} from 'react-i18next';
-
-import {
-  isRouteErrorResponse,
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from 'react-router';
+import {isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration} from 'react-router';
 import {CustomCursor} from './components/CustomCursor';
 import {TaBg} from './components/TaBg';
 import {TaFooter} from './components/TaFooter';
@@ -19,7 +11,8 @@ import {useReveal} from './hooks/useReveal';
 import {useTheme} from './hooks/useTheme';
 import {i18n} from './i18n';
 
-import './styles/main.sass';
+import './styles/tailwind.css';
+import './styles/main.scss';
 
 export const links: Route.LinksFunction = () => [
   {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
@@ -56,7 +49,7 @@ export function Layout({children}: {children: React.ReactNode}) {
   );
 }
 
-function Shell() {
+export default function App() {
   // Sync body class with theme preference + run global hooks.
   useTheme();
   useReveal();
@@ -77,10 +70,6 @@ function Shell() {
       <TaTerminal />
     </>
   );
-}
-
-export default function App() {
-  return <Shell />;
 }
 
 export function ErrorBoundary({error}: Route.ErrorBoundaryProps) {

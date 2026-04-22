@@ -169,12 +169,7 @@ export function TaTerminal() {
           width: 'auto',
         }}
       >
-        <span style={{color: ACCENT}}>▸</span> press <kbd style={{
-          padding: '1px 5px',
-          borderRadius: 3,
-          background: 'rgba(255,255,255,.1)',
-          fontSize: 11,
-        }}>~</kbd> for terminal
+        <span style={{color: ACCENT}}>▸</span> press <kbd style={{padding: '1px 5px', borderRadius: 3, background: 'rgba(255,255,255,.1)', fontSize: 11}}>~</kbd> for terminal
       </div>
     );
   }
@@ -214,15 +209,17 @@ export function TaTerminal() {
           fontFamily: '"JetBrains Mono", ui-monospace, monospace',
         }}
       >
-        <div style={{
-          padding: '10px 14px',
-          borderBottom: '1px solid rgba(255,255,255,.08)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          fontSize: 12,
-          color: 'rgba(255,255,255,.55)',
-        }}>
+        <div
+          style={{
+            padding: '10px 14px',
+            borderBottom: '1px solid rgba(255,255,255,.08)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 12,
+            color: 'rgba(255,255,255,.55)',
+          }}
+        >
           <span onClick={close} style={{width: 12, height: 12, borderRadius: 6, background: '#ff5f57', display: 'inline-block', cursor: 'pointer'}} />
           <span style={{width: 12, height: 12, borderRadius: 6, background: '#febc2e', display: 'inline-block'}} />
           <span style={{width: 12, height: 12, borderRadius: 6, background: '#28c840', display: 'inline-block'}} />
