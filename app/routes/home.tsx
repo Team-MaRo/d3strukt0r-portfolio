@@ -306,20 +306,31 @@ function Experience() {
     <section className="ta-section">
       <Heading num={t('career.num')} code={t('career.code')} title={t('career.title')} />
       <div className="ta-exp">
-        {EXPERIENCE.map((e, i) => (
-          <div key={i} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i)}>
-            <div className="ta-exp-timestamp">[{e.period}]</div>
-            <div className="ta-exp-body">
-              <div className="ta-exp-company">
-                {e.company} <span className="ta-dim">/ {de ? e.roleDe : e.roleEn}</span>
-              </div>
-              <div className="ta-exp-dur">{(de ? e.durationDe : e.durationEn)} · {e.location}</div>
-              <div className="ta-exp-stack">
-                {e.stack.map((s) => <span key={s} className="ta-chip sm">{s}</span>)}
+        {[...EXPERIENCE]
+          .sort((a, b) => b.endKey.localeCompare(a.endKey))
+          .slice(0, 3)
+          .map((e, i) => {
+          const dur = de ? e.durationDe : e.durationEn;
+          const emp = de ? e.employmentTypeDe : e.employmentTypeEn;
+          const loc = de ? e.locationDe : e.locationEn;
+          const meta = [dur, emp, loc].filter(Boolean).join(' · ');
+          return (
+            <div key={i} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
+              <div className="ta-exp-timestamp">[{e.period}]</div>
+              <div className="ta-exp-body">
+                <div className="ta-exp-company">
+                  {e.company} <span className="ta-dim">/ {de ? e.roleDe : e.roleEn}</span>
+                </div>
+                {meta && <div className="ta-exp-dur">{meta}</div>}
+                {e.stack.length > 0 && (
+                  <div className="ta-exp-stack">
+                    {e.stack.map((s) => <span key={s} className="ta-chip sm">{s}</span>)}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -354,11 +365,11 @@ function Meta() {
           <div className="ta-card-head">{t('meta_section.certificates')}</div>
           <div className="ta-cert-list">
             {CERTIFICATES.map((c) => (
-              <div key={c.name} className="ta-cert-row">
+              <div key={c.nameDe} className="ta-cert-row">
                 <span className="ta-cert-year">{c.year}</span>
                 <div>
-                  <div className="ta-cert-name">{c.name}</div>
-                  <div className="ta-dim ta-cert-issuer">↳ {c.issuer}</div>
+                  <div className="ta-cert-name">{de ? c.nameDe : c.nameEn}</div>
+                  <div className="ta-dim ta-cert-issuer">↳ {de ? c.issuerDe : c.issuerEn}</div>
                 </div>
               </div>
             ))}
@@ -374,7 +385,7 @@ function Meta() {
             </a>
           ))}
           <div className="ta-writing-foot">
-            <a href="/archive" className="ta-link cursor-hover">{t('meta_section.open_blog')}</a>
+            <a href="/blog" className="ta-link cursor-hover">{t('meta_section.open_blog')}</a>
           </div>
         </div>
       </div>

@@ -105,13 +105,13 @@
     "hint_suffix": "für das Terminal"
   },
   "location": "Schweiz",
-  "archive": {
+  "blog_page": {
     "title": "Blog",
     "code": "ls -lah ./blog"
   },
-  "about_page": {
+  "cv_page": {
     "title": "Über mich",
-    "code": "cat ./about.md",
+    "code": "cat ./cv.md",
     "lead": "Hey — ich bin Manuele. Schweizer Full-Stack Web Developer, entwickle Symfony + React bei IWF Web Solutions. Wirtschaftsinformatik-Absolvent (FHNW), fünf Sprachen, Anime auf dem zweiten Monitor.",
     "body": "Diese Seite ist zugleich mein CV. Alle Einträge kommen aus dem Repo (content/steps/), so bleibt alles synchron, wenn ich die Quelldateien aktualisiere — kein separates Resume.",
     "timeline": "Werdegang",

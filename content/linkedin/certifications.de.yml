@@ -1,0 +1,45 @@
+# content/linkedin/certifications.de.yml
+# generated from csv @ 2026-04-22T11:58:57.686Z
+# DO NOT EDIT generated keys; German overrides (e.g. `titleDe`) are safe to add by hand.
+- name: Professional Scrum Developer™ I (PSD I)
+  authority: Scrum.org
+  url: https://www.credly.com/badges/8bf132d7-d244-4f30-80ba-3cca1f9b5b78/linked_in_profile
+  licenseNumber: ''
+  startedOn: 2023-12
+  finishedOn: null
+- name: SAP Certified Application Associate - Business Process Integration with SAP S/4HANA 1809
+  authority: SAP
+  url: https://www.youracclaim.com/badges/2d7efa16-8d1d-4cce-81ed-c4106effe4c9?source=linked_in_profile
+  licenseNumber: ''
+  startedOn: 2021-03
+  finishedOn: null
+- name: Enterprise Resource Planning with SAP S/4HANA (TS410)
+  authority: erp4students
+  url: ''
+  licenseNumber: ''
+  startedOn: 2020-03
+  finishedOn: null
+- name: IREB Certified Professional for Requirements Engineering
+  authority: SAQ Swiss Association for Quality
+  url: https://www.ireb.org/de/service/cpre-registry-list/9912
+  licenseNumber: ''
+  startedOn: 2019-07
+  finishedOn: null
+- name: Cambridge English level 2 Certificate in ESOL International (Advanced)
+  authority: Cambridge Assessment English
+  url: ''
+  licenseNumber: ''
+  startedOn: 2018-05
+  finishedOn: null
+- name: Cambridge English level 1 Certificate in ESOL International (First)
+  authority: Cambridge Assessment English
+  url: ''
+  licenseNumber: ''
+  startedOn: 2016-04
+  finishedOn: null
+- name: DELF B1
+  authority: Ministère chargé de l'Éducation nationale
+  url: ''
+  licenseNumber: ''
+  startedOn: 2015-11
+  finishedOn: null

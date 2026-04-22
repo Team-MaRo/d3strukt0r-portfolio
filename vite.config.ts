@@ -9,6 +9,7 @@ import {ALLOW_ALL, robots} from 'vite-plugin-robots-ts';
 import {mdFrontmatter} from './vite/plugins/md-frontmatter';
 import {loadPosts} from './vite/plugins/posts';
 import {staticArtifacts} from './vite/plugins/static-artifacts';
+import {yamlLoader} from './vite/plugins/yaml-loader';
 
 const SITE_URL = 'https://www.d3strukt0r.dev';
 const OUT_DIR = 'build/client';
@@ -33,10 +34,11 @@ export default defineConfig({
   plugins: [
     reactRouter(),
     mdFrontmatter(),
+    yamlLoader(),
     clientOnly(sitemap({
       hostname: SITE_URL,
       outDir: OUT_DIR,
-      dynamicRoutes: ['/', '/about', '/archive', ...blogRoutes],
+      dynamicRoutes: ['/', '/cv', '/blog', ...blogRoutes],
       generateRobotsTxt: false,
     })),
     clientOnly(robots({

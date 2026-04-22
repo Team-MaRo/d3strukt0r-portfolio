@@ -42,8 +42,8 @@ export function TaNav() {
           <Link to="/#about" className="ta-nav-link cursor-hover">{t('nav.about')}</Link>
           <Link to="/#stack" className="ta-nav-link cursor-hover">{t('nav.stack')}</Link>
           <Link to="/#work" className="ta-nav-link cursor-hover">{t('nav.work')}</Link>
-          <Link to="/archive" className="ta-nav-link cursor-hover">{t('nav.blog')}</Link>
-          <Link to="/about" className="ta-nav-link cursor-hover">{t('nav.cv')}</Link>
+          <Link to="/blog" className="ta-nav-link cursor-hover">{t('nav.blog')}</Link>
+          <Link to="/cv" className="ta-nav-link cursor-hover">{t('nav.cv')}</Link>
           <Link to="/#contact" className="ta-nav-link cursor-hover">{t('nav.contact')}</Link>
         </div>
         <div className="ta-nav-controls">

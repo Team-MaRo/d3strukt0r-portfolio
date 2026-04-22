@@ -1,0 +1,76 @@
+---
+name: translate-linkedin
+description: Translate the LinkedIn-derived YAML files under `content/linkedin/*.de.yml` into English, writing `*.en.yml` siblings. Trigger when the user says "translate linkedin", "sync linkedin translations", "update en translations", runs `/translate-linkedin`, or just finished `pnpm run sync:linkedin:csv` / `pnpm run sync:linkedin:api` and wants the English copy refreshed.
+---
+
+# Translate LinkedIn YAMLs (DE → EN)
+
+The repo stores LinkedIn-sourced data in German (`*.de.yml`). The site reads both the German source and an English sibling (`*.en.yml`); at runtime EN overrides DE per field. Run this skill whenever DE is (re)generated to keep EN in sync.
+
+## Inputs
+
+- Source: `content/linkedin/{profile,positions,education,certifications,languages,skills,projects}.de.yml`
+- Existing translations (may contain user overrides — preserve them): `content/linkedin/*.en.yml`
+- Type definitions (authoritative shape): `bin/linkedin/schema.ts`
+
+## Output
+
+One `*.en.yml` per DE source, in the same directory. Top-of-file banner:
+
+```yaml
+# content/linkedin/<name>.en.yml
+# translated from <name>.de.yml @ <ISO timestamp>
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
+```
+
+Array length and key order must match the DE source exactly so the runtime can zip by index.
+
+## Rules
+
+### Translate these fields
+- **Position**: `title`, `location`, `description`
+- **Education**: `school` (only if obviously translatable, e.g. "Universität Basel" → "University of Basel"; FHNW stays), `degree`, `notes`, `activities`
+- **Certification**: `name`, `authority` (e.g. "Ministère chargé de l'Éducation nationale" stays French — official issuer name; only translate if unambiguous)
+- **Language**: `name`, `proficiency`, `level` (e.g. Deutsch → German, "Native or bilingual proficiency" → keep or normalize; Latin-script language names can stay consistent)
+- **Skill**: `name` (tech skills like PHP, Symfony, React stay; human-language skills like "Deutsch" → "German")
+- **Project**: `title`, `description`
+- **Profile**: `headline`, `summary`, `industry`, `geoLocation` (Schweiz → Switzerland)
+
+### Never translate
+- `company`, `url`, `licenseNumber`, `stars`, `startedOn`, `finishedOn`, `firstName`
+- Brand names and tech terms: Symfony, React, PHP, JavaScript, Docker, CraftCMS, MySQL, Git, Jenkins, …
+- Dates (ISO or free-form)
+- Numeric values
+- Any optional hand-edited field the user already set (`titleDe`, `titleEn`, `flag`, `stack`, `nameEn`, `nameDe`, `level`, `stars`, `employmentType`, `employmentTypeDe`) — if the field exists in the existing `.en.yml`, preserve it verbatim
+- Canton / region names in Switzerland: "Basel-Landschaft" stays (it's the canton's official name in German AND English usage)
+
+### Handle empties
+- If a DE value is `''` or `null`, output the same empty value in EN.
+- If a DE entry has no translatable text, still emit the entry with identical keys so indices align.
+
+### Localization conventions
+- Swiss German place names → English equivalents where standard: Schweiz → Switzerland, Zürich → Zurich; canton names stay.
+- LinkedIn proficiency labels are often already in English in the German export — keep as-is:
+  `Native or bilingual proficiency`, `Professional working proficiency`, `Limited working proficiency`, `Elementary proficiency` all pass through unchanged.
+- Business jargon consistency: "Wirtschaftsinformatik" → "Business Information Technology" (matches the FHNW degree), "Sachbearbeiter" → "Clerk" or "Administrative Clerk" depending on role.
+- Tech-stack lists inside bullet descriptions: translate the glue words ("Backend", "Tools") once established; leave tech names.
+
+## Procedure
+
+1. **Read** every `content/linkedin/*.de.yml` and its existing `*.en.yml` sibling.
+2. **Diff**: compare DE entry count vs EN entry count. If EN is empty or shorter, treat all entries as new. If EN has entries beyond the DE length, they are stale — drop them.
+3. **Translate** each entry per the rules above. For entries where an EN override already exists and looks correct (user-edited), keep it; only update if DE text has changed since the last translation (you can tell by comparing structure).
+4. **Write** the EN file with the banner + translated YAML body via `js-yaml` style dump (2-space indent, no anchors, `lineWidth: 100`). Preserve the same field order as the DE file.
+5. **Report** a one-line summary per file: `<name>.en.yml: N entries translated, M preserved, K dropped`.
+
+## Adding more languages
+
+To support a third language (e.g. French):
+1. Extend `app/lib/linkedin.ts` with `<name>.fr.yml` imports + a `locale` parameter to the derived views.
+2. Add `fr` to `app/locales/` + i18next config in `app/i18n.ts`.
+3. Re-run this skill with the target locale (`/translate-linkedin fr`). The skill itself is language-agnostic — same rules, different target.
+
+## Not in scope
+- Do not modify `.de.yml` (source of truth — regenerated by importers).
+- Do not commit. Leave files dirty for the user to review.
+- Do not translate if a DE file is missing — just skip with a warning.

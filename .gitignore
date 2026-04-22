@@ -5,3 +5,25 @@ build/
 .env
 .DS_Store
 *.log
+
+# LinkedIn export: sensitive (PII, private conversations, ID verification)
+data/linkedin/**/Profile.csv
+data/linkedin/**/Email Addresses.csv
+data/linkedin/**/Connections.csv
+data/linkedin/**/PhoneNumbers.csv
+data/linkedin/**/Whatsapp Phone Numbers.csv
+data/linkedin/**/messages.csv
+data/linkedin/**/learning_coach_messages.csv
+data/linkedin/**/learning_role_play_messages.csv
+data/linkedin/**/Verifications/
+data/linkedin/**/Ad_Targeting.csv
+data/linkedin/**/Invitations.csv
+data/linkedin/**/Endorsement_Received_Info.csv
+
+# LinkedIn export: useless noise
+data/linkedin/**/Registration.csv
+data/linkedin/**/SavedJobAlerts.csv
+data/linkedin/**/Rich_Media.csv
+data/linkedin/**/Company Follows.csv
+data/linkedin/**/Events.csv
+data/linkedin/**/Jobs/

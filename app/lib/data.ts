@@ -1,6 +1,12 @@
-// Structured data for the portfolio. Human-readable labels live in locales/*.json;
-// this file only holds enumerations + items whose names are either language-neutral
-// (tech stack) or where the EN/DE text is identical.
+// Structured data for the portfolio. LinkedIn-sourced lists (EXPERIENCE,
+// CERTIFICATES, LANGUAGES) are re-exported from `./linkedin` which loads the
+// generated YAML under `content/linkedin/`. Refresh with:
+//   pnpm run sync:linkedin:csv   (from local archive in `data/linkedin/`)
+//   pnpm run sync:linkedin:api   (live via Member Data Portability API)
+// Everything else below is hand-authored.
+
+export {CERTIFICATES, EXPERIENCE, LANGUAGES} from './linkedin';
+export type {CertEntry, ExpEntry, LanguageEntry} from './linkedin';
 
 export const STATS = [
   {value: '5+', labelKey: 'stats.years'},
@@ -22,57 +28,6 @@ export const DAILY_STACK = [
   {name: 'react', pct: 80},
   {name: 'docker', pct: 70},
   {name: 'sap/erp', pct: 60},
-] as const;
-
-export interface ExpEntry {
-  company: string;
-  period: string;
-  roleEn: string;
-  roleDe: string;
-  durationEn: string;
-  durationDe: string;
-  stack: string[];
-  location: string;
-}
-
-export const EXPERIENCE: ExpEntry[] = [
-  {
-    company: 'IWF Web Solutions', period: '2022 — Today',
-    roleEn: 'Junior Web Developer', roleDe: 'Junior Web Developer',
-    durationEn: '4y · part-time', durationDe: '4 Jahre · Teilzeit',
-    stack: ['PHP 8.2', 'Symfony 5.4', 'React 18', 'Vite'],
-    location: 'Switzerland',
-  },
-  {
-    company: 'IWF Web Solutions', period: '2021',
-    roleEn: 'Web Dev Intern', roleDe: 'Praktikant Webentwicklung',
-    durationEn: '1 year', durationDe: '1 Jahr',
-    stack: ['PHP 8.0', 'CraftCMS', 'Twig', 'SCSS'],
-    location: 'Switzerland',
-  },
-  {
-    company: 'FHNW', period: '2018 — 2022',
-    roleEn: 'BSc Business IT', roleDe: 'BSc Wirtschaftsinformatik',
-    durationEn: 'Bachelor\'s degree', durationDe: 'Bachelorabschluss',
-    stack: ['Business', 'IT', 'Web'],
-    location: 'Switzerland',
-  },
-];
-
-export const CERTIFICATES = [
-  {year: '2023', name: 'Professional Scrum Developer I', issuer: 'Scrum.org'},
-  {year: '2021', name: 'SAP Certified App Associate — S/4HANA', issuer: 'SAP'},
-  {year: '2019', name: 'IREB Requirements Engineering', issuer: 'SAQ'},
-  {year: '2018', name: 'Cambridge English CAE (C1)', issuer: 'Cambridge English'},
-  {year: '2015', name: 'DELF B1', issuer: 'Ministère de l\'Éducation nationale'},
-] as const;
-
-export const LANGUAGES = [
-  {flag: '🇩🇪', nameEn: 'German', nameDe: 'Deutsch', level: 'Native', stars: 5},
-  {flag: '🇬🇧', nameEn: 'English', nameDe: 'Englisch', level: 'C1 · CAE', stars: 4},
-  {flag: '🇫🇷', nameEn: 'French', nameDe: 'Französisch', level: 'B1 · DELF', stars: 2},
-  {flag: '🇪🇸', nameEn: 'Spanish', nameDe: 'Spanisch', level: 'A2', stars: 3},
-  {flag: '🇮🇹', nameEn: 'Italian', nameDe: 'Italienisch', level: 'A1', stars: 1},
 ] as const;
 
 export const PROJECTS_FALLBACK = [

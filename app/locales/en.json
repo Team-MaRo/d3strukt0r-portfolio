@@ -105,13 +105,13 @@
     "hint_suffix": "for terminal"
   },
   "location": "Switzerland",
-  "archive": {
+  "blog_page": {
     "title": "Writing",
     "code": "ls -lah ./blog"
   },
-  "about_page": {
+  "cv_page": {
     "title": "About",
-    "code": "cat ./about.md",
+    "code": "cat ./cv.md",
     "lead": "Hey — I'm Manuele. Swiss full-stack web developer, shipping Symfony + React at IWF Web Solutions. Business IT grad (FHNW), five languages, anime on the second monitor.",
     "body": "This page doubles as my CV. Everything below is pulled from the repo's content/steps/ directory, so it stays in sync when I update the source files — no separate resume to maintain.",
     "timeline": "Timeline",

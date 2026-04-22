@@ -1,0 +1,37 @@
+# content/linkedin/positions.en.yml
+# hand-edited overlay for positions.de.yml — translations + stack chips + employmentType.
+# Order must match positions.de.yml by index. Run /translate-linkedin to refresh text.
+- title: Junior Web Developer
+  employmentType: Part-time
+  employmentTypeDe: Teilzeit
+  stack:
+    - PHP 8.2
+    - Symfony 5.4
+    - React 18
+    - Vite
+- title: Web Development Intern
+  employmentType: Internship
+  employmentTypeDe: Praktikum
+  stack:
+    - PHP 8.0
+    - CraftCMS
+    - Twig
+    - SCSS
+- title: Warehouse Assistant
+  employmentType: Part-time
+  employmentTypeDe: Aushilfe
+- title: Quality Assurance Clerk
+  employmentType: Part-time
+  employmentTypeDe: Teilzeit
+- title: Patient Billing Clerk
+  employmentType: Temporary
+  employmentTypeDe: Befristet
+- title: IT Intern
+  employmentType: Internship
+  employmentTypeDe: Praktikum
+- title: Purchasing Clerk
+  employmentType: Temporary
+  employmentTypeDe: Befristet
+- title: Accounting Intern
+  employmentType: Internship
+  employmentTypeDe: Praktikum

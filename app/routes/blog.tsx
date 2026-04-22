@@ -1,14 +1,14 @@
-import type {Route} from './+types/archive';
+import type {Route} from './+types/blog';
 import {useTranslation} from 'react-i18next';
 import {Link} from 'react-router';
 
 import {posts} from '~/lib/content';
 
 export function meta(_: Route.MetaArgs) {
-  return [{title: 'Archive · Manuele'}];
+  return [{title: 'Blog · Manuele'}];
 }
 
-export default function Archive() {
+export default function Blog() {
   const {t} = useTranslation();
   const grouped = new Map<string, typeof posts>();
   for (const p of posts) {
@@ -24,8 +24,8 @@ export default function Archive() {
     <section className="ta-section">
       <div className="ta-page-head">
         <div className="ta-hnum" data-reveal>~/blog</div>
-        <div className="ta-hcode" data-reveal data-delay="1"><span className="ta-dim">$</span> {t('archive.code')}</div>
-        <h1 className="ta-h1" data-reveal data-delay="2">{t('archive.title')}</h1>
+        <div className="ta-hcode" data-reveal data-delay="1"><span className="ta-dim">$</span> {t('blog_page.code')}</div>
+        <h1 className="ta-h1" data-reveal data-delay="2">{t('blog_page.title')}</h1>
       </div>
 
       {years.map((y) => (

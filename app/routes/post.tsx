@@ -16,7 +16,7 @@ export default function Post() {
       <section className="ta-section">
         <div className="ta-glass ta-404">
           <h1 className="ta-h1">post not found</h1>
-          <Link to="/archive" className="ta-link cursor-hover">$ cd /archive →</Link>
+          <Link to="/blog" className="ta-link cursor-hover">$ cd /blog →</Link>
         </div>
       </section>
     );

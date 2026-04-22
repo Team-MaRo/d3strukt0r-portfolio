@@ -79,6 +79,13 @@ Not usable from the browser at runtime — LinkedIn doesn't set CORS for `api.li
 
 Minimal build hook (sketch — not yet wired in this repo):
 
+The repo ships two syncers in `bin/linkedin/` that both write the same YAML files under `content/linkedin/` — pick whichever is convenient:
+
+- `pnpm run sync:linkedin:csv` — reads local export from `data/linkedin/{basic,full}/`.
+- `pnpm run sync:linkedin:api` — reads from the MDP API using `LINKEDIN_DMA_TOKEN` (loaded via `node --env-file=.env`).
+
+Historical reference sketch (superseded by `bin/linkedin/from-api.ts`):
+
 ```ts
 // bin/fetch-linkedin.mjs — run via `node bin/fetch-linkedin.mjs`
 import fs from 'node:fs/promises';

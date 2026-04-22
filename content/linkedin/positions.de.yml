@@ -1,0 +1,80 @@
+# content/linkedin/positions.de.yml
+# generated from csv @ 2026-04-22T11:58:57.686Z
+# DO NOT EDIT generated keys; German overrides (e.g. `titleDe`) are safe to add by hand.
+- company: IWF Web Solutions
+  title: Junior Web Developer
+  location: Pratteln, Basel-Landschaft, Schweiz
+  startedOn: 2022-01
+  finishedOn: null
+  description: >-
+    Backend - PHP 8.2 - Symfony 5.4 - PhpUnit 9  Frontend - Less - JavaScript (ES6) - React 18 
+    Tools - Vite.js (& ehem. Webpack) - PhpStorm - Git - Vagrant - Docker
+- company: IWF Web Solutions
+  title: Praktikant im Bereich Webentwicklung
+  location: Pratteln, Basel-Landschaft, Schweiz
+  startedOn: 2021-01
+  finishedOn: 2021-12
+  description: >-
+    Backend - PHP 8.0 - CraftCMS 3.x  Frontend - Twig - SCSS - JavaScript (ES6)  Tools - Webpack -
+    ESLint - PhpStorm - Git - Vagrant - Docker
+- company: ComputerWorks AG
+  title: Aushilfe Lager
+  location: Basel, Schweiz
+  startedOn: 2020-10
+  finishedOn: 2020-12
+  description: • Einlagern • Verpacken
+- company: Weleda AG
+  title: Sachbearbeiter Qualitätssicherung
+  location: Arlesheim
+  startedOn: 2018-11
+  finishedOn: 2020-05
+  description: >-
+    (mit Unterbrechungen) • Administrative Unterstützung der Qualitätssicherung  • Inhaltliche
+    Vorbereitung von Reviews der Prozessvalidierung
+- company: Reha Rheinfelden
+  title: Sachbearbeiter Patientenabrechnung
+  location: ''
+  startedOn: 2018-05
+  finishedOn: 2018-08
+  description: >-
+    • Aufnehmen der Personalien aller ambulanten Patienten • Abklären der Garantenbeziehung
+    (ambulante Patienten) • Erfassen von Leistungen • Überwachen der Leistungserfassung der
+    medizinischen und therapeutischen Abteilungen • Kontrolle und Korrektur von dezentral erfassten
+    Leistungen • Fakturierung von ambulanten Patienten
+- company: Reha Rheinfelden
+  title: Praktikant in der Informatik
+  location: ''
+  startedOn: 2018-04
+  finishedOn: 2018-05
+  description: >-
+    • Durchführen von First Level Support • Erstellen des Benutzerhandbuches für das Intranet •
+    Inventarisieren des gesamten IT Equipments
+- company: Reha Rheinfelden
+  title: Sachbearbeiter im Einkauf
+  location: ''
+  startedOn: 2017-07
+  finishedOn: 2017-09
+  description: >-
+    Abteilung Einkauf • Bestandesaufnahme von Büromöbeln und Übertragung ins Inventarverwaltungstool
+    • Sicherstellen einer einwandfreien und termingerechten Materialbeschaffung der Warengruppen
+    Büromaterial, Kleingeräte, Pflege- und Therapiematerial und Reinigungsmaterial • Bearbeiten von
+    Reklamationen und Retouren • Sicherstellen der gesamten Warenbeschaffung während der Abwesenheit
+    der Abteilungsleiterin Einkauf • Alle anfallenden Arbeiten, welche die Warenbeschaffung
+    betreffen; gemäss Materialbeschaffungsprozesse • Artikel Stammdatenpflege im
+    Materialbewirtschaftungssystem (Nexus: MatMan) • Ablage, Verwalten und Archivieren von
+    Informationen (Einkaufsunterlagen)  Abteilung Informatik • Telefondienst in Stellvertretung für
+    krankheitsbedingte Absenzen in der IT • Entgegennehmen von Useranfragen und Trouble Meldungen
+    (IT Trouble Ticket) während krankheitsbedingten Absenzen in der IT
+- company: Reha Rheinfelden
+  title: Praktikant in der Buchhaltung
+  location: ''
+  startedOn: 2016-07
+  finishedOn: 2017-06
+  description: >-
+    Finanzbuchhaltung • Verbuchen von Kassen-, Post- und Bankbelegen • Abstimmen von Bilanzkonten •
+    Pflegen der Stammdaten Fibu  Kreditoren • Kontieren, vorerfassen und verbuchen von Kreditoren
+    Belegen • Bearbeiten von Kreditoren-Mahnungen • Aufbereiten des Kreditoren-Zahlungslaufs 
+    Debitoren • Erstellen der Debitoren-Rechnungen (Übrige) • Aufbereiten der
+    Debitoren-Fälligkeitsliste  Kasse • Selbständige Bedienung des Kassenschalters  Weitere Aufgaben
+    • Leistungserfassung Patientinnen/Patienten (Transport, Laborleistungen, persönliche Auslagen) •
+    Mithilfe bei Statistiken • Mithilfe bei Zwischen- und Jahresabschlussarbeiten • Mithilfe bei IKS
