@@ -11,7 +11,32 @@ import {createHighlighter, type Highlighter} from 'shiki';
 const SHIKI_LANGS = [
   'ts', 'tsx', 'js', 'jsx', 'json', 'yaml', 'md', 'markdown',
   'bash', 'shell', 'css', 'scss', 'html', 'ruby', 'python', 'text',
+  'go', 'rust', 'java', 'c', 'cpp', 'csharp', 'php', 'sql', 'dockerfile',
 ] as const;
+
+const EXT_TO_LANG: Record<string, string> = {
+  ts: 'ts', tsx: 'tsx', mts: 'ts', cts: 'ts',
+  js: 'js', jsx: 'jsx', mjs: 'js', cjs: 'js',
+  json: 'json', yml: 'yaml', yaml: 'yaml',
+  sh: 'bash', bash: 'bash', zsh: 'bash',
+  css: 'css', scss: 'scss', sass: 'scss',
+  html: 'html', htm: 'html',
+  rb: 'ruby', py: 'python',
+  go: 'go', rs: 'rust',
+  java: 'java', c: 'c', h: 'c', cpp: 'cpp', hpp: 'cpp', cc: 'cpp',
+  cs: 'csharp', php: 'php',
+  sql: 'sql',
+  dockerfile: 'dockerfile',
+};
+
+function langForFilename(filename: string): string {
+  const lower = filename.toLowerCase();
+  if (lower === 'dockerfile' || lower.endsWith('/dockerfile')) {
+    return 'dockerfile';
+  }
+  const ext = lower.split('.').pop() ?? '';
+  return EXT_TO_LANG[ext] ?? 'text';
+}
 const SHIKI_THEMES = {light: 'github-light-default', dark: 'github-dark-default'} as const;
 
 let highlighter: Highlighter | null = null;
@@ -128,6 +153,110 @@ function formatNow(): string {
 function gistEmbed(id: string): string {
   const safe = id.replace(/[^a-zA-Z0-9/_-]/g, '');
   return `<iframe class="ta-gist" src="https://gist.github.com/${safe}.pibb" loading="lazy" title="GitHub gist ${safe}"></iframe>`;
+}
+
+// Cross-origin iframes (gist.github.com) can't be measured from the parent —
+// same-origin policy blocks reading their scrollHeight. Rather than ship a
+// best-effort estimate, we fetch the gist's raw content at build time via the
+// GitHub REST API and render each file ourselves (shiki for code, marked for
+// markdown). The inline output matches the rest of the post's styling and has
+// no sizing problem by construction. If the API fetch fails we leave the
+// iframe placeholder in place as a graceful fallback.
+const GIST_API_TIMEOUT_MS = 5000;
+const PROSE_EXTS = new Set(['md', 'markdown', 'mdx', 'rst', 'txt']);
+const gistEmbedCache = new Map<string, string | null>();
+
+interface GistFile {
+  filename?: string;
+  content?: string;
+}
+
+async function fetchGist(id: string): Promise<Record<string, GistFile> | null> {
+  let lastStatus = '';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), GIST_API_TIMEOUT_MS);
+    try {
+      const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(id)}`, {
+        headers: {Accept: 'application/vnd.github+json', 'User-Agent': 'd3strukt0r-site-build'},
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        lastStatus = `HTTP ${res.status}`;
+        if (res.status < 500 || attempt === 1) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 500));
+        continue;
+      }
+      const data = (await res.json()) as {files?: Record<string, GistFile | null>};
+      const out: Record<string, GistFile> = {};
+      for (const [k, f] of Object.entries(data.files ?? {})) {
+        if (f?.content) {
+          out[k] = f;
+        }
+      }
+      return out;
+    } catch (e) {
+      lastStatus = e instanceof Error ? e.message : String(e);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  console.warn(`[md-frontmatter] gist fetch failed for ${id}: ${lastStatus} — iframe fallback will render`);
+  return null;
+}
+
+function renderGistFile(filename: string, content: string): string {
+  const ext = filename.toLowerCase().split('.').pop() ?? '';
+  let body: string;
+  if (PROSE_EXTS.has(ext)) {
+    body = `<div class="ta-gist-prose">${String(marked.parse(content))}</div>`;
+  } else {
+    const lang = langForFilename(filename);
+    const shikiHtml = highlight(content + (content.endsWith('\n') ? '' : '\n'), lang);
+    body = shikiHtml ?? `<pre><code>${htmlEscape(content, true)}</code></pre>`;
+  }
+  return `<figure class="ta-gist-file"><figcaption class="ta-gist-filename">${htmlEscape(filename)}</figcaption>${body}</figure>`;
+}
+
+async function renderGistEmbed(id: string): Promise<string | null> {
+  if (gistEmbedCache.has(id)) {
+    return gistEmbedCache.get(id) ?? null;
+  }
+  const files = await fetchGist(id);
+  if (!files || Object.keys(files).length === 0) {
+    gistEmbedCache.set(id, null);
+    return null;
+  }
+  const parts = Object.entries(files).map(([key, f]) => renderGistFile(f.filename ?? key, f.content ?? ''));
+  const gistHref = `https://gist.github.com/${id}`;
+  const out = [
+    `<div class="ta-gist-embed">`,
+    `<header class="ta-gist-head"><span aria-hidden="true">❖</span> <a href="${gistHref}" target="_blank" rel="noopener noreferrer">gist.github.com/${htmlEscape(id)}</a></header>`,
+    parts.join(''),
+    `</div>`,
+  ].join('');
+  gistEmbedCache.set(id, out);
+  return out;
+}
+
+async function inlineGistEmbeds(html: string): Promise<string> {
+  const matches = [...html.matchAll(/<iframe\s+class="ta-gist"\s+src="https:\/\/gist\.github\.com\/(?:[^/"]+\/)?([a-f0-9]{6,})\.pibb"[^>]*><\/iframe>/gi)];
+  const ids = [...new Set(matches.map((m) => m[1]!.toLowerCase()))];
+  if (!ids.length) {
+    return html;
+  }
+  const rendered = await Promise.all(ids.map(async (id) => [id, await renderGistEmbed(id)] as const));
+  let out = html;
+  for (const [id, embed] of rendered) {
+    if (!embed) {
+      continue;
+    }
+    const re = new RegExp(`<iframe\\s+class="ta-gist"\\s+src="https:\\/\\/gist\\.github\\.com\\/(?:[^/"]+\\/)?${id}\\.pibb"[^>]*><\\/iframe>`, 'gi');
+    out = out.replace(re, embed);
+  }
+  return out;
 }
 
 // Single `{{ token }}` grammar. Supported forms:
@@ -281,7 +410,8 @@ export function mdFrontmatter(): Plugin {
       const raw = (await readFile(filepath, 'utf8')).replace(/\r\n/g, '\n');
       const {data, content} = matter(raw);
       const expanded = expandTemplate(content, vars);
-      const html = addHeadingIds(String(marked.parse(expanded)));
+      const rendered = addHeadingIds(String(marked.parse(expanded)));
+      const html = await inlineGistEmbeds(rendered);
       return `export default ${JSON.stringify({frontmatter: data, content: expanded, html})};`;
     },
   };

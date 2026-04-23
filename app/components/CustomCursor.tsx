@@ -44,8 +44,11 @@ export function CustomCursor() {
         // First real position: snap the ring so it doesn't lerp from (0,0).
         s.rx = s.x; s.ry = s.y;
         s.seen = true;
-        show();
       }
+      // Re-show on every move — if `window.blur` hid us earlier (e.g. the user
+      // clicked into a cross-origin iframe), this is the signal that the
+      // pointer is back on our document.
+      show();
       if (dot.current) {
         dot.current.style.transform = `translate3d(${e.clientX - 4}px,${e.clientY - 4}px,0)`;
       }
