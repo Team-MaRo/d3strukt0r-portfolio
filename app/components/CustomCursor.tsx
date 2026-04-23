@@ -20,6 +20,7 @@ export function CustomCursor() {
     if (!enabled) {
       return;
     }
+    document.body.classList.add('custom-cursor-active');
     const s = {x: 0, y: 0, rx: 0, ry: 0, hover: false, seen: false};
     const show = () => {
       if (dot.current) {
@@ -88,6 +89,7 @@ export function CustomCursor() {
     document.addEventListener('mouseenter', onEnter);
     window.addEventListener('blur', onLeave);
     return () => {
+      document.body.classList.remove('custom-cursor-active');
       cancelAnimationFrame(raf);
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseover', onOver);

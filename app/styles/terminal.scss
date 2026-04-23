@@ -1060,9 +1060,10 @@ body {
   gap: 10px;
 }
 @media (hover: hover) and (pointer: fine) {
-  .ta, .ta * {
+  body.custom-cursor-active,
+  body.custom-cursor-active .ta,
+  body.custom-cursor-active .ta * {
     cursor: none !important;
-
   }
 }
 }

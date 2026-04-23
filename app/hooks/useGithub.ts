@@ -111,7 +111,7 @@ interface JogruberResp {total: Record<string, number>; contributions: JogruberEn
 export function useContributions(user = 'D3strukt0r') {
   const [data, setData] = useState<GhContrib | null>(null);
   useEffect(() => {
-    const key = `gh:contrib:v2:${user}`;
+    const key = `gh:contrib:v3:${user}`;
     const cached = fromCache<GhContrib>(key);
     if (cached) {
       setData(cached); return;
@@ -122,7 +122,7 @@ export function useContributions(user = 'D3strukt0r') {
         const weeksCount = 26;
         const days = 7;
         const sorted = [...resp.contributions].sort((a, b) => a.date.localeCompare(b.date));
-        const grid: number[][] = Array.from({length: weeksCount}).fill(Array.from({length: days}).fill(0));
+        const grid: number[][] = Array.from({length: weeksCount}, () => Array.from({length: days}, () => 0));
         // Row 0 = Monday, row 6 = Sunday. Column 25 = current week.
         const lastDate = sorted.length ? new Date(`${sorted.at(-1)!.date}T00:00:00Z`) : new Date();
         // Anchor: Monday of the last week shown (week 25).

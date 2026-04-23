@@ -247,8 +247,9 @@
 
   }
 }
-/* Reveal animation */
-[data-reveal] {
+/* Reveal animation — only when JS is running (progressive enhancement).
+   Without JS, content is visible by default. */
+html.js [data-reveal] {
   opacity: 0;
   transform: translateY(24px);
   transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1);
@@ -264,7 +265,6 @@
   }
   &[data-delay="3"] {
     transition-delay: 240ms;
-
   }
 }
 /* Easter-egg terminal overlay */

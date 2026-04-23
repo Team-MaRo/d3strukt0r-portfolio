@@ -31,7 +31,7 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,6 +39,11 @@ export function Layout({children}: {children: React.ReactNode}) {
         <meta name="apple-mobile-web-app-title" content="Manueles Portfolio" />
         <Meta />
         <Links />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js')",
+          }}
+        />
       </head>
       <body className="ta dark">
         <I18nextProvider i18n={i18n}>{children}</I18nextProvider>

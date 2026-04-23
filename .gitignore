@@ -5,6 +5,7 @@ build/
 .env
 .DS_Store
 *.log
+.pnpm-store/
 .claude/settings.local.json
 
 # LinkedIn export: sensitive (PII, private conversations, ID verification)

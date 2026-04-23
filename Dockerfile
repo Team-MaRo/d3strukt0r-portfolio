@@ -1,30 +1,35 @@
 # syntax=docker/dockerfile:1.7
 
-# ── Build ────────────────────────────────────────────────
-FROM node:24-alpine AS builder
+# ── Dev deps (incl. build tooling) ───────────────────────
+FROM node:24-alpine AS deps
 WORKDIR /app
-
-# Install deps first for better layer caching.
-# Corepack reads the pnpm version from the `packageManager` field in package.json.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
 
-# Build the SPA + emit 404.html/sitemap.xml/robots.txt/atom.xml.
+# ── Build (SSR bundle: build/client + build/server) ──────
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm run build
+RUN corepack enable && pnpm run build
 
-# ── Runtime ──────────────────────────────────────────────
-FROM nginx:1.27-alpine AS runtime
+# ── Production deps only ─────────────────────────────────
+FROM node:24-alpine AS prod-deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile --prod
 
-# Replace default site config with our SPA-fallback config.
-COPY .docker/nginx.conf /etc/nginx/conf.d/default.conf
+# ── Runtime (react-router-serve) ─────────────────────────
+FROM node:24-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production PORT=3000
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/build ./build
+COPY package.json ./
 
-# Static output from the builder.
-COPY --from=builder /app/build/client /usr/share/nginx/html
-
-EXPOSE 80
+EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-  CMD wget -q --spider http://localhost/ || exit 1
+  CMD wget -q --spider http://localhost:3000/ || exit 1
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node_modules/.bin/react-router-serve", "./build/server/index.js"]
