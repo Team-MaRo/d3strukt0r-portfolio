@@ -1,9 +1,6 @@
-// Module declarations for Vite's build-time query suffixes used in this app.
+/// <reference types="@modyfi/vite-plugin-yaml/modules" />
 
-declare module '*.yml?parsed' {
-  const value: unknown;
-  export default value;
-}
+// Module declarations for Vite's build-time query suffixes used in this app.
 
 declare module '*.md?parsed' {
   interface ParsedMd {

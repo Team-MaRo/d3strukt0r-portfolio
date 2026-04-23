@@ -1,6 +1,7 @@
 import type {Plugin} from 'vite';
 import {mkdirSync} from 'node:fs';
 import {join} from 'node:path';
+import ViteYaml from '@modyfi/vite-plugin-yaml';
 import {reactRouter} from '@react-router/dev/vite';
 import tailwindcss from '@tailwindcss/vite';
 import {defineConfig} from 'vite';
@@ -9,9 +10,8 @@ import sitemap from 'vite-plugin-sitemap';
 import {mdFrontmatter} from './app/vite/plugins/md-frontmatter';
 import {loadPosts} from './app/vite/plugins/posts';
 import {staticArtifacts} from './app/vite/plugins/static-artifacts';
-import {yamlLoader} from './app/vite/plugins/yaml-loader';
 
-const SITE_URL = 'https://www.d3strukt0r.dev';
+const SITE_URL = 'https://d3strukt0r.dev';
 const OUT_DIR = 'build/client';
 const POSTS_DIR = join(process.cwd(), 'content', 'posts');
 
@@ -35,7 +35,7 @@ export default defineConfig({
     tailwindcss(),
     reactRouter(),
     mdFrontmatter(),
-    yamlLoader(),
+    ViteYaml(),
     clientOnly(sitemap({
       hostname: SITE_URL,
       outDir: OUT_DIR,
@@ -53,5 +53,7 @@ export default defineConfig({
       author: {name: 'Manuele', email: 'gh-contact@d3st.dev'},
     }),
   ],
-  resolve: {tsconfigPaths: true},
+  resolve: {
+    tsconfigPaths: true,
+  },
 });

@@ -36,7 +36,7 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 - **Vite 5** with `vite-tsconfig-paths` (the `~/` alias maps to `app/`). Sass configured with `api: "modern-compiler"` in `vite.config.ts`.
 - **Tailwind v4** (`@tailwindcss/vite`) + **Sass** (SCSS syntax) for structural CSS. See the Styling section.
-- **react-i18next** + `i18next-browser-languagedetector`. Translations in `app/locales/{en,de}.json`; detected from `localStorage['portfolio:lang']` → navigator. `t()` returns strings; pass `{ returnObjects: true }` for arrays.
+- **react-i18next** + `i18next-browser-languagedetector`. Translations in `app/locales/{en,de}.yml` (imported as modules via `@modyfi/vite-plugin-yaml`); detected from `localStorage['portfolio:lang']` → navigator. `t()` returns strings; pass `{ returnObjects: true }` for arrays.
 - **marked** + **gray-matter** for Markdown content (blog posts + CV steps).
 
 ### Entry points & layout
@@ -66,9 +66,9 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 `app/lib/content.ts` loads posts + steps at build time via `import.meta.glob(..., { query: "?raw", eager: true })`, parses with `gray-matter`, renders body with `marked`.
 
-`app/lib/linkedin.ts` loads the YAMLs through `app/vite/plugins/yaml-loader.ts` (registered as `*.yml?parsed`) and exposes typed arrays + derived views (`EXPERIENCE`, `CERTIFICATES`, `LANGUAGES`) consumed by home/about/terminal.
+`app/lib/linkedin.ts` imports the YAMLs directly (parsed at build time by `@modyfi/vite-plugin-yaml`, so `js-yaml` stays out of the client bundle) and exposes typed arrays + derived views (`EXPERIENCE`, `CERTIFICATES`, `LANGUAGES`) consumed by home/about/terminal.
 
-`app/lib/data.ts` re-exports the LinkedIn-sourced lists plus hand-authored items (stats, socials, skill groups, tech-stack bars). UI strings live in `app/locales/*.json`.
+`app/lib/data.ts` re-exports the LinkedIn-sourced lists plus hand-authored items (stats, socials, skill groups, tech-stack bars). UI strings live in `app/locales/*.yml`.
 
 Sensitive + useless CSVs inside `data/linkedin/basic/` are gitignored (see `.gitignore` and the comments in `docs/linkedin-data-portability.md`). Only the portfolio-relevant CSVs (`Profile.csv`, `Positions.csv`, `Education.csv`, `Certifications.csv`, `Languages.csv`, `Skills.csv`, `Projects.csv`, `Profile Summary.csv`, `Learning.csv`) are tracked.
 

@@ -12,20 +12,20 @@
 // gracefully instead of going blank.
 
 import type {Certification, Education, Language, Position, Profile, Project, Skill} from '../../bin/linkedin/schema';
-import certificationsDe from '../../content/linkedin/certifications.de.yml?parsed';
-import certificationsEnRaw from '../../content/linkedin/certifications.en.yml?parsed';
-import educationDe from '../../content/linkedin/education.de.yml?parsed';
-import educationEnRaw from '../../content/linkedin/education.en.yml?parsed';
-import languagesDe from '../../content/linkedin/languages.de.yml?parsed';
-import languagesEnRaw from '../../content/linkedin/languages.en.yml?parsed';
-import positionsDe from '../../content/linkedin/positions.de.yml?parsed';
-import positionsEnRaw from '../../content/linkedin/positions.en.yml?parsed';
-import profileDe from '../../content/linkedin/profile.de.yml?parsed';
-import profileEnRaw from '../../content/linkedin/profile.en.yml?parsed';
-import projectsDe from '../../content/linkedin/projects.de.yml?parsed';
-import projectsEnRaw from '../../content/linkedin/projects.en.yml?parsed';
-import skillsDe from '../../content/linkedin/skills.de.yml?parsed';
-import skillsEnRaw from '../../content/linkedin/skills.en.yml?parsed';
+import certificationsDe from '../../content/linkedin/certifications.de.yml';
+import certificationsEnRaw from '../../content/linkedin/certifications.en.yml';
+import educationDe from '../../content/linkedin/education.de.yml';
+import educationEnRaw from '../../content/linkedin/education.en.yml';
+import languagesDe from '../../content/linkedin/languages.de.yml';
+import languagesEnRaw from '../../content/linkedin/languages.en.yml';
+import positionsDe from '../../content/linkedin/positions.de.yml';
+import positionsEnRaw from '../../content/linkedin/positions.en.yml';
+import profileDe from '../../content/linkedin/profile.de.yml';
+import profileEnRaw from '../../content/linkedin/profile.en.yml';
+import projectsDe from '../../content/linkedin/projects.de.yml';
+import projectsEnRaw from '../../content/linkedin/projects.en.yml';
+import skillsDe from '../../content/linkedin/skills.de.yml';
+import skillsEnRaw from '../../content/linkedin/skills.en.yml';
 
 const positionsEn = (positionsEnRaw ?? []) as Array<Partial<Position>>;
 export const educationEn = (educationEnRaw ?? []) as Array<Partial<Education>>;
