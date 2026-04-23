@@ -3,8 +3,7 @@ layout: post
 title: Example content
 ---
 
-**Howdy!** This is an example blog post that shows several types of HTML content supported in this theme.
-{: .message }
+> **Howdy!** This is an example blog post that shows several types of HTML content supported in this theme.
 
 Cum sociis natoque penatibus et magnis <a href="#">dis parturient montes</a>, nascetur ridiculus mus. *Aenean eu leo quam.* Pellentesque ornare sem lacinia quam venenatis vestibulum. Sed posuere consectetur est at lobortis. Cras mattis consectetur purus sit amet fermentum.
 
@@ -14,8 +13,7 @@ Etiam porta **sem malesuada magna** mollis euismod. Cras mattis consectetur puru
 
 ## Table of contents
 
-- toc
-{: toc }
+{{ toc }}
 
 ## Inline HTML elements
 
@@ -66,9 +64,9 @@ adder(2, 6);
 // > 8
 ```
 
-You may also optionally show code snippets with line numbers.
+You may also optionally show code snippets with line numbers. Append `linenos` to the fence info string (e.g. ` ```js linenos `).
 
-```js
+```js linenos
 // Example can be run directly in your JavaScript console
 
 // Create a function that takes two arguments and returns the sum of those arguments
@@ -85,7 +83,7 @@ Aenean lacinia bibendum nulla sed consectetur. Etiam porta sem malesuada magna m
 
 Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Donec sed odio dui.
 
-{% gist 13f94b734a4ddb132735 gist.md %}
+{{ gist:e37d1c4fa30c430c37d7b1b1fe9b60d8 }}
 
 Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Nullam quis risus eget urna mollis ornare vel eu leo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec sed odio dui. Vestibulum id ligula porta felis euismod semper.
 
@@ -122,9 +120,9 @@ Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Morbi leo r
 
 Quisque consequat sapien eget quam rhoncus, sit amet laoreet diam tempus. Aliquam aliquam metus erat, a pulvinar turpis suscipit at.
 
-![placeholder](http://placehold.it/800x400 "Large example image")
-![placeholder](http://placehold.it/400x200 "Medium example image")
-![placeholder](http://placehold.it/200x200 "Small example image")
+![placeholder](https://placehold.co/800x400?text=Large "Large example image")
+![placeholder](https://placehold.co/400x200?text=Medium "Medium example image")
+![placeholder](https://placehold.co/200x200?text=Small "Small example image")
 
 ### Tables
 

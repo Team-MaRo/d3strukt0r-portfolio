@@ -20,9 +20,10 @@
   "dependencies": {
     "@react-router/node": "^7.14.2",
     "@react-router/serve": "^7.14.2",
-    "i18next": "^26.0.6",
+    "i18next": "^26.0.7",
     "i18next-browser-languagedetector": "^8.2.1",
     "isbot": "^5.1.39",
+    "marked-footnote": "^1.4.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-i18next": "^17.0.4",
@@ -48,7 +49,7 @@
     "tailwindcss": "^4.2.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^8.0.9",
+    "vite": "^8.0.10",
     "vite-plugin-robots-ts": "^2.1.1",
     "vite-plugin-sitemap": "^0.8.2"
   },

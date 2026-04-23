@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Personal website for Manuele at https://www.d3strukt0r.dev. Single-page React app on **React Router v7** (the Remix successor) in SPA mode, with a postbuild step that emits SPA-fallback + SEO artifacts. Shipped two ways:
+Personal website for Manuele at https://d3strukt0r.dev. Single-page React app on **React Router v7** (the Remix successor) in SPA mode, with a postbuild step that emits SPA-fallback + SEO artifacts. Shipped two ways:
 
 1. **GitHub Pages** — default production deploy.
 2. **Docker image** on `docker.io/d3strukt0r/d3strukt0r.github.io` (Docker Hub) — nginx serving the same static output, for self-hosting.
@@ -42,7 +42,7 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 ### Entry points & layout
 
 - `app/root.tsx` — `<Layout>` emit `<html>`/`<head>` + `Scripts`. The default export mounts the global shell: `TaBg`, `CustomCursor`, `TaNav`, `<Outlet />`, `TaFooter`, `TaTerminal`. Also runs `useTheme()` + `useReveal()` once so theme class + scroll-reveal work on every route.
-- `app/routes.ts` — `_index` (home), `about`, `archive`, `blog/:slug`, `*` (not-found catch-all).
+- `app/routes.ts` — `_index` (home), `cv`, `blog`, `blog/:slug`, `*` (not-found catch-all).
 
 ### Components (`app/components/`)
 
@@ -58,15 +58,16 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ### Content (`content/`)
 
-- `content/posts/*.md` — blog posts with `title`/`date` frontmatter, slug derived from filename by stripping leading `YYYY-MM-DD-`.
-- `content/steps/*.md` — CV timeline entries with `title`, `date`, optional `enddate`. Consumed by `/about`.
+- `content/posts/*.md` — blog posts with `title`/`date` frontmatter, slug derived from filename by stripping leading `YYYY-MM-DD-`. Support `{{ … }}` template tokens (see below).
+- `content/steps/*.md` — CV timeline entries with `title`, `date`, optional `enddate`. Consumed by `/cv`.
+- `content/site.yml` — central variables referenced from posts as `{{ path.to.key }}` (e.g. `{{ repo }}`, `{{ author.email }}`). Expanded at build time. Route URLs are derived from `app/routes.ts` and exposed as `{{ urls.<route-file-basename> }}` (e.g. `{{ urls.blog }}`, `{{ urls.cv }}`) — don't duplicate them in site.yml. Built-in specials: `{{ toc }}` (auto bullet-list of h2–h6 in the doc), `{{ now }}` (build-date string), `{{ gist:ID }}` (→ pibb iframe embed). Footnotes use GFM syntax (`[^id]` / `[^id]: body`) via `marked-footnote`. Fenced code blocks support an opt-in `linenos` flag on the info string (e.g. ` ```js linenos `) — the renderer emits a two-column `<pre>` with a gutter of line numbers.
 - `content/linkedin/*.de.yml` — generated from the LinkedIn export / MDP API (see `bin/linkedin/`). Canonical shape defined in `bin/linkedin/schema.ts`. LinkedIn exports in the account's UI language, which is German for this account, so these files are always DE. Hand-edits between syncs are preserved for optional keys only (e.g. `titleEn`, `titleDe`, `stack`, `flag`, `nameEn`).
 - `content/linkedin/*.en.yml` — English translations. Produced by the `/translate-linkedin` skill (see `.claude/skills/translate-linkedin/SKILL.md`); at runtime the EN values override the DE source per field, with per-field fallback to DE when EN is missing.
 - `Profile.csv` is gitignored — contains lastname + home address; `bin/linkedin/normalize.ts:normalizeProfile` explicitly drops those columns when generating `profile.de.yml`.
 
 `app/lib/content.ts` loads posts + steps at build time via `import.meta.glob(..., { query: "?raw", eager: true })`, parses with `gray-matter`, renders body with `marked`.
 
-`app/lib/linkedin.ts` imports the YAMLs directly (parsed at build time by `@modyfi/vite-plugin-yaml`, so `js-yaml` stays out of the client bundle) and exposes typed arrays + derived views (`EXPERIENCE`, `CERTIFICATES`, `LANGUAGES`) consumed by home/about/terminal.
+`app/lib/linkedin.ts` imports the YAMLs directly (parsed at build time by `@modyfi/vite-plugin-yaml`, so `js-yaml` stays out of the client bundle) and exposes typed arrays + derived views (`EXPERIENCE`, `CERTIFICATES`, `LANGUAGES`) consumed by home/cv/terminal.
 
 `app/lib/data.ts` re-exports the LinkedIn-sourced lists plus hand-authored items (stats, socials, skill groups, tech-stack bars). UI strings live in `app/locales/*.yml`.
 
@@ -97,13 +98,13 @@ Don't use bare `@apply` in `.scss` selectors.
 
 SEO + SPA-fallback artifacts are emitted by Vite plugins (`vite.config.ts`), no separate postbuild step:
 
-- `vite-plugin-sitemap` → `sitemap.xml` (home, `/about`, `/archive`, and every blog post URL via `dynamicRoutes`). Scoped to the client environment; `generateRobotsTxt: false` because we use the dedicated robots plugin.
+- `vite-plugin-sitemap` → `sitemap.xml` (home, `/cv`, `/blog`, and every blog post URL via `dynamicRoutes`). Scoped to the client environment; `generateRobotsTxt: false` because we use the dedicated robots plugin.
 - `vite-plugin-robots-ts` → `robots.txt` (`ALLOW_ALL` + `Sitemap:` hint).
 - `app/vite/plugins/static-artifacts.ts` → `404.html` (copy of `index.html` for the SPA fallback on GitHub Pages / nginx `error_page`) + `atom.xml` (up to 20 most recent posts).
 - `app/vite/plugins/md-frontmatter.ts` → parses `*.md?parsed` imports at build time so `gray-matter` / `marked` / `js-yaml` stay out of the client bundle.
 - `app/vite/plugins/posts.ts` → shared post loader reused by the sitemap `dynamicRoutes` and the atom feed.
 
-`public/CNAME` (`www.d3strukt0r.dev`) is copied verbatim by Vite.
+`public/CNAME` (`d3strukt0r.dev`) is copied verbatim by Vite.
 
 ## Docker image
 

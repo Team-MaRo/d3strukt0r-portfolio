@@ -12,6 +12,7 @@ build/
 data/linkedin/**/Profile.csv
 data/linkedin/**/Email Addresses.csv
 data/linkedin/**/Connections.csv
+data/linkedin/**/guide_messages.csv
 data/linkedin/**/PhoneNumbers.csv
 data/linkedin/**/Whatsapp Phone Numbers.csv
 data/linkedin/**/messages.csv
