@@ -1,6 +1,8 @@
 import type {Route} from './+types/cv';
+import {useRef} from 'react';
 import {useTranslation} from 'react-i18next';
 import profilePicture from '~/assets/profile-picture-2018.06.23.jpg';
+import {useInternalLinkNav} from '~/hooks/useInternalLinkNav';
 import {steps} from '~/lib/content';
 import {CERTIFICATES, LANGUAGES, QUALIFICATIONS, SOCIALS} from '~/lib/data';
 
@@ -11,6 +13,8 @@ export function meta(_: Route.MetaArgs) {
 export default function CV() {
   const {t, i18n} = useTranslation();
   const de = i18n.resolvedLanguage === 'de';
+  const timelineRef = useRef<HTMLDivElement>(null);
+  useInternalLinkNav(timelineRef);
 
   return (
     <section className="ta-section">
@@ -62,7 +66,7 @@ export default function CV() {
         <h2 className="ta-h2" data-reveal data-delay="2">{t('cv_page.timeline')}</h2>
       </div>
 
-      <div className="ta-timeline">
+      <div ref={timelineRef} className="ta-timeline">
         {steps.map((s, i) => {
           const d = s.date.slice(0, 7).split('-').reverse().join('/');
           const end = s.enddate ? s.enddate.slice(0, 7).split('-').reverse().join('/') : null;

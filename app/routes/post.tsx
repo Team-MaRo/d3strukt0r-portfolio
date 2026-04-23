@@ -1,5 +1,7 @@
 import type {Route} from './+types/post';
+import {useRef} from 'react';
 import {Link, useParams} from 'react-router';
+import {useInternalLinkNav} from '~/hooks/useInternalLinkNav';
 import {postBySlug, posts} from '~/lib/content';
 
 export function meta({params}: Route.MetaArgs) {
@@ -21,6 +23,8 @@ export default function Post() {
     );
   }
 
+  const articleRef = useRef<HTMLElement>(null);
+  useInternalLinkNav(articleRef);
   const idx = posts.findIndex((p) => p.slug === post.slug);
   const prev = idx < posts.length - 1 ? posts[idx + 1] : null;
   const next = idx > 0 ? posts[idx - 1] : null;
@@ -39,7 +43,7 @@ export default function Post() {
         </div>
       </div>
 
-      <article className="ta-glass ta-about-main ta-content" data-reveal dangerouslySetInnerHTML={{__html: post.html}} />
+      <article ref={articleRef} className="ta-glass ta-about-main ta-content" data-reveal dangerouslySetInnerHTML={{__html: post.html}} />
 
       <nav className="ta-post-nav" aria-label="post navigation">
         {prev
