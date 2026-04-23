@@ -2,6 +2,9 @@
 /* Terminal Aurora — Direction B styles */
 html {
   scrollbar-gutter: stable;
+  // Nav is fixed at top:16px with ~44px inner height — keep anchored jumps
+  // (TOC links, footnote refs, heading hash links) from landing behind it.
+  scroll-padding-top: 80px;
 }
 body {
   overflow-x: clip;

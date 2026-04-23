@@ -43,7 +43,7 @@ export default function Post() {
         </div>
       </div>
 
-      <article ref={articleRef} className="ta-glass ta-about-main ta-content" data-reveal dangerouslySetInnerHTML={{__html: post.html}} />
+      <article ref={articleRef} className="ta-glass ta-about-main ta-content" dangerouslySetInnerHTML={{__html: post.html}} />
 
       <nav className="ta-post-nav" aria-label="post navigation">
         {prev

@@ -46,6 +46,7 @@
     "js-yaml": "^4.1.1",
     "marked": "^18.0.2",
     "sass": "^1.99.0",
+    "shiki": "^4.0.2",
     "tailwindcss": "^4.2.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

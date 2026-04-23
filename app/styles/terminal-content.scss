@@ -116,6 +116,14 @@
 
     }
   }
+  pre.shiki {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+    span {
+      color: var(--shiki-dark);
+      background-color: var(--shiki-dark-bg);
+    }
+  }
   pre.ta-linenos-block {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -228,6 +236,11 @@
 .ta.light .ta-content pre {
   background: rgba(15, 15, 30, 0.05);
 
+}
+.ta.light .ta-content pre.shiki,
+.ta.light .ta-content pre.shiki span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
 }
 /* Page header (ta-heading equivalent) */
 .ta-page-head {

@@ -6,6 +6,31 @@ import matter from 'gray-matter';
 import yaml from 'js-yaml';
 import {marked} from 'marked';
 import markedFootnote from 'marked-footnote';
+import {createHighlighter, type Highlighter} from 'shiki';
+
+const SHIKI_LANGS = [
+  'ts', 'tsx', 'js', 'jsx', 'json', 'yaml', 'md', 'markdown',
+  'bash', 'shell', 'css', 'scss', 'html', 'ruby', 'python', 'text',
+] as const;
+const SHIKI_THEMES = {light: 'github-light-default', dark: 'github-dark-default'} as const;
+
+let highlighter: Highlighter | null = null;
+
+function highlight(code: string, lang: string): string | null {
+  if (!highlighter) {
+    return null;
+  }
+  const loaded = highlighter.getLoadedLanguages();
+  const resolved = loaded.includes(lang) ? lang : null;
+  if (!resolved) {
+    return null;
+  }
+  return highlighter.codeToHtml(code, {
+    lang: resolved,
+    themes: SHIKI_THEMES,
+    defaultColor: false,
+  });
+}
 
 marked.use(markedFootnote());
 
@@ -19,22 +44,34 @@ function htmlEscape(s: string, encode = false): string {
 }
 
 // Support an opt-in `linenos` flag in fenced code-block info strings
-// (e.g. ```js linenos). Emits a two-column pre: gutter of line numbers + code.
+// (e.g. ```js linenos). If a known language is present, shiki produces the
+// highlighted HTML; otherwise we fall back to a plain escaped pre. The linenos
+// flag injects a line-number gutter in either path.
 marked.use({
   renderer: {
-    code({text, lang, escaped}) {
+    code({text, lang}) {
       const tokens = (lang ?? '').trim().split(/\s+/).filter(Boolean);
       const linenos = tokens.includes('linenos');
       const primaryLang = tokens.find((t) => t !== 'linenos') ?? '';
       const normalized = text.replace(/\n$/, '') + '\n';
-      const code = escaped ? normalized : htmlEscape(normalized, true);
-      const cls = primaryLang ? ` class="language-${htmlEscape(primaryLang)}"` : '';
+
+      const shikiHtml = highlight(normalized, primaryLang);
+      const base = shikiHtml
+        ?? `<pre><code${primaryLang ? ` class="language-${htmlEscape(primaryLang)}"` : ''}>${htmlEscape(normalized, true)}</code></pre>`;
+
       if (!linenos) {
-        return `<pre><code${cls}>${code}</code></pre>\n`;
+        return `${base}\n`;
       }
       const lineCount = normalized.replace(/\n$/, '').split('\n').length;
       const gutter = Array.from({length: lineCount}, (_, i) => String(i + 1)).join('\n');
-      return `<pre class="ta-linenos-block"><span aria-hidden="true" class="ta-linenos">${gutter}\n</span><code${cls}>${code}</code></pre>\n`;
+      const gutterSpan = `<span aria-hidden="true" class="ta-linenos">${gutter}\n</span>`;
+      // Inject the gutter span just before the <code> element inside <pre>, and
+      // add the ta-linenos-block class so the grid layout kicks in.
+      const withGutter = base
+        .replace(/<pre([^>]*)class="([^"]*)"/, `<pre$1class="$2 ta-linenos-block"`)
+        .replace(/<pre(?![^>]*class=)/, '<pre class="ta-linenos-block"')
+        .replace('<code', `${gutterSpan}<code`);
+      return `${withGutter}\n`;
     },
   },
 });
@@ -98,9 +135,21 @@ function gistEmbed(id: string): string {
 //   {{ now }}               → current build date ("April 23, 2026")
 //   {{ gist:USER/ID }}      → iframe pibb embed
 //   {{ path.to.key }}       → dotted lookup against site.yml
+//
+// Fenced code blocks and inline code spans are masked before substitution so
+// posts can document the syntax without the tokens being expanded in place.
 export function expandTemplate(md: string, vars: Record<string, unknown>): string {
-  const toc = buildTocList(md);
-  return md.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (match, rawInner: string) => {
+  const frozen: string[] = [];
+  const mask = (m: string): string => {
+    frozen.push(m);
+    return `\x00MASK${frozen.length - 1}\x00`;
+  };
+  const masked = md
+    .replace(/```[\s\S]*?```/g, mask)
+    .replace(/`[^`\n]+`/g, mask);
+
+  const toc = buildTocList(masked);
+  const expanded = masked.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (match, rawInner: string) => {
     const inner = rawInner.trim();
     if (inner === 'toc') {
       return toc;
@@ -114,6 +163,8 @@ export function expandTemplate(md: string, vars: Record<string, unknown>): strin
     const resolved = lookup(inner, vars);
     return resolved ?? match;
   });
+
+  return expanded.replace(/\x00MASK(\d+)\x00/g, (_m, idx: string) => frozen[Number(idx)]!);
 }
 
 // marked v15 doesn't emit id attributes on headings — inject them so the TOC
@@ -203,7 +254,17 @@ export function mdFrontmatter(): Plugin {
     async configResolved(config) {
       siteYmlPath = join(config.root, 'content', 'site.yml');
       routesPath = join(config.root, 'app', 'routes.ts');
-      await refreshVars(config.root);
+      await Promise.all([
+        refreshVars(config.root),
+        (async () => {
+          if (!highlighter) {
+            highlighter = await createHighlighter({
+              themes: [SHIKI_THEMES.light, SHIKI_THEMES.dark],
+              langs: [...SHIKI_LANGS],
+            });
+          }
+        })(),
+      ]);
     },
     async load(id) {
       const [filepath, query] = id.split('?');
