@@ -24,7 +24,7 @@ Design is **Terminal Aurora** — dev-coded glassmorphism (indigo/pink aurora bl
 - `pnpm run typecheck` — `react-router typegen && tsc --noEmit`.
 - `pnpm run lint` / `pnpm run lint:fix` — ESLint via `@iwf-web/eslint-coding-standard` (flat config in `eslint.config.js`).
 - `pnpm run preview` — serve `build/client/` on 4173.
-- `pnpm run sync:linkedin:csv` — import LinkedIn "Download your data" CSVs from `data/linkedin/{basic,full}/` into `content/linkedin/*.yml`.
+- `pnpm run sync:linkedin:csv` — import LinkedIn "Download your data" CSVs from `data/linkedin/` into `content/linkedin/*.yml`.
 - `pnpm run sync:linkedin:api` — same destination, but fetched live via the Member Data Portability API using `LINKEDIN_DMA_TOKEN` from `.env` (see `docs/linkedin-data-portability.md`).
 - `docker compose up --build` — run the production image locally on `http://localhost:8080`.
 
@@ -37,7 +37,7 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 - **Vite 5** with `vite-tsconfig-paths` (the `~/` alias maps to `app/`). Sass configured with `api: "modern-compiler"` in `vite.config.ts`.
 - **Tailwind v4** (`@tailwindcss/vite`) + **Sass** (SCSS syntax) for structural CSS. See the Styling section.
 - **react-i18next** + `i18next-browser-languagedetector`. Translations in `app/locales/{en,de}.yml` (imported as modules via `@modyfi/vite-plugin-yaml`); detected from `localStorage['portfolio:lang']` → navigator. `t()` returns strings; pass `{ returnObjects: true }` for arrays.
-- **marked** + **gray-matter** for Markdown content (blog posts + CV steps).
+- **marked** + **gray-matter** for Markdown content (blog posts).
 
 ### Entry points & layout
 
@@ -59,19 +59,18 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 ### Content (`content/`)
 
 - `content/posts/*.md` — blog posts with `title`/`date` frontmatter, slug derived from filename by stripping leading `YYYY-MM-DD-`. Support `{{ … }}` template tokens (see below).
-- `content/steps/*.md` — CV timeline entries with `title`, `date`, optional `enddate`. Consumed by `/cv`.
 - `content/site.yml` — central variables referenced from posts as `{{ path.to.key }}` (e.g. `{{ repo }}`, `{{ author.email }}`). Expanded at build time. Route URLs are derived from `app/routes.ts` and exposed as `{{ urls.<route-file-basename> }}` (e.g. `{{ urls.blog }}`, `{{ urls.cv }}`) — don't duplicate them in site.yml. Built-in specials: `{{ toc }}` (auto bullet-list of h2–h6 in the doc), `{{ now }}` (build-date string), `{{ gist:ID }}` (→ pibb iframe embed). Footnotes use GFM syntax (`[^id]` / `[^id]: body`) via `marked-footnote`. Fenced code blocks are highlighted at build time by `shiki` with dual light/dark themes (github-light-default / github-dark-default) — tokens carry both colors as CSS variables and the site's `.ta.light` / `.ta.dark` class flips between them. An opt-in `linenos` flag on the info string (e.g. ` ```js linenos `) adds a two-column layout with a line-number gutter.
 - `content/linkedin/*.de.yml` — generated from the LinkedIn export / MDP API (see `bin/linkedin/`). Canonical shape defined in `bin/linkedin/schema.ts`. LinkedIn exports in the account's UI language, which is German for this account, so these files are always DE. Hand-edits between syncs are preserved for optional keys only (e.g. `titleEn`, `titleDe`, `stack`, `flag`, `nameEn`).
 - `content/linkedin/*.en.yml` — English translations. Produced by the `/translate-linkedin` skill (see `.claude/skills/translate-linkedin/SKILL.md`); at runtime the EN values override the DE source per field, with per-field fallback to DE when EN is missing.
 - `Profile.csv` is gitignored — contains lastname + home address; `bin/linkedin/normalize.ts:normalizeProfile` explicitly drops those columns when generating `profile.de.yml`.
 
-`app/lib/content.ts` loads posts + steps at build time via `import.meta.glob(..., { query: "?raw", eager: true })`, parses with `gray-matter`, renders body with `marked`.
+`app/lib/content.ts` loads posts at build time via `import.meta.glob(..., { query: "?parsed", eager: true })` (parsed by `app/vite/plugins/md-frontmatter.ts`). The CV timeline (`/cv`) and home "career" section both render the LinkedIn-derived `EXPERIENCE` array from `app/lib/linkedin.ts` — no separate step files.
 
 `app/lib/linkedin.ts` imports the YAMLs directly (parsed at build time by `@modyfi/vite-plugin-yaml`, so `js-yaml` stays out of the client bundle) and exposes typed arrays + derived views (`EXPERIENCE`, `CERTIFICATES`, `LANGUAGES`) consumed by home/cv/terminal.
 
 `app/lib/data.ts` re-exports the LinkedIn-sourced lists plus hand-authored items (stats, socials, skill groups, tech-stack bars). UI strings live in `app/locales/*.yml`.
 
-Sensitive + useless CSVs inside `data/linkedin/basic/` are gitignored (see `.gitignore` and the comments in `docs/linkedin-data-portability.md`). Only the portfolio-relevant CSVs (`Profile.csv`, `Positions.csv`, `Education.csv`, `Certifications.csv`, `Languages.csv`, `Skills.csv`, `Projects.csv`, `Profile Summary.csv`, `Learning.csv`) are tracked.
+Sensitive + useless CSVs inside `data/linkedin/` are gitignored (see `.gitignore` and the comments in `docs/linkedin-data-portability.md`). Only the portfolio-relevant CSVs (`Profile.csv`, `Positions.csv`, `Education.csv`, `Certifications.csv`, `Languages.csv`, `Skills.csv`, `Projects.csv`, `Profile Summary.csv`, `Learning.csv`) are tracked.
 
 ### Styling
 

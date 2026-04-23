@@ -1,3 +1,27 @@
-# education.en.yml
-# translations (run /translate-linkedin skill to populate)
-[]
+# content/linkedin/education.en.yml
+# translated from education.de.yml @ 2026-04-23T20:00:00Z
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
+- school: Fachhochschule Nordwestschweiz FHNW
+  degree: Bachelor of Applied Science - BASc
+  notes: >-
+    Understanding business and IT, motivating and connecting people, finding and implementing
+    innovative solutions – that is the world of Business Information Technology.
+  activities: ''
+- school: IELS Malta - Institute of English Language Studies
+  degree: Cambridge English CAE (C1)
+  notes: Learned English at the school & prepared for the CAE test
+  activities: ''
+- school: Wirtschaftsgymnasium Basel
+  degree: Federal Diploma of Vocational Education and Training and Vocational Baccalaureate
+  notes: >-
+    At the Business Secondary School the focus is on economics, business administration, law, and
+    finance and accounting.
+  activities: ''
+- school: Sekundarschule Steinli
+  degree: Secondary
+  notes: ''
+  activities: ''
+- school: Primarschule Gestadeck
+  degree: ''
+  notes: ''
+  activities: ''

@@ -909,7 +909,14 @@ body {
   padding: 4px 0;
 }
 .ta-lang-flag {
-  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  svg {
+    width: 22px;
+    height: 15px;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 12%);
+  }
 }
 .ta-lang-name {
   color: var(--fg);

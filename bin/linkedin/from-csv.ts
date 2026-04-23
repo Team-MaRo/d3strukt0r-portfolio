@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Sync LinkedIn "Download your data" CSV archive → content/linkedin/*.de.yml.
-// Reads data/linkedin/{basic,full}/<Topic>.csv (whichever exist), normalizes
-// each row into the shared schema, writes YAML. Run with:
+// Reads data/linkedin/<Topic>.csv, normalizes each row into the shared schema,
+// writes YAML. Run with:
 //   pnpm run sync:linkedin:csv
 
 import type {FileHeader} from './schema';
@@ -20,26 +20,16 @@ import {
   normalizeSkill,
   sortByRecent,
 } from './normalize';
+import {preserveEducationLocation} from './preserve';
 import {writeYaml} from './yaml';
 
 const ROOT = process.cwd();
-const SRC_DIRS = [
-  join(ROOT, 'data', 'linkedin', 'basic'),
-  join(ROOT, 'data', 'linkedin', 'full'),
-];
+const SRC_DIR = join(ROOT, 'data', 'linkedin');
 const OUT_DIR = join(ROOT, 'content', 'linkedin');
 
-// Find a CSV by filename across all source dirs (later dir wins — so the
-// "full" export overrides "basic" once delivered).
 function findCsv(filename: string): string | null {
-  let last: string | null = null;
-  for (const dir of SRC_DIRS) {
-    const p = join(dir, filename);
-    if (existsSync(p)) {
-      last = p;
-    }
-  }
-  return last;
+  const p = join(SRC_DIR, filename);
+  return existsSync(p) ? p : null;
 }
 
 function parseCsv(path: string): Array<Record<string, string>> {
@@ -59,7 +49,10 @@ function load<T>(filename: string, normalize: (row: Record<string, string>) => T
 const header: FileHeader = {source: 'csv', generatedAt: new Date().toISOString()};
 
 const positions = sortByRecent(load('Positions.csv', normalizePosition));
-const education = sortByRecent(load('Education.csv', normalizeEducation));
+const education = preserveEducationLocation(
+  join(OUT_DIR, 'education.de.yml'),
+  sortByRecent(load('Education.csv', normalizeEducation)),
+);
 const certifications = sortByRecent(load('Certifications.csv', normalizeCertification));
 const languages = load('Languages.csv', normalizeLanguage);
 const skills = load('Skills.csv', normalizeSkill);

@@ -1,6 +1,7 @@
 import type {Route} from './+types/home';
 import {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
+import {Flag} from '~/components/Flag';
 import {useContribGraph, useContributions, useGithubRepos, useGithubUser} from '~/hooks/useGithub';
 import {posts} from '~/lib/content';
 
@@ -347,7 +348,7 @@ function Meta() {
           <div className="ta-lang-list">
             {LANGUAGES.map((l, i) => (
               <div key={i} className="ta-lang-row">
-                <span className="ta-lang-flag">{l.flag}</span>
+                <Flag code={l.flagCode} className="ta-lang-flag" />
                 <span className="ta-lang-name">{de ? l.nameDe : l.nameEn}</span>
                 <span className="ta-lang-level">{l.level}</span>
                 <span className="ta-lang-bars">

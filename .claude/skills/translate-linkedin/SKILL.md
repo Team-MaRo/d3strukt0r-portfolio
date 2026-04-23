@@ -41,7 +41,7 @@ Array length and key order must match the DE source exactly so the runtime can z
 - Brand names and tech terms: Symfony, React, PHP, JavaScript, Docker, CraftCMS, MySQL, Git, Jenkins, …
 - Dates (ISO or free-form)
 - Numeric values
-- Any optional hand-edited field the user already set (`titleDe`, `titleEn`, `flag`, `stack`, `nameEn`, `nameDe`, `level`, `stars`, `employmentType`, `employmentTypeDe`) — if the field exists in the existing `.en.yml`, preserve it verbatim
+- Any optional hand-edited field the user already set (`titleDe`, `titleEn`, `stack`, `nameEn`, `nameDe`, `level`, `stars`, `employmentType`, `employmentTypeDe`) — if the field exists in the existing `.en.yml`, preserve it verbatim
 - Canton / region names in Switzerland: "Basel-Landschaft" stays (it's the canton's official name in German AND English usage)
 
 ### Handle empties

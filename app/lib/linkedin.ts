@@ -162,8 +162,8 @@ const EDUCATION_ENTRIES: ExpEntry[] = education.map((e, i) => {
     endKey: e.finishedOn ?? '9999',
     roleDe: e.degree,
     roleEn: pickStr(en, e, 'degree'),
-    locationDe: e.notes,
-    locationEn: pickStr(en, e, 'notes'),
+    locationDe: e.location ?? '',
+    locationEn: (en?.location ?? e.location ?? '') as string,
     durationDe: duration(e.startedOn, e.finishedOn, 'de'),
     durationEn: duration(e.startedOn, e.finishedOn, 'en'),
     employmentTypeDe: '',
@@ -199,17 +199,41 @@ export const CERTIFICATES: CertEntry[] = certifications.map((c, i) => {
 export interface LanguageEntry {
   nameDe: string;
   nameEn: string;
-  flag: string;
+  // ISO 3166-1 alpha-2 code of the flag to render — see `app/components/Flag.tsx`.
+  flagCode: string;
   level: string;
   stars: number;
 }
 
+// Language name (DE or EN, case-insensitive) → flag code. Regional-indicator
+// emoji don't render as flags on Windows, so we map to ISO codes and the
+// `<Flag>` component renders inline SVGs instead.
+const LANGUAGE_FLAG_CODES: Record<string, string> = {
+  deutsch: 'de', german: 'de',
+  spanisch: 'es', spanish: 'es',
+  englisch: 'gb', english: 'gb',
+  italienisch: 'it', italian: 'it',
+  französisch: 'fr', french: 'fr',
+};
+
+function flagCodeFor(...names: Array<string | undefined>): string {
+  for (const n of names) {
+    const hit = n && LANGUAGE_FLAG_CODES[n.toLowerCase()];
+    if (hit) {
+      return hit;
+    }
+  }
+  return '';
+}
+
 export const LANGUAGES: LanguageEntry[] = languages.map((l, i) => {
   const en = languagesEn[i];
+  const nameDe = l.nameDe ?? l.name;
+  const nameEn = l.nameEn ?? pickStr(en, l, 'name');
   return {
-    nameDe: l.nameDe ?? l.name,
-    nameEn: l.nameEn ?? pickStr(en, l, 'name'),
-    flag: en?.flag ?? l.flag ?? '🏳️',
+    nameDe,
+    nameEn,
+    flagCode: flagCodeFor(nameDe, nameEn, en?.nameEn),
     level: en?.level ?? l.level ?? l.proficiency,
     stars: en?.stars ?? l.stars,
   };

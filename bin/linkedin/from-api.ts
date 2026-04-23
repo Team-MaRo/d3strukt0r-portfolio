@@ -22,6 +22,7 @@ import {
   normalizeSkill,
   sortByRecent,
 } from './normalize';
+import {preserveEducationLocation} from './preserve';
 import {writeYaml} from './yaml';
 
 const TOKEN = process.env.LINKEDIN_DMA_TOKEN;
@@ -83,7 +84,10 @@ const [profileRows, positionRows, educationRows, certRows, langRows, skillRows, 
 
 const profile = profileRows[0] ? normalizeProfile(profileRows[0]) : null;
 const positions = sortByRecent(positionRows.map(normalizePosition));
-const education = sortByRecent(educationRows.map(normalizeEducation));
+const education = preserveEducationLocation(
+  join(OUT_DIR, 'education.de.yml'),
+  sortByRecent(educationRows.map(normalizeEducation)),
+);
 const certifications = sortByRecent(certRows.map(normalizeCertification));
 const languages = langRows.map(normalizeLanguage);
 const skills = skillRows.map(normalizeSkill);

@@ -1,7 +1,14 @@
 # content/linkedin/positions.en.yml
-# hand-edited overlay for positions.de.yml — translations + stack chips + employmentType.
-# Order must match positions.de.yml by index. Run /translate-linkedin to refresh text.
+# translated from positions.de.yml @ 2026-04-23T20:00:00Z
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
 - title: Junior Web Developer
+  location: Pratteln, Switzerland
+  description: >-
+    Building specific & specialized web applications. The custom implementations are developed with
+    Symfony on the backend & React on the frontend.  Technologies: Backend: PHP 8.2 - 8.5, Symfony
+    5.4 - 7.4, PhpUnit 9 - 13 Frontend: Less, JavaScript ES6 - ECMAScript 2023, React 18 - 19
+    DevOps & Other Tools: Kubernetes (K8s), Claude Code, Vite.js (& formerly Webpack), PhpStorm,
+    VSCode, Git, Vagrant, Docker
   employmentType: Part-time
   employmentTypeDe: Teilzeit
   stack:
@@ -10,6 +17,11 @@
     - React 18
     - Vite
 - title: Web Development Intern
+  location: Pratteln, Switzerland
+  description: >-
+    Building websites with CraftCMS as the backend and native JavaScript & CSS3 for design
+    implementation.  Technologies: Backend: PHP 8.0, CraftCMS 3.x Frontend: Twig, CSS3, JavaScript
+    (ES6) DevOps & Other Tools: Webpack, ESLint, PhpStorm, Git, Vagrant, Docker
   employmentType: Internship
   employmentTypeDe: Praktikum
   stack:
@@ -18,20 +30,56 @@
     - Twig
     - SCSS
 - title: Warehouse Assistant
+  location: Basel, Switzerland
+  description: • Stocking • Packing
   employmentType: Part-time
   employmentTypeDe: Aushilfe
 - title: Quality Assurance Clerk
+  location: Arlesheim, Switzerland
+  description: >-
+    (intermittent) • Administrative support of quality assurance • Content preparation of process
+    validation reviews
   employmentType: Part-time
   employmentTypeDe: Teilzeit
 - title: Patient Billing Clerk
+  location: Rheinfelden, Switzerland
+  description: >-
+    • Recording personal data of all outpatients • Clarifying the guarantor relationship
+    (outpatients) • Recording services • Monitoring service recording by the medical and
+    therapeutic departments • Reviewing and correcting decentralized service records • Invoicing
+    outpatients
   employmentType: Temporary
   employmentTypeDe: Befristet
 - title: IT Intern
+  location: Rheinfelden, Switzerland
+  description: >-
+    • Providing first level support • Creating the user manual for the intranet • Inventorying the
+    entire IT equipment
   employmentType: Internship
   employmentTypeDe: Praktikum
 - title: Purchasing Clerk
+  location: Rheinfelden, Switzerland
+  description: >-
+    Purchasing Department • Inventory of office furniture and transfer to the inventory management
+    tool • Ensuring smooth and on-time procurement of office supplies, small equipment, care and
+    therapy materials, and cleaning materials • Handling complaints and returns • Ensuring the
+    entire goods procurement during the absence of the head of purchasing • All tasks related to
+    goods procurement; according to material procurement processes • Article master data
+    maintenance in the material management system (Nexus: MatMan) • Filing, managing, and archiving
+    information (purchasing documents)  IT Department • Phone service as a substitute during
+    illness-related absences in IT • Receiving user requests and trouble reports (IT Trouble
+    Ticket) during illness-related absences in IT
   employmentType: Temporary
   employmentTypeDe: Befristet
 - title: Accounting Intern
+  location: Rheinfelden, Switzerland
+  description: >-
+    Financial Accounting • Posting cash, postal, and bank receipts • Reconciling balance sheet
+    accounts • Maintaining financial accounting master data Accounts Payable • Coding, pre-entering,
+    and posting vendor documents • Handling vendor reminders • Preparing the vendor payment run
+    Accounts Receivable • Creating customer invoices (other) • Preparing the accounts receivable
+    aging list Cash • Independent operation of the cash register Other Tasks • Service recording
+    for patients (transport, lab services, personal expenses) • Assistance with statistics •
+    Assistance with interim and year-end closing work • Assistance with ICS
   employmentType: Internship
   employmentTypeDe: Praktikum

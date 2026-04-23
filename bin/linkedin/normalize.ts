@@ -51,11 +51,39 @@ export function proficiencyToStars(prof: string): number {
   return 1;
 }
 
+// LinkedIn's CSV export has exhibited locale-mangled location strings for
+// this account (Cyrillic / Italian variants of Swiss place names). Map the
+// known bad values back to their canonical German forms so the source of
+// truth stays correct across re-exports.
+const LOCATION_FIXES: Record<string, string> = {
+  'Праттельн': 'Pratteln, Schweiz',
+  'Pratteln, Basel-Landschaft, Schweiz': 'Pratteln, Schweiz',
+  'Distretto di Arlesheim': 'Arlesheim, Schweiz',
+  'Distretto di Rheinfelden': 'Rheinfelden, Schweiz',
+};
+
+// Collapse any remaining "City, Canton/Region, Country" down to "City, Country"
+// by dropping the middle part. Assumes the city is the first comma-separated
+// segment and the country is the last — matches how LinkedIn exports locations
+// for this account. Single-segment values (e.g. "Schweiz") pass through.
+function stripRegion(raw: string): string {
+  const parts = raw.split(',').map((p) => p.trim()).filter(Boolean);
+  if (parts.length <= 2) {
+    return parts.join(', ');
+  }
+  return `${parts[0]}, ${parts[parts.length - 1]}`;
+}
+
+function fixLocation(raw: string): string {
+  const s = raw.trim();
+  return stripRegion(LOCATION_FIXES[s] ?? s);
+}
+
 export function normalizePosition(row: Record<string, string>): Position {
   return {
     company: row['Company Name'] ?? '',
     title: row.Title ?? '',
-    location: row.Location ?? '',
+    location: fixLocation(row.Location ?? ''),
     startedOn: parseDate(row['Started On']),
     finishedOn: parseDate(row['Finished On']),
     description: (row.Description ?? '').trim(),

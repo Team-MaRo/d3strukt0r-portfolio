@@ -6,19 +6,10 @@ export interface Post {
   excerpt: string;
 }
 
-export interface Step {
-  slug: string;
-  title: string;
-  date: string;
-  enddate: string | null;
-  html: string;
-}
-
 interface ParsedMd {
   frontmatter: {
     title?: string;
     date?: string | Date;
-    enddate?: string | Date;
     [k: string]: unknown;
   };
   content: string;
@@ -26,12 +17,6 @@ interface ParsedMd {
 }
 
 const postFiles = import.meta.glob<ParsedMd>('../../content/posts/*.md', {
-  query: '?parsed',
-  import: 'default',
-  eager: true,
-});
-
-const stepFiles = import.meta.glob<ParsedMd>('../../content/steps/*.md', {
   query: '?parsed',
   import: 'default',
   eager: true,
@@ -64,19 +49,6 @@ export const posts: Post[] = Object.entries(postFiles)
       date: parseDate(frontmatter.date ?? path.match(/\d{4}-\d{2}-\d{2}/)?.[0]),
       html,
       excerpt: plain.split('\n').find(Boolean)?.slice(0, 160) ?? '',
-    };
-  })
-  .sort((a, b) => b.date.localeCompare(a.date));
-
-export const steps: Step[] = Object.entries(stepFiles)
-  .map(([path, mod]) => {
-    const {frontmatter, html} = mod;
-    return {
-      slug: pathSlug(path),
-      title: String(frontmatter.title ?? pathSlug(path)),
-      date: parseDate(frontmatter.date),
-      enddate: frontmatter.enddate ? parseDate(frontmatter.enddate) : null,
-      html,
     };
   })
   .sort((a, b) => b.date.localeCompare(a.date));

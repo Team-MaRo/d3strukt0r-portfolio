@@ -1,25 +1,10 @@
 # content/linkedin/projects.de.yml
-# generated from csv @ 2026-04-22T11:58:57.686Z
+# generated from csv @ 2026-04-23T21:11:18.187Z
 # DO NOT EDIT generated keys; German overrides (e.g. `titleDe`) are safe to add by hand.
 - title: weleda-webcenter-text-export
   description: >-
     A little web application for Weleda AG which converts the exported XML file of WebCenter into
-    raw text.  Used technologies were: HTML, CSS, JavaScript, React, TypeScript, Material UI  Code
-    repository: https://github.com/D3strukt0r/weleda-webcenter-text-export Production environment:
-    https://webcenter-text-export.manuele-vaccari.ch Development environment:
-    https://webcenter-text-export-dev.manuele-vaccari.ch
-  url: https://webcenter-text-export.manuele-vaccari.ch/
+    raw text.  Used technologies were: HTML, CSS, JavaScript, React, TypeScript, Material UI
+  url: https://weleda-webcenter-text-export.d3strukt0r.dev/
   startedOn: 2019-12
-  finishedOn: null
-- title: OrbitronDev
-  description: >-
-    A connection of multiple services. "service-account" is the main account manager for all
-    services. "service-blog" is used to create as many blogs as you want, "service-forum" for
-    bulletin boards, "service-store" for online shops. "service-cloud" is the unlimited storage for
-    the user and his services in use. https://github.com/D3strukt0r/service-account
-    https://github.com/D3strukt0r/oauth2-orbitrondev  https://github.com/D3strukt0r/service-blog
-    https://github.com/D3strukt0r/service-forum https://github.com/D3strukt0r/service-store 
-    https://github.com/D3strukt0r/service-cloud
-  url: https://github.com/D3strukt0r/OrbitronDev
-  startedOn: 2013-01
   finishedOn: null

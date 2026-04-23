@@ -1,22 +1,26 @@
 # content/linkedin/positions.de.yml
-# generated from csv @ 2026-04-22T11:58:57.686Z
+# generated from csv @ 2026-04-23T21:11:18.187Z
 # DO NOT EDIT generated keys; German overrides (e.g. `titleDe`) are safe to add by hand.
 - company: IWF Web Solutions
   title: Junior Web Developer
-  location: Pratteln, Basel-Landschaft, Schweiz
+  location: Pratteln, Schweiz
   startedOn: 2022-01
   finishedOn: null
   description: >-
-    Backend - PHP 8.2 - Symfony 5.4 - PhpUnit 9  Frontend - Less - JavaScript (ES6) - React 18 
-    Tools - Vite.js (& ehem. Webpack) - PhpStorm - Git - Vagrant - Docker
+    Aufbauen von spezifischen & speziellen Web-Applikation. Die Speziallumsetzungen werden im
+    Backend mit Symfony entwickelt & im Frontend mit React  Technologien: Backend: PHP 8.2 - 8.5,
+    Symfony 5.4 - 7.4, PhpUnit 9 - 13 Frontend: Less, JavaScript ES6 - ECMAScript 2023, React 18 -
+    19 DevOps & Weitere Tools: Kubernetes (K8s), Claude Code, Vite.js (& ehem. Webpack), PhpStorm,
+    VSCode, Git, Vagrant, Docker
 - company: IWF Web Solutions
   title: Praktikant im Bereich Webentwicklung
-  location: Pratteln, Basel-Landschaft, Schweiz
+  location: Pratteln, Schweiz
   startedOn: 2021-01
   finishedOn: 2021-12
   description: >-
-    Backend - PHP 8.0 - CraftCMS 3.x  Frontend - Twig - SCSS - JavaScript (ES6)  Tools - Webpack -
-    ESLint - PhpStorm - Git - Vagrant - Docker
+    Aufbauen von Webseiten mit CraftCMS als Backend und nativem JavaScript & CSS3 für die Umsetzung
+    von Designs.  Technologien: Backend: PHP 8.0, CraftCMS 3.x Frontend: Twig, CSS3, JavaScript
+    (ES6) DevOps & Weitere Tools: Webpack, ESLint, PhpStorm, Git, Vagrant, Docker
 - company: ComputerWorks AG
   title: Aushilfe Lager
   location: Basel, Schweiz
@@ -25,7 +29,7 @@
   description: • Einlagern • Verpacken
 - company: Weleda AG
   title: Sachbearbeiter Qualitätssicherung
-  location: Arlesheim
+  location: Arlesheim, Schweiz
   startedOn: 2018-11
   finishedOn: 2020-05
   description: >-
@@ -33,7 +37,7 @@
     Vorbereitung von Reviews der Prozessvalidierung
 - company: Reha Rheinfelden
   title: Sachbearbeiter Patientenabrechnung
-  location: ''
+  location: Rheinfelden, Schweiz
   startedOn: 2018-05
   finishedOn: 2018-08
   description: >-
@@ -43,7 +47,7 @@
     Leistungen • Fakturierung von ambulanten Patienten
 - company: Reha Rheinfelden
   title: Praktikant in der Informatik
-  location: ''
+  location: Rheinfelden, Schweiz
   startedOn: 2018-04
   finishedOn: 2018-05
   description: >-
@@ -51,7 +55,7 @@
     Inventarisieren des gesamten IT Equipments
 - company: Reha Rheinfelden
   title: Sachbearbeiter im Einkauf
-  location: ''
+  location: Rheinfelden, Schweiz
   startedOn: 2017-07
   finishedOn: 2017-09
   description: >-
@@ -67,14 +71,14 @@
     (IT Trouble Ticket) während krankheitsbedingten Absenzen in der IT
 - company: Reha Rheinfelden
   title: Praktikant in der Buchhaltung
-  location: ''
+  location: Rheinfelden, Schweiz
   startedOn: 2016-07
   finishedOn: 2017-06
   description: >-
     Finanzbuchhaltung • Verbuchen von Kassen-, Post- und Bankbelegen • Abstimmen von Bilanzkonten •
-    Pflegen der Stammdaten Fibu  Kreditoren • Kontieren, vorerfassen und verbuchen von Kreditoren
-    Belegen • Bearbeiten von Kreditoren-Mahnungen • Aufbereiten des Kreditoren-Zahlungslaufs 
+    Pflegen der Stammdaten Fibu Kreditoren • Kontieren, vorerfassen und verbuchen von Kreditoren
+    Belegen • Bearbeiten von Kreditoren-Mahnungen • Aufbereiten des Kreditoren-Zahlungslaufs
     Debitoren • Erstellen der Debitoren-Rechnungen (Übrige) • Aufbereiten der
-    Debitoren-Fälligkeitsliste  Kasse • Selbständige Bedienung des Kassenschalters  Weitere Aufgaben
-    • Leistungserfassung Patientinnen/Patienten (Transport, Laborleistungen, persönliche Auslagen) •
+    Debitoren-Fälligkeitsliste Kasse • Selbständige Bedienung des Kassenschalters Weitere Aufgaben •
+    Leistungserfassung Patientinnen/Patienten (Transport, Laborleistungen, persönliche Auslagen) •
     Mithilfe bei Statistiken • Mithilfe bei Zwischen- und Jahresabschlussarbeiten • Mithilfe bei IKS

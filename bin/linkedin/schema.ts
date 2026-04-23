@@ -37,6 +37,10 @@ export interface Education {
   finishedOn: string | null;
   notes: string;
   activities: string;
+  // Hand-added: physical location / address of the school. LinkedIn doesn't
+  // expose this — fill in by hand. Preserved across re-sync by
+  // `preserveEducationLocation` in the importers.
+  location?: string;
 }
 
 export interface Certification {
@@ -50,11 +54,11 @@ export interface Certification {
 
 export interface Language {
   name: string;
-  // Optional EN/DE names + flag emoji + concise level label, added by hand
-  // after import so the site can render localized rows with flags.
+  // Optional EN/DE names + concise level label, added by hand after import
+  // so the site can render localized rows. Flags are mapped in code (see
+  // `LANGUAGE_FLAGS` in `app/lib/linkedin.ts`).
   nameEn?: string;
   nameDe?: string;
-  flag?: string;
   level?: string;
   // Original LinkedIn proficiency string ("Native or bilingual proficiency", "Limited working proficiency", …).
   proficiency: string;

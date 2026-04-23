@@ -2,9 +2,9 @@ import type {Route} from './+types/cv';
 import {useRef} from 'react';
 import {useTranslation} from 'react-i18next';
 import profilePicture from '~/assets/profile-picture-2018.06.23.jpg';
+import {Flag} from '~/components/Flag';
 import {useInternalLinkNav} from '~/hooks/useInternalLinkNav';
-import {steps} from '~/lib/content';
-import {CERTIFICATES, LANGUAGES, QUALIFICATIONS, SOCIALS} from '~/lib/data';
+import {CERTIFICATES, EXPERIENCE, LANGUAGES, QUALIFICATIONS, SOCIALS} from '~/lib/data';
 
 export function meta(_: Route.MetaArgs) {
   return [{title: 'CV · Manuele'}];
@@ -67,19 +67,24 @@ export default function CV() {
       </div>
 
       <div ref={timelineRef} className="ta-timeline">
-        {steps.map((s, i) => {
-          const d = s.date.slice(0, 7).split('-').reverse().join('/');
-          const end = s.enddate ? s.enddate.slice(0, 7).split('-').reverse().join('/') : null;
+        {EXPERIENCE.map((e, i) => {
+          const dur = de ? e.durationDe : e.durationEn;
+          const emp = de ? e.employmentTypeDe : e.employmentTypeEn;
+          const loc = de ? e.locationDe : e.locationEn;
+          const meta = [dur, emp, loc].filter(Boolean).join(' · ');
           return (
-            <div key={s.slug} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
-              <div className="ta-exp-timestamp">[{d}{end ? ` — ${end}` : ''}]</div>
+            <div key={i} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
+              <div className="ta-exp-timestamp">[{e.period}]</div>
               <div className="ta-exp-body">
-                <div className="ta-exp-company">{s.title}</div>
-                <div
-                  className="ta-exp-dur ta-content"
-                  style={{marginTop: 6}}
-                  dangerouslySetInnerHTML={{__html: s.html}}
-                />
+                <div className="ta-exp-company">
+                  {e.company} <span className="ta-dim">/ {de ? e.roleDe : e.roleEn}</span>
+                </div>
+                {meta && <div className="ta-exp-dur">{meta}</div>}
+                {e.stack.length > 0 && (
+                  <div className="ta-exp-stack">
+                    {e.stack.map((s) => <span key={s} className="ta-chip sm">{s}</span>)}
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -109,7 +114,7 @@ export default function CV() {
           <div className="ta-lang-list">
             {LANGUAGES.map((l, i) => (
               <div key={i} className="ta-lang-row">
-                <span className="ta-lang-flag">{l.flag}</span>
+                <Flag code={l.flagCode} className="ta-lang-flag" />
                 <span className="ta-lang-name">{de ? l.nameDe : l.nameEn}</span>
                 <span className="ta-lang-level">{l.level}</span>
                 <span className="ta-lang-bars">

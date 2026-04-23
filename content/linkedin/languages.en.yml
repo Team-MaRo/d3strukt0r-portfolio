@@ -1,23 +1,18 @@
 # content/linkedin/languages.en.yml
-# hand-edited overlay for languages.de.yml — flag + level + EN name per entry.
-# Order must match languages.de.yml by index.
+# translated from languages.de.yml @ 2026-04-23T20:00:00Z
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
 - nameEn: German
-  flag: 🇩🇪
   level: Native
   stars: 5
 - nameEn: Spanish
-  flag: 🇪🇸
   level: A2
   stars: 3
 - nameEn: English
-  flag: 🇬🇧
   level: C1 · CAE
   stars: 4
 - nameEn: Italian
-  flag: 🇮🇹
   level: A1
   stars: 2
 - nameEn: French
-  flag: 🇫🇷
   level: B1 · DELF
   stars: 2

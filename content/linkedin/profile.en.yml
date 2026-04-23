@@ -1,3 +1,13 @@
-# profile.en.yml
-# translations (run /translate-linkedin skill to populate)
-{}
+# content/linkedin/profile.en.yml
+# translated from profile.de.yml @ 2026-04-23T20:00:00Z
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
+headline: >-
+  ✈️ Finished travelling Asia, especially Japan 🌏 Back to work now ... Junior Web Developer at IWF
+  Web Solutions BSc Business Information Technology.
+summary: >-
+  At the rehabilitation clinic in Rheinfelden I was able to gain extensive knowledge of accounting.
+  My areas of work were accounts payable and various other departments. I successfully completed my
+  studies in Business Information Technology in 2022. I am currently working with great joy at IWF
+  Web Solutions as a web developer (PHP 8, Symfony 5, JS, React 18).
+industry: IT Services and IT Consulting
+geoLocation: Switzerland
