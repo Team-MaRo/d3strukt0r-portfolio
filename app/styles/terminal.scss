@@ -537,6 +537,9 @@ body {
   max-width: var(--max);
   margin: 0 auto;
   padding: 80px 24px;
+  // Section already pads its top by 80px; cancel scroll-padding-top so anchor
+  // jumps land at the heading (y ≈ nav bottom + small gap), not 80px above it.
+  scroll-margin-top: -64px;
 }
 .ta-heading {
   margin-bottom: 40px;

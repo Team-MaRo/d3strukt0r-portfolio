@@ -1,12 +1,13 @@
 import type {Route} from './+types/root';
 import {useEffect} from 'react';
 import {I18nextProvider, useTranslation} from 'react-i18next';
-import {isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration} from 'react-router';
+import {isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration, useLocation} from 'react-router';
 import {CustomCursor} from './components/CustomCursor';
 import {TaBg} from './components/TaBg';
 import {TaFooter} from './components/TaFooter';
 import {TaNav} from './components/TaNav';
 import {TaTerminal} from './components/TaTerminal';
+import {smoothScrollToAnchor} from './hooks/useInternalLinkNav';
 import {useReveal} from './hooks/useReveal';
 import {useTheme} from './hooks/useTheme';
 import {i18n} from './i18n';
@@ -59,9 +60,21 @@ export default function App() {
   useTheme();
   useReveal();
   const {i18n} = useTranslation();
+  const loc = useLocation();
   useEffect(() => {
     document.documentElement.lang = i18n.resolvedLanguage ?? 'en';
   }, [i18n.resolvedLanguage]);
+  useEffect(() => {
+    if (!loc.hash) {
+      return;
+    }
+    const id = loc.hash.slice(1);
+    const tryScroll = () => smoothScrollToAnchor(id);
+    if (!tryScroll()) {
+      // Target not yet mounted (cross-route nav). Retry on next frame.
+      requestAnimationFrame(() => requestAnimationFrame(tryScroll));
+    }
+  }, [loc.pathname, loc.hash]);
 
   return (
     <>

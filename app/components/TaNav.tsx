@@ -1,14 +1,31 @@
 import {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import {Link, useLocation} from 'react-router';
+import {Link, useLocation, useNavigate} from 'react-router';
+import {smoothScrollToAnchor} from '~/hooks/useInternalLinkNav';
 import {useTheme} from '~/hooks/useTheme';
 
 export function TaNav() {
   const {t, i18n} = useTranslation();
   const {theme, toggle} = useTheme();
   const loc = useLocation();
+  const navigate = useNavigate();
   const [time, setTime] = useState<string>('--:-- CET');
   const [open, setOpen] = useState(false);
+
+  const onHashLink = (hash: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+      return;
+    }
+    if (loc.pathname === '/') {
+      if (smoothScrollToAnchor(hash)) {
+        e.preventDefault();
+        window.history.pushState(null, '', `/#${hash}`);
+      }
+      return;
+    }
+    e.preventDefault();
+    void navigate(`/#${hash}`);
+  };
 
   useEffect(() => {
     setOpen(false);
@@ -39,12 +56,12 @@ export function TaNav() {
           </span>
         </Link>
         <div className="ta-nav-links">
-          <Link to="/#about" className="ta-nav-link cursor-hover">{t('nav.about')}</Link>
-          <Link to="/#stack" className="ta-nav-link cursor-hover">{t('nav.stack')}</Link>
-          <Link to="/#work" className="ta-nav-link cursor-hover">{t('nav.work')}</Link>
+          <Link to="/#about" onClick={onHashLink('about')} className="ta-nav-link cursor-hover">{t('nav.about')}</Link>
+          <Link to="/#stack" onClick={onHashLink('stack')} className="ta-nav-link cursor-hover">{t('nav.stack')}</Link>
+          <Link to="/#work" onClick={onHashLink('work')} className="ta-nav-link cursor-hover">{t('nav.work')}</Link>
           <Link to="/blog" className="ta-nav-link cursor-hover">{t('nav.blog')}</Link>
           <Link to="/cv" className="ta-nav-link cursor-hover">{t('nav.cv')}</Link>
-          <Link to="/#contact" className="ta-nav-link cursor-hover">{t('nav.contact')}</Link>
+          <Link to="/#contact" onClick={onHashLink('contact')} className="ta-nav-link cursor-hover">{t('nav.contact')}</Link>
         </div>
         <div className="ta-nav-controls">
           <span className="ta-time">{time}</span>

@@ -8,13 +8,14 @@ const SCROLL_DURATION_MS = 320;
 // Honors `scroll-padding-top` (read from :root) so the target lands below the
 // floating nav, and falls back to an instant jump when the user has
 // prefers-reduced-motion set.
-function smoothScrollToAnchor(id: string): boolean {
+export function smoothScrollToAnchor(id: string): boolean {
   const el = document.getElementById(decodeURIComponent(id));
   if (!el) {
     return false;
   }
   const paddingTop = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-  const targetY = el.getBoundingClientRect().top + window.scrollY - paddingTop;
+  const marginTop = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  const targetY = el.getBoundingClientRect().top + window.scrollY - paddingTop - marginTop;
   const startY = window.scrollY;
   const distance = targetY - startY;
   if (Math.abs(distance) < 1) {
