@@ -34,7 +34,7 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ### Stack
 
-- **Vite 5** with `vite-tsconfig-paths` (the `~/` alias maps to `app/`). Sass configured with `api: "modern-compiler"` in `vite.config.ts`.
+- **Vite 8** with `vite-tsconfig-paths` (the `~/` alias maps to `app/`). Sass configured with `api: "modern-compiler"` in `vite.config.ts`.
 - **Tailwind v4** (`@tailwindcss/vite`) + **Sass** (SCSS syntax) for structural CSS. See the Styling section.
 - **react-i18next** + `i18next-browser-languagedetector`. Translations in `app/locales/{en,de}.yml` (imported as modules via `@modyfi/vite-plugin-yaml`); detected from `localStorage['portfolio:lang']` → navigator. `t()` returns strings; pass `{ returnObjects: true }` for arrays.
 - **marked** + **gray-matter** for Markdown content (blog posts).
@@ -47,19 +47,22 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 ### Components (`app/components/`)
 
 - `TaNav`, `TaFooter`, `TaBg` — shell chrome.
-- `TaTerminal` — easter-egg overlay (listens globally for `~`, `` ` ``, and typing `sudo`). Commands: `help`, `whoami`, `skills`, `experience`, `contact`, `github`, `linkedin`, `anime`, `matrix`, `sudo`, `clear`, `exit`.
+- `TaTerminal` — easter-egg overlay (listens globally for `~`, `` ` ``, and typing `sudo`). Commands: `help`, `whoami`, `skills`, `experience`, `contact`, `github`, `linkedin`, `anime`, `history`, `matrix`, `sudo`, `clear`, `exit`. Fully i18n'd — strings live under `terminal.*` in `app/locales/{en,de}.yml`; `skills` / `experience` are derived at render time from `SKILL_GROUPS` (site.yml) + `EXPERIENCE` (LinkedIn). Arrow-Up/Down cycle shell-style through submitted commands (deduped, draft preserved).
 - `CustomCursor` — animated dot + ring on `(hover: hover) and (pointer: fine)` devices only.
 
 ### Hooks (`app/hooks/`)
 
 - `useTheme` — dark/light, persist to `localStorage['portfolio:theme']`, toggle `body.light|.dark`.
 - `useReveal` — one `IntersectionObserver` observing every `[data-reveal]` element; a paired `MutationObserver` picks up new ones (so per-route elements get animated after navigation).
-- `useGithub` — `useGithubUser`, `useGithubRepos`, `useContribGraph`. Unauthenticated `api.github.com`; cached in `sessionStorage`. Fallback on the home page uses `PROJECTS_FALLBACK` from `data.ts`.
+- `useGithub` — `useGithubUser`, `useGithubRepos`, `useContribGraph`. Unauthenticated `api.github.com`; cached in `sessionStorage`. Fallback on the home page uses `PROJECTS_FALLBACK` from `app/lib/site.ts`.
+- `useInternalLinkNav` — rAF-driven smooth scroll + SPA-routed `<a href="/…">` hijacking, scoped to a ref. Exports `smoothScrollToAnchor(id)` for direct use (e.g. `TaNav` hash links, the hash-change effect in `root.tsx`). Honors `scroll-padding-top` and the target's `scroll-margin-top`; falls back to an instant jump on `prefers-reduced-motion`.
 
 ### Content (`content/`)
 
 - `content/posts/*.md` — blog posts with `title`/`date` frontmatter, slug derived from filename by stripping leading `YYYY-MM-DD-`. Support `{{ … }}` template tokens (see below).
-- `content/site.yml` — central variables referenced from posts as `{{ path.to.key }}` (e.g. `{{ repo }}`, `{{ author.email }}`). Expanded at build time. Route URLs are derived from `app/routes.ts` and exposed as `{{ urls.<route-file-basename> }}` (e.g. `{{ urls.blog }}`, `{{ urls.cv }}`) — don't duplicate them in site.yml. Built-in specials: `{{ toc }}` (auto bullet-list of h2–h6 in the doc), `{{ now }}` (build-date string), `{{ gist:ID }}` (→ pibb iframe embed). Footnotes use GFM syntax (`[^id]` / `[^id]: body`) via `marked-footnote`. Fenced code blocks are highlighted at build time by `shiki` with dual light/dark themes (github-light-default / github-dark-default) — tokens carry both colors as CSS variables and the site's `.ta.light` / `.ta.dark` class flips between them. An opt-in `linenos` flag on the info string (e.g. ` ```js linenos `) adds a two-column layout with a line-number gutter.
+- `content/site.yml` — single source of truth for hand-authored portfolio config. Two consumers:
+  1. **Markdown tokens**: posts reference keys via `{{ path.to.key }}` (e.g. `{{ repo }}`, `{{ socials.email }}`). Expanded at build time by `app/vite/plugins/md-frontmatter.ts:loadSiteVars`. Route URLs are derived from `app/routes.ts` and exposed as `{{ urls.<route-file-basename> }}` (e.g. `{{ urls.blog }}`, `{{ urls.cv }}`) — don't duplicate them in site.yml. Built-in specials: `{{ toc }}` (auto bullet-list of h2–h6 in the doc), `{{ now }}` (build-date string), `{{ gist:ID }}` (→ pibb iframe embed). Footnotes use GFM syntax (`[^id]` / `[^id]: body`) via `marked-footnote`. Fenced code blocks are highlighted at build time by `shiki` with dual light/dark themes (github-light-default / github-dark-default) — tokens carry both colors as CSS variables and the site's `.ta.light` / `.ta.dark` class flips between them. An opt-in `linenos` flag on the info string (e.g. ` ```js linenos `) adds a two-column layout with a line-number gutter.
+  2. **Typed TS loader** (`app/lib/site.ts`): imports the yml via `@modyfi/vite-plugin-yaml` and re-exports `SOCIALS`, `STATS`, `SKILL_GROUPS`, `DAILY_STACK`, `PROJECTS_FALLBACK`, `QUALIFICATIONS`. If you add a new top-level key for UI data, type it in `site.ts` and re-export.
 - `content/linkedin/*.de.yml` — generated from the LinkedIn export / MDP API (see `bin/linkedin/`). Canonical shape defined in `bin/linkedin/schema.ts`. LinkedIn exports in the account's UI language, which is German for this account, so these files are always DE. Hand-edits between syncs are preserved for optional keys only (e.g. `titleEn`, `titleDe`, `stack`, `flag`, `nameEn`).
 - `content/linkedin/*.en.yml` — English translations. Produced by the `/translate-linkedin` skill (see `.claude/skills/translate-linkedin/SKILL.md`); at runtime the EN values override the DE source per field, with per-field fallback to DE when EN is missing.
 - `Profile.csv` is gitignored — contains lastname + home address; `bin/linkedin/normalize.ts:normalizeProfile` explicitly drops those columns when generating `profile.de.yml`.
@@ -68,7 +71,7 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 `app/lib/linkedin.ts` imports the YAMLs directly (parsed at build time by `@modyfi/vite-plugin-yaml`, so `js-yaml` stays out of the client bundle) and exposes typed arrays + derived views (`EXPERIENCE`, `CERTIFICATES`, `LANGUAGES`) consumed by home/cv/terminal.
 
-`app/lib/data.ts` re-exports the LinkedIn-sourced lists plus hand-authored items (stats, socials, skill groups, tech-stack bars). UI strings live in `app/locales/*.yml`.
+All non-LinkedIn structured data (`SOCIALS`, `STATS`, `SKILL_GROUPS`, `DAILY_STACK`, `PROJECTS_FALLBACK`, `QUALIFICATIONS`) comes from `app/lib/site.ts`, which is a typed facade over `content/site.yml`. UI strings live in `app/locales/*.yml`. There is no `app/lib/data.ts` — if you see references to it, they're stale.
 
 Sensitive + useless CSVs inside `data/linkedin/` are gitignored (see `.gitignore` and the comments in `docs/linkedin-data-portability.md`). Only the portfolio-relevant CSVs (`Profile.csv`, `Positions.csv`, `Education.csv`, `Certifications.csv`, `Languages.csv`, `Skills.csv`, `Projects.csv`, `Profile Summary.csv`, `Learning.csv`) are tracked.
 
@@ -82,9 +85,16 @@ Sensitive + useless CSVs inside `data/linkedin/` are gitignored (see `.gitignore
   - `@custom-variant dark (&:where(body.dark, body.dark *))` — ties `dark:` to `useTheme`'s `body.dark` / `body.light` toggle, not `prefers-color-scheme`.
   - `@theme inline { … }` — Tailwind tokens (`--color-accent`, `--color-fg-mute`, `--color-line`, `--color-glass`, `--font-sans`/`--font-mono`/`--font-display`, `--container-max`) map onto the runtime CSS custom properties declared on `.ta` / `.ta.light` in `terminal.scss`. Utilities like `bg-accent`, `text-fg-mute`, `border-line` therefore re-theme automatically when the toggle flips.
   - `@utility` blocks — this is where to put reusable class bundles that use `@apply`. Custom class names compose with Tailwind variants (e.g. `hover:ta-accent`).
-- `app/styles/terminal.scss` — core design tokens on `.ta` / `.ta.light` plus all `.ta-*` component rules. Uses Sass `&` nesting, `@media` queries, `@keyframes`. Each partial wraps its contents in `@layer components { … }` so Tailwind utilities used directly in JSX still win on cascade.
-- `app/styles/terminal-content.scss` — Markdown-in-glass rules (post / page bodies), scroll-reveal animation, easter-egg modal.
-- `app/styles/main.scss` — single `@use` entry.
+- `app/styles/terminal.scss` + `app/styles/terminal-content.scss` — thin barrel files that `@use` partials under `app/styles/terminal/` and `app/styles/terminal-content/`. Each partial wraps its rules in `@layer components { … }` so Tailwind utilities used directly in JSX still win on cascade.
+  - `terminal/_base.scss` — design tokens on `.ta` / `.ta.light`, resets, utility classes, background blobs, glass.
+  - `terminal/_nav.scss`, `_hero.scss`, `_layout.scss`, `_blocks.scss`, `_meta.scss`, `_contact-footer.scss` — section-scoped `.ta-*` component rules.
+  - `terminal-content/_content.scss` — markdown-in-glass (`.ta-content`) prose + code + gists.
+  - `terminal-content/_pages.scss`, `_reveal.scss`, `_terminal-ui.scss`, `_misc.scss` — page-level bits (404, archive, timeline, pagination), scroll-reveal animation, easter-egg overlay, page-specific utilities.
+- `app/styles/main.scss` — single `@use "terminal"; @use "terminal-content"` entry.
+
+**No inline `style={{…}}` on JSX.** Either add a class to the appropriate `terminal-content/_misc.scss` or section partial, or use Tailwind utilities. The one allowed escape hatch is setting a CSS custom property inline for a value the server can't know (e.g. `style={{'--ta-bar-w': \`${pct}%\`} as React.CSSProperties}`), with the SCSS rule consuming it via `var(--ta-bar-w)`.
+
+**Stacking quirk.** `terminal/_base.scss` contains `.ta > *:not(.ta-bg, .ta-cursor-ring, .ta-cursor-dot, .ta-term-hint, .ta-term-backdrop) { position: relative; z-index: 1 }`. Any new direct child of `<body class="ta">` that needs `position: fixed` (cursor overlays, floating widgets) must be added to that `:not()` exclusion or it will collapse to `position: relative`.
 
 All selectors are namespaced under `.ta`; theme flips via `.ta.light` / `.ta.dark` on `<body>` (`useTheme()` in `app/hooks/useTheme.ts`). The `.ta` block in `terminal.scss` is the source of truth for actual colour values; `@theme inline` in `tailwind.css` just wires Tailwind's naming onto those runtime vars.
 
@@ -130,3 +140,5 @@ SEO + SPA-fallback artifacts are emitted by Vite plugins (`vite.config.ts`), no 
 - **`.dockerignore`** — must not list `docker` (the folder) or `docker/nginx.conf` disappears from the build context and the `COPY` step fails.
 - **Node version bump** — touch all four spots in lockstep (`package.json engines`, `Dockerfile`, both workflows, `.devcontainer/devcontainer.json`).
 - **pnpm via Corepack** — the `packageManager` field in `package.json` pins the version. Run `corepack enable` once; don't `npm i -g pnpm`. The Dockerfile and devcontainer both call corepack.
+- **Nav anchor jumps + `scroll-margin-top`** — `TaNav` hash links (`/#about`, `/#stack`, `/#work`, `/#contact`) run through `smoothScrollToAnchor`. `html { scroll-padding-top: 80px }` (in `_base.scss`) clears the fixed nav; `.ta-section` has `scroll-margin-top: -64px` to cancel its own 80px top padding so section-anchor jumps land at the heading, not 80px above it. If you add a new section type that should be a nav target, give it the same `scroll-margin-top` or the anchor will overshoot.
+- **Cross-route hash scroll** — `app/root.tsx` watches `loc.hash`; when it changes (including after a cross-route navigation like `/cv` → `/#about`), it calls `smoothScrollToAnchor` on the next frame. Don't also add per-route hash handlers — they race.
