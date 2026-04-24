@@ -87,6 +87,38 @@ footer:
 terminal:
   hint: drücke
   hint_suffix: für das Terminal
+  welcome: "manuele@portfolio ~ % willkommen"
+  intro: 'Tippe "help" für Befehle. ESC oder ~ zum Schliessen.'
+  goodbye: tschüss.
+  not_found: "Befehl nicht gefunden: {{cmd}}"
+  try_help: 'versuche "help"'
+  open_github: "→ öffne github.com/D3strukt0r"
+  open_linkedin: "→ öffne linkedin.com/in/d3strukt0r"
+  help:
+    header: "verfügbare Befehle:"
+    items:
+      - "  whoami     — wer ist Manuele?"
+      - "  skills     — Tech-Stack"
+      - "  experience — Werdegang"
+      - "  contact    — so erreichst du mich"
+      - "  github     — GitHub-Profil öffnen"
+      - "  linkedin   — LinkedIn öffnen"
+      - "  anime      — was schaust du gerade?"
+      - "  matrix     — hmm…"
+      - "  sudo       — probier's"
+      - "  clear      — Bildschirm leeren"
+      - "  exit       — Terminal schliessen"
+  whoami:
+    - "Manuele · Full-Stack Web Developer · Schweiz"
+    - "5+ Jahre @ IWF Web Solutions. BSc Wirtschaftsinformatik (FHNW)."
+    - "PHP / Symfony / React. Spricht DE, EN, FR, ES, IT."
+  anime:
+    - "schaue aktuell: ████████░░ (klassifiziert)"
+    - "Empfehlungen willkommen — schreib mir."
+  sudo:
+    - "[sudo] Passwort für manuele: ••••••••"
+    - "Zugriff gewährt. Du hast jetzt Root."
+    - "War nur Spass. Danke fürs Mitspielen 🍡"
 location: Schweiz
 blog_page:
   title: Blog

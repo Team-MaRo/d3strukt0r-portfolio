@@ -4,7 +4,8 @@ import {useTranslation} from 'react-i18next';
 import profilePicture from '~/assets/profile-picture-2018.06.23.jpg';
 import {Flag} from '~/components/Flag';
 import {useInternalLinkNav} from '~/hooks/useInternalLinkNav';
-import {CERTIFICATES, EXPERIENCE, LANGUAGES, QUALIFICATIONS, SOCIALS} from '~/lib/data';
+import {CERTIFICATES, EXPERIENCE, LANGUAGES} from '~/lib/linkedin';
+import {QUALIFICATIONS, SOCIALS} from '~/lib/site';
 
 export function meta(_: Route.MetaArgs) {
   return [{title: 'CV · Manuele'}];

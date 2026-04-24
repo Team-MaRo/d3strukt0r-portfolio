@@ -4,11 +4,8 @@ import {useTranslation} from 'react-i18next';
 import {Flag} from '~/components/Flag';
 import {useContribGraph, useContributions, useGithubRepos, useGithubUser} from '~/hooks/useGithub';
 import {posts} from '~/lib/content';
-
-import {
-  CERTIFICATES, DAILY_STACK, EXPERIENCE, LANGUAGES, PROJECTS_FALLBACK,
-  SKILL_GROUPS, SOCIALS, STATS,
-} from '~/lib/data';
+import {CERTIFICATES, EXPERIENCE, LANGUAGES} from '~/lib/linkedin';
+import {DAILY_STACK, PROJECTS_FALLBACK, SKILL_GROUPS, SOCIALS, STATS} from '~/lib/site';
 
 export function meta(_: Route.MetaArgs) {
   return [{title: 'Manuele · Full-Stack Web Developer'}];

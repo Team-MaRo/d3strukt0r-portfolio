@@ -1,5 +1,9 @@
+# yaml-language-server: $schema=https://www.schemastore.org/any.json
 # Central site variables. Referenced from Markdown posts via `{{ path.to.key }}`
 # — expanded at build time in `app/vite/plugins/md-frontmatter.ts`.
+# Also the single source for hand-authored UI data, imported by
+# `app/lib/site.ts` (see there for the typed shape).
+#
 # Built-in specials (no need to declare): {{ toc }}, {{ now }}, {{ gist:ID }}.
 # Route URLs come from `app/routes.ts` at build time, exposed as
 # `{{ urls.<route-file-basename> }}`. Anything declared under `urls:` below
@@ -14,8 +18,85 @@ urls:
   feed: /atom.xml
   not_found: /404.html
 
-author:
-  name: Manuele
+socials:
   email: gh-contact@d3st.dev
   github: https://github.com/D3strukt0r
-  linkedin: https://www.linkedin.com/in/D3strukt0r/
+  linkedin: https://www.linkedin.com/in/d3strukt0r/
+  twitter: https://x.com/D3strukt0r1
+  xing: https://www.xing.com/profile/Manuele_xx/cv
+
+# Home "stats strip". `labelKey` resolves against `app/locales/*.yml`.
+stats:
+  - {value: "5+", labelKey: stats.years}
+  - {value: "5", labelKey: stats.languages}
+  - {value: "4", labelKey: stats.certs}
+  - {value: "∞", labelKey: stats.anime}
+
+# Home "daily stack" bars.
+dailyStack:
+  - {name: php, pct: 92}
+  - {name: symfony, pct: 88}
+  - {name: react, pct: 80}
+  - {name: docker, pct: 70}
+  - {name: sap/erp, pct: 60}
+
+# Home "skill groups" cards. `key` resolves against `skills.groups.<key>`
+# in the locale files for the group heading.
+skillGroups:
+  - key: backend
+    items: [PHP 8.2, Symfony 5.4, PhpUnit 9, CraftCMS, MySQL, Twig]
+  - key: frontend
+    items: [React 18, JavaScript ES6, Less, SCSS, HTML5, CSS3]
+  - key: tools
+    items: [Git, Docker, Vite.js, Webpack, Vagrant, PhpStorm]
+  - key: business
+    items: [SAP S/4HANA, Scrum (PSD I), Req. Engineering, Accounting]
+
+# Fallback for the GitHub-repos grid when the API is unreachable or rate-limited.
+projectsFallback:
+  - name: personal-site
+    descEn: This portfolio, open source.
+    descDe: Dieses Portfolio, Open Source.
+    stars: 0
+    lang: TypeScript
+    url: https://github.com/D3strukt0r/d3strukt0r.github.io
+  - name: symfony-starter
+    descEn: Opinionated Symfony 6 starter.
+    descDe: Opinionated Symfony 6 Starter.
+    stars: 12
+    lang: PHP
+    url: https://github.com/D3strukt0r
+  - name: craft-boilerplate
+    descEn: CraftCMS + Vite + Docker.
+    descDe: CraftCMS + Vite + Docker.
+    stars: 8
+    lang: PHP
+    url: https://github.com/D3strukt0r
+
+# CV "qualifications" block — star ratings are hand-authored (LinkedIn
+# exports don't carry per-skill proficiency).
+qualifications:
+  programs:
+    - {name: JetBrains PhpStorm, stars: 4}
+    - {name: Microsoft Word, stars: 4}
+    - {name: Microsoft Excel, stars: 4}
+    - {name: Microsoft PowerPoint, stars: 4}
+    - {name: JetBrains IntelliJ, stars: 3}
+    - {name: Nexus Hospis, stars: 3}
+    - {name: Microsoft VS Code, stars: 2}
+  stack:
+    languages:
+      - {name: HTML, stars: 4}
+      - {name: PHP (OOP), stars: 4}
+      - {name: Twig, stars: 4}
+      - {name: CSS, stars: 2}
+      - {name: JavaScript, stars: 2}
+      - {name: SQL, stars: 2}
+      - {name: Java, stars: 2}
+    databases:
+      - {name: MySQL, stars: 3}
+    os:
+      - {name: Windows, stars: 3}
+      - {name: Ubuntu, stars: 2}
+    vcs:
+      - {name: Git, stars: 3}

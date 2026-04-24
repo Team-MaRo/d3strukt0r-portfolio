@@ -87,6 +87,38 @@ footer:
 terminal:
   hint: press
   hint_suffix: for terminal
+  welcome: "manuele@portfolio ~ % welcome"
+  intro: 'Type "help" for commands. Press ESC or ~ to close.'
+  goodbye: goodbye.
+  not_found: "command not found: {{cmd}}"
+  try_help: 'try "help"'
+  open_github: "→ opening github.com/D3strukt0r"
+  open_linkedin: "→ opening linkedin.com/in/d3strukt0r"
+  help:
+    header: "available commands:"
+    items:
+      - "  whoami     — who is manuele?"
+      - "  skills     — tech stack"
+      - "  experience — work history"
+      - "  contact    — how to reach me"
+      - "  github     — open github profile"
+      - "  linkedin   — open linkedin"
+      - "  anime      — currently watching?"
+      - "  matrix     — hmm…"
+      - "  sudo       — try it"
+      - "  clear      — clear screen"
+      - "  exit       — close terminal"
+  whoami:
+    - "Manuele · Full-Stack Web Developer · Switzerland"
+    - "5+ yrs @ IWF Web Solutions. BSc Business IT (FHNW)."
+    - "PHP / Symfony / React. Speaks DE, EN, FR, ES, IT."
+  anime:
+    - "currently watching: ████████░░ (classified)"
+    - "recommendations welcome — ping me."
+  sudo:
+    - "[sudo] password for manuele: ••••••••"
+    - "access granted. you now have root."
+    - "just kidding. but thanks for playing 🍡"
 location: Switzerland
 blog_page:
   title: Writing

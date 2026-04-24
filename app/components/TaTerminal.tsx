@@ -1,9 +1,13 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
+import {EXPERIENCE} from '~/lib/linkedin';
+import {SKILL_GROUPS, SOCIALS} from '~/lib/site';
 
 interface Line {kind: 'in' | 'out' | 'err' | 'system'; text: string}
 
 const ACCENT = '#22d3ee';
 const ACCENT2 = '#a78bfa';
+const PROTO_RE = /^https?:\/\//;
 
 function matrix(): string[] {
   const chars = 'アイウエオカキクケコサシスセソタチツテト01';
@@ -19,10 +23,12 @@ function matrix(): string[] {
 }
 
 export function TaTerminal() {
+  const {t, i18n} = useTranslation();
+  const de = i18n.resolvedLanguage === 'de';
   const [open, setOpen] = useState(false);
-  const [history, setHistory] = useState<Line[]>([
-    {kind: 'system', text: 'manuele@portfolio ~ % welcome'},
-    {kind: 'out', text: 'Type "help" for commands. Press ESC or ~ to close.'},
+  const [history, setHistory] = useState<Line[]>(() => [
+    {kind: 'system', text: t('terminal.welcome')},
+    {kind: 'out', text: t('terminal.intro')},
   ]);
   const [input, setInput] = useState('');
   const bufferRef = useRef('');
@@ -65,63 +71,37 @@ export function TaTerminal() {
     }
   }, [open, history]);
 
-  const commands: Record<string, () => string[] | null> = {
+  const commands = useMemo<Record<string, () => string[] | null>>(() => ({
     help: () => [
-      'available commands:',
-      '  whoami     — who is manuele?',
-      '  skills     — tech stack',
-      '  experience — work history',
-      '  contact    — how to reach me',
-      '  github     — open github profile',
-      '  linkedin   — open linkedin',
-      '  anime      — currently watching?',
-      '  matrix     — hmm…',
-      '  sudo       — try it',
-      '  clear      — clear screen',
-      '  exit       — close terminal',
+      t('terminal.help.header'),
+      ...(t('terminal.help.items', {returnObjects: true}) as string[]),
     ],
-    whoami: () => [
-      'Manuele · Full-Stack Web Developer · Switzerland',
-      '5+ yrs @ IWF Web Solutions. BSc Business IT (FHNW).',
-      'PHP / Symfony / React. Speaks DE, EN, FR, ES, IT.',
-    ],
-    skills: () => [
-      'backend:  PHP 8.2 · Symfony 5.4 · PhpUnit · CraftCMS · MySQL',
-      'frontend: React 18 · JS ES6 · Less · SCSS · Twig',
-      'tools:    Git · Docker · Vite · Vagrant · PhpStorm',
-      'business: SAP S/4HANA · Scrum PSD I · IREB',
-    ],
-    experience: () => [
-      '2022 — now   IWF Web Solutions · Junior Web Dev (4y 4m)',
-      '2021         IWF Web Solutions · Intern (1y)',
-      '2018 — 2022  FHNW · BSc Business IT',
-      '2013 — 2016  WMS · Kaufmann EFZ + BM',
-    ],
+    whoami: () => t('terminal.whoami', {returnObjects: true}) as string[],
+    skills: () => SKILL_GROUPS.map((g) => `${t(`skills.groups.${g.key}`)}: ${g.items.join(' · ')}`),
+    experience: () => [...EXPERIENCE]
+      .sort((a, b) => b.endKey.localeCompare(a.endKey))
+      .map((e) => `${e.period}  ${e.company} · ${de ? e.roleDe : e.roleEn}`),
     contact: () => [
-      'email:    gh-contact@d3st.dev',
-      'github:   github.com/D3strukt0r',
-      'linkedin: linkedin.com/in/d3strukt0r',
+      `email:    ${SOCIALS.email}`,
+      `github:   ${SOCIALS.github.replace(PROTO_RE, '')}`,
+      `linkedin: ${SOCIALS.linkedin.replace(PROTO_RE, '')}`,
     ],
     github: () => {
-      window.open('https://github.com/D3strukt0r', '_blank'); return ['→ opening github.com/D3strukt0r'];
+      window.open(SOCIALS.github, '_blank'); return [t('terminal.open_github')];
     },
     linkedin: () => {
-      window.open('https://www.linkedin.com/in/d3strukt0r/', '_blank'); return ['→ opening linkedin.com/in/d3strukt0r'];
+      window.open(SOCIALS.linkedin, '_blank'); return [t('terminal.open_linkedin')];
     },
-    anime: () => ['currently watching: ████████░░ (classified)', 'recommendations welcome — ping me.'],
+    anime: () => t('terminal.anime', {returnObjects: true}) as string[],
     matrix,
-    sudo: () => [
-      '[sudo] password for manuele: ••••••••',
-      'access granted. you now have root.',
-      'just kidding. but thanks for playing 🍡',
-    ],
+    sudo: () => t('terminal.sudo', {returnObjects: true}) as string[],
     clear: () => {
       setTimeout(setHistory, 0, []); return null;
     },
     exit: () => {
-      setTimeout(close, 0); return ['goodbye.'];
+      setTimeout(close, 0); return [t('terminal.goodbye')];
     },
-  };
+  }), [t, de, close]);
 
   const run = (raw: string) => {
     const cmd = raw.trim().toLowerCase();
@@ -131,11 +111,11 @@ export function TaTerminal() {
       if (fn) {
         const out = fn();
         if (out) {
-          out.forEach((t) => entries.push({kind: 'out', text: t}));
+          out.forEach((tx) => entries.push({kind: 'out', text: tx}));
         }
       } else {
-        entries.push({kind: 'err', text: `command not found: ${cmd}`});
-        entries.push({kind: 'out', text: 'try "help"'});
+        entries.push({kind: 'err', text: t('terminal.not_found', {cmd})});
+        entries.push({kind: 'out', text: t('terminal.try_help')});
       }
     }
     setHistory((h) => [...h, ...entries]);
@@ -169,7 +149,7 @@ export function TaTerminal() {
           width: 'auto',
         }}
       >
-        <span style={{color: ACCENT}}>▸</span> press <kbd style={{padding: '1px 5px', borderRadius: 3, background: 'rgba(255,255,255,.1)', fontSize: 11}}>~</kbd> for terminal
+        <span style={{color: ACCENT}}>▸</span> {t('terminal.hint')} <kbd style={{padding: '1px 5px', borderRadius: 3, background: 'rgba(255,255,255,.1)', fontSize: 11}}>~</kbd> {t('terminal.hint_suffix')}
       </div>
     );
   }
