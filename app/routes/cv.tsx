@@ -59,7 +59,7 @@ export default function CV() {
         </div>
       </div>
 
-      <div className="ta-heading" style={{marginTop: 64}}>
+      <div className="ta-heading ta-heading--lg">
         <div className="ta-hnum" data-reveal>01</div>
         <div className="ta-hcode" data-reveal data-delay="1">
           <span className="ta-dim">$</span> {t('cv_page.timeline_code')}
@@ -92,7 +92,7 @@ export default function CV() {
         })}
       </div>
 
-      <div className="ta-heading" style={{marginTop: 64}}>
+      <div className="ta-heading ta-heading--lg">
         <div className="ta-hnum" data-reveal>02</div>
         <div className="ta-hcode" data-reveal data-delay="1">
           <span className="ta-dim">$</span> {t('cv_page.qualifications_code')}
@@ -100,8 +100,8 @@ export default function CV() {
         <h2 className="ta-h2" data-reveal data-delay="2">{t('cv_page.qualifications')}</h2>
       </div>
 
-      <div className="ta-glass ta-about-main" data-reveal style={{marginBottom: 18}}>
-        <div className="ta-meta-row" style={{margin: 0, gap: 10}}>
+      <div className="ta-glass ta-about-main ta-qual-legend" data-reveal>
+        <div className="ta-meta-row">
           <span className="ta-chip"><span className="ta-dim">{t('cv_page.legend.basic')}</span> · 1</span>
           <span className="ta-chip"><span className="ta-dim">{t('cv_page.legend.standard')}</span> · 2</span>
           <span className="ta-chip"><span className="ta-dim">{t('cv_page.legend.good')}</span> · 3</span>
@@ -126,7 +126,7 @@ export default function CV() {
               </div>
             ))}
           </div>
-          <p className="ta-dim" style={{fontFamily: '\'JetBrains Mono\'', fontSize: 11, margin: '14px 0 0'}}>
+          <p className="ta-dim ta-cv-note">
             {t('cv_page.certs_on_request')}
             <a href={`mailto:${SOCIALS.email}`} className="ta-link cursor-hover">{t('cv_page.email_me')}</a>
           </p>
@@ -152,17 +152,17 @@ export default function CV() {
           {QUALIFICATIONS.programs.map((p) => (
             <div key={p.name} className="ta-side-skillrow">
               <span>{p.name}</span>
-              <span className="ta-bar"><span style={{width: `${p.stars * 25}%`}} /></span>
+              <span className="ta-bar"><span style={{'--ta-bar-w': `${p.stars * 25}%`} as React.CSSProperties} /></span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="ta-heading" style={{marginTop: 40}}>
+      <div className="ta-heading ta-heading--md">
         <div className="ta-hcode" data-reveal>
           <span className="ta-dim">$</span> {t('cv_page.stack_code')}
         </div>
-        <h3 className="ta-h2" data-reveal data-delay="1" style={{fontSize: 'clamp(20px, 2.2vw, 26px)'}}>
+        <h3 className="ta-h2 ta-cv-h3" data-reveal data-delay="1">
           {t('cv_page.tech_stack')}
         </h3>
       </div>
@@ -173,25 +173,25 @@ export default function CV() {
             {QUALIFICATIONS.stack[cat].map((item) => (
               <div key={item.name} className="ta-side-skillrow">
                 <span>{item.name}</span>
-                <span className="ta-bar"><span style={{width: `${item.stars * 25}%`}} /></span>
+                <span className="ta-bar"><span style={{'--ta-bar-w': `${item.stars * 25}%`} as React.CSSProperties} /></span>
               </div>
             ))}
           </div>
         ))}
       </div>
 
-      <div className="ta-heading" style={{marginTop: 64}}>
+      <div className="ta-heading ta-heading--lg">
         <div className="ta-hnum" data-reveal>03</div>
         <div className="ta-hcode" data-reveal data-delay="1">
           <span className="ta-dim">$</span> {t('cv_page.elsewhere_code')}
         </div>
         <h2 className="ta-h2" data-reveal data-delay="2">{t('cv_page.elsewhere')}</h2>
       </div>
-      <p className="ta-dim" data-reveal style={{fontFamily: '\'JetBrains Mono\'', fontSize: 12, margin: '0 0 16px'}}>
+      <p className="ta-dim ta-cv-note--elsewhere" data-reveal>
         {t('cv_page.github_link')}{' '}
         <a href={`${SOCIALS.github}?tab=repositories`} className="ta-link cursor-hover">GitHub profile</a> →
       </p>
-      <div className="ta-contact-socials" data-reveal style={{justifyContent: 'flex-start'}}>
+      <div className="ta-contact-socials ta-contact-socials--start" data-reveal>
         <a href={SOCIALS.linkedin} target="_blank" rel="noreferrer" className="ta-socbtn cursor-hover">LinkedIn</a>
         <a href={SOCIALS.github} target="_blank" rel="noreferrer" className="ta-socbtn cursor-hover">GitHub</a>
         <a href={SOCIALS.xing} target="_blank" rel="noreferrer" className="ta-socbtn cursor-hover">Xing</a>

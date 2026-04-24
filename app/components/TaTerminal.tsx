@@ -5,8 +5,6 @@ import {SKILL_GROUPS, SOCIALS} from '~/lib/site';
 
 interface Line {kind: 'in' | 'out' | 'err' | 'system'; text: string}
 
-const ACCENT = '#22d3ee';
-const ACCENT2 = '#a78bfa';
 const PROTO_RE = /^https?:\/\//;
 
 function matrix(): string[] {
@@ -32,6 +30,9 @@ export function TaTerminal() {
   ]);
   const [input, setInput] = useState('');
   const bufferRef = useRef('');
+  const cmdHistRef = useRef<string[]>([]);
+  const cmdCursorRef = useRef(-1);
+  const draftRef = useRef('');
   const inputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +94,13 @@ export function TaTerminal() {
       window.open(SOCIALS.linkedin, '_blank'); return [t('terminal.open_linkedin')];
     },
     anime: () => t('terminal.anime', {returnObjects: true}) as string[],
+    history: () => {
+      const h = cmdHistRef.current;
+      if (!h.length) {
+        return [t('terminal.history_empty')];
+      }
+      return h.map((c, i) => `  ${String(i + 1).padStart(3)}  ${c}`);
+    },
     matrix,
     sudo: () => t('terminal.sudo', {returnObjects: true}) as string[],
     clear: () => {
@@ -104,7 +112,16 @@ export function TaTerminal() {
   }), [t, de, close]);
 
   const run = (raw: string) => {
-    const cmd = raw.trim().toLowerCase();
+    const trimmed = raw.trim();
+    const cmd = trimmed.toLowerCase();
+    if (trimmed) {
+      const h = cmdHistRef.current;
+      if (h[h.length - 1] !== trimmed) {
+        h.push(trimmed);
+      }
+    }
+    cmdCursorRef.current = -1;
+    draftRef.current = '';
     const entries: Line[] = [{kind: 'in', text: raw}];
     if (cmd) {
       const fn = commands[cmd];
@@ -121,148 +138,92 @@ export function TaTerminal() {
     setHistory((h) => [...h, ...entries]);
   };
 
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const hist = cmdHistRef.current;
+    if (e.key === 'ArrowUp') {
+      if (!hist.length) {
+        return;
+      }
+      e.preventDefault();
+      if (cmdCursorRef.current === -1) {
+        draftRef.current = input;
+        cmdCursorRef.current = hist.length - 1;
+      } else if (cmdCursorRef.current > 0) {
+        cmdCursorRef.current -= 1;
+      }
+      setInput(hist[cmdCursorRef.current]!);
+    } else if (e.key === 'ArrowDown') {
+      if (cmdCursorRef.current === -1) {
+        return;
+      }
+      e.preventDefault();
+      if (cmdCursorRef.current >= hist.length - 1) {
+        cmdCursorRef.current = -1;
+        setInput(draftRef.current);
+        draftRef.current = '';
+      } else {
+        cmdCursorRef.current += 1;
+        setInput(hist[cmdCursorRef.current]!);
+      }
+    }
+  };
+
   if (!open) {
     return (
-      <div
-        onClick={openTerm}
-        role="button"
-        tabIndex={0}
-        style={{
-          position: 'fixed',
-          bottom: 20,
-          right: 20,
-          zIndex: 500,
-          padding: '8px 14px',
-          borderRadius: 999,
-          fontSize: 12,
-          fontFamily: '"JetBrains Mono", monospace',
-          color: 'rgba(255,255,255,.75)',
-          background: 'rgba(20,20,30,.45)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255,255,255,.1)',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          cursor: 'pointer',
-          userSelect: 'none',
-          width: 'auto',
-        }}
-      >
-        <span style={{color: ACCENT}}>▸</span> {t('terminal.hint')} <kbd style={{padding: '1px 5px', borderRadius: 3, background: 'rgba(255,255,255,.1)', fontSize: 11}}>~</kbd> {t('terminal.hint_suffix')}
+      <div onClick={openTerm} role="button" tabIndex={0} className="ta-term-hint">
+        <span className="ta-accent">▸</span> {t('terminal.hint')} <kbd>~</kbd> {t('terminal.hint_suffix')}
       </div>
     );
   }
 
   return (
-    <div
-      onClick={close}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 600,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(0,0,0,.5)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        animation: 'taTermFade .18s ease',
-      }}
-    >
-      <style>{`@keyframes taTermFade { from { opacity: 0 } to { opacity: 1 } } @keyframes taTermPop { from { opacity: 0; transform: translateY(10px) scale(.98) } to { opacity: 1; transform: none } }`}</style>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 'min(720px, 92vw)',
-          height: 'min(480px, 80vh)',
-          background: 'rgba(15,15,25,.85)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255,255,255,.12)',
-          borderRadius: 14,
-          overflow: 'hidden',
-          boxShadow: '0 30px 100px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04), inset 0 1px 0 rgba(255,255,255,.06)',
-          display: 'flex',
-          flexDirection: 'column',
-          animation: 'taTermPop .22s cubic-bezier(.2,.8,.2,1)',
-          fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-        }}
-      >
-        <div
-          style={{
-            padding: '10px 14px',
-            borderBottom: '1px solid rgba(255,255,255,.08)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: 12,
-            color: 'rgba(255,255,255,.55)',
-          }}
-        >
-          <span onClick={close} style={{width: 12, height: 12, borderRadius: 6, background: '#ff5f57', display: 'inline-block', cursor: 'pointer'}} />
-          <span style={{width: 12, height: 12, borderRadius: 6, background: '#febc2e', display: 'inline-block'}} />
-          <span style={{width: 12, height: 12, borderRadius: 6, background: '#28c840', display: 'inline-block'}} />
-          <span style={{marginLeft: 12}}>manuele@portfolio — -zsh — 80×24</span>
+    <div onClick={close} className="ta-term-backdrop">
+      <div onClick={(e) => e.stopPropagation()} className="ta-term-modal">
+        <div className="ta-term-bar">
+          <span onClick={close} className="ta-dot r" />
+          <span className="ta-dot y" />
+          <span className="ta-dot g" />
+          <span className="ta-term-title">manuele@portfolio — -zsh — 80×24</span>
         </div>
-        <div
-          ref={bodyRef}
-          onClick={() => inputRef.current?.focus()}
-          style={{
-            flex: 1,
-            padding: '14px 18px',
-            overflowY: 'auto',
-            fontSize: 13,
-            lineHeight: 1.55,
-            color: 'rgba(255,255,255,.85)',
-          }}
-        >
-          {history.map((h, i) => (
-            <div key={i} style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
-              {h.kind === 'in' && (
-                <>
-                  <span style={{color: ACCENT}}>manuele@portfolio</span>{' '}
-                  <span style={{color: ACCENT2}}>~</span>{' '}
-                  <span style={{color: 'rgba(255,255,255,.55)'}}>%</span>{' '}
-                  {h.text}
-                </>
-              )}
-              {h.kind === 'out' && <span>{h.text}</span>}
-              {h.kind === 'err' && <span style={{color: '#ff6b8a'}}>{h.text}</span>}
-              {h.kind === 'system' && (
-                <span style={{color: 'rgba(255,255,255,.4)'}}># {h.text}</span>
-              )}
-            </div>
-          ))}
+        <div ref={bodyRef} onClick={() => inputRef.current?.focus()} className="ta-term-body">
+          {history.map((h, i) => {
+            const cls = `ta-term-line${h.kind === 'err' ? ' ta-term-err' : ''}${h.kind === 'system' ? ' ta-term-sys' : ''}`;
+            return (
+              <div key={i} className={cls}>
+                {h.kind === 'in' && (
+                  <>
+                    <span className="ta-term-user">manuele@portfolio</span>{' '}
+                    <span className="ta-term-tilde">~</span>{' '}
+                    <span className="ta-term-pct">%</span>{' '}
+                    {h.text}
+                  </>
+                )}
+                {h.kind === 'out' && <span>{h.text}</span>}
+                {h.kind === 'err' && <span>{h.text}</span>}
+                {h.kind === 'system' && <span># {h.text}</span>}
+              </div>
+            );
+          })}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               run(input);
               setInput('');
             }}
-            style={{display: 'flex', gap: 6, marginTop: 4}}
+            className="ta-term-form"
           >
-            <span style={{color: ACCENT}}>manuele@portfolio</span>
-            <span style={{color: ACCENT2}}>~</span>
-            <span style={{color: 'rgba(255,255,255,.55)'}}>%</span>
+            <span className="ta-term-user">manuele@portfolio</span>
+            <span className="ta-term-tilde">~</span>
+            <span className="ta-term-pct">%</span>
             <input
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={onInputKeyDown}
               spellCheck={false}
               autoComplete="off"
               autoFocus
-              style={{
-                flex: 1,
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'rgba(255,255,255,.95)',
-                fontFamily: 'inherit',
-                fontSize: 13,
-                padding: 0,
-                caretColor: ACCENT2,
-              }}
+              className="ta-term-input"
             />
           </form>
         </div>

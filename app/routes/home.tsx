@@ -123,7 +123,7 @@ function Hero() {
             {DAILY_STACK.map((s) => (
               <div key={s.name} className="ta-side-skillrow">
                 <span>{s.name}</span>
-                <span className="ta-bar"><span style={{width: `${s.pct}%`}} /></span>
+                <span className="ta-bar"><span style={{'--ta-bar-w': `${s.pct}%`} as React.CSSProperties} /></span>
               </div>
             ))}
           </div>

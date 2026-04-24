@@ -94,6 +94,7 @@ terminal:
   try_help: 'versuche "help"'
   open_github: "→ öffne github.com/D3strukt0r"
   open_linkedin: "→ öffne linkedin.com/in/d3strukt0r"
+  history_empty: "(noch keine Befehle)"
   help:
     header: "verfügbare Befehle:"
     items:
@@ -104,6 +105,7 @@ terminal:
       - "  github     — GitHub-Profil öffnen"
       - "  linkedin   — LinkedIn öffnen"
       - "  anime      — was schaust du gerade?"
+      - "  history    — Befehlsverlauf"
       - "  matrix     — hmm…"
       - "  sudo       — probier's"
       - "  clear      — Bildschirm leeren"

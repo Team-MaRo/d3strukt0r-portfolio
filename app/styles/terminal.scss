@@ -145,7 +145,7 @@ body {
 .ta {
   position: relative;
 }
-.ta > *:not(.ta-bg) {
+.ta > *:not(.ta-bg, .ta-cursor-ring, .ta-cursor-dot, .ta-term-hint, .ta-term-backdrop) {
   position: relative;
   z-index: 1;
 }
@@ -497,6 +497,7 @@ body {
   height: 100%;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   border-radius: 2px;
+  width: var(--ta-bar-w, 0);
 }
 /* Stats strip */
 .ta-stats-strip {
@@ -1071,8 +1072,7 @@ body {
 }
 @media (hover: hover) and (pointer: fine) {
   body.custom-cursor-active,
-  body.custom-cursor-active .ta,
-  body.custom-cursor-active .ta * {
+  body.custom-cursor-active * {
     cursor: none !important;
   }
 }

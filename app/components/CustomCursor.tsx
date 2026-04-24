@@ -107,27 +107,8 @@ export function CustomCursor() {
   }
   return (
     <>
-      <div
-        ref={ring}
-        aria-hidden
-        style={{
-          position: 'fixed', top: 0, left: 0, width: 28, height: 28, borderRadius: '50%',
-          border: `1.5px solid ${RING}`, pointerEvents: 'none', zIndex: 9999,
-          transition: 'width .18s, height .18s, border-color .18s, background .18s, opacity .15s',
-          mixBlendMode: 'difference',
-          opacity: 0,
-        }}
-      />
-      <div
-        ref={dot}
-        aria-hidden
-        style={{
-          position: 'fixed', top: 0, left: 0, width: 8, height: 8, borderRadius: '50%',
-          background: COLOR, pointerEvents: 'none', zIndex: 10000,
-          transition: 'opacity .15s',
-          opacity: 0,
-        }}
-      />
+      <div ref={ring} aria-hidden className="ta-cursor-ring" />
+      <div ref={dot} aria-hidden className="ta-cursor-dot" />
     </>
   );
 }

@@ -29,11 +29,7 @@ export default function Blog() {
 
       {years.map((y) => (
         <div key={y}>
-          <h2
-            className="ta-h2"
-            style={{margin: '32px 0 16px', fontFamily: '\'JetBrains Mono\'', fontSize: 16, color: 'var(--accent)'}}
-            data-reveal
-          >
+          <h2 className="ta-h2 ta-blog-year" data-reveal>
             <span className="ta-dim">▸</span> {y}/
           </h2>
           <div className="ta-archive-list">
@@ -42,7 +38,7 @@ export default function Blog() {
                 <div className="ta-blog-date">{p.date}</div>
                 <div className="ta-blog-name">{p.title}</div>
                 {p.excerpt && (
-                  <div className="ta-dim" style={{marginTop: 4, fontSize: 12}}>↳ {p.excerpt}</div>
+                  <div className="ta-dim ta-blog-excerpt">↳ {p.excerpt}</div>
                 )}
               </Link>
             ))}

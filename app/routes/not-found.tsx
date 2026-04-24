@@ -18,9 +18,9 @@ export default function NotFound() {
  |__   _| |_| |__   _|
     |_|  \\___/   |_|`}
         </pre>
-        <div className="ta-hcode" style={{marginTop: 16}}>
+        <div className="ta-hcode ta-404-find">
           <span className="ta-dim">$</span> find . -name "{loc.pathname}" ·{' '}
-          <span style={{color: '#ff6b8a'}}>not found</span>
+          <span className="ta-err">not found</span>
         </div>
         <h1 className="ta-h1">{t('fourohfour.title')}</h1>
         <p className="ta-contact-sub">{t('fourohfour.sub')}</p>

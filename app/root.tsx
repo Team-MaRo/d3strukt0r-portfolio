@@ -84,7 +84,7 @@ export function ErrorBoundary({error}: Route.ErrorBoundaryProps) {
       ? error.message
       : 'Unknown error';
   return (
-    <main style={{padding: '80px 24px', fontFamily: '\'JetBrains Mono\', monospace'}}>
+    <main className="ta-err-main">
       <h1>{message}</h1>
     </main>
   );
