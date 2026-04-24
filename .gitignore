@@ -8,7 +8,7 @@ build/
 .pnpm-store/
 .claude/settings.local.json
 
-# LinkedIn export: sensitive (PII, private conversations, ID verification)
+# LinkedIn export: sensitive (PII, private conversations, ID verification, behavioral data)
 data/linkedin/**/Profile.csv
 data/linkedin/**/Email Addresses.csv
 data/linkedin/**/Connections.csv
@@ -18,10 +18,17 @@ data/linkedin/**/Whatsapp Phone Numbers.csv
 data/linkedin/**/messages.csv
 data/linkedin/**/learning_coach_messages.csv
 data/linkedin/**/learning_role_play_messages.csv
+data/linkedin/**/LearningCoachMessages.csv
 data/linkedin/**/Verifications/
 data/linkedin/**/Ad_Targeting.csv
 data/linkedin/**/Invitations.csv
 data/linkedin/**/Endorsement_Received_Info.csv
+data/linkedin/**/ImportedContacts.csv
+data/linkedin/**/Inferences_about_you.csv
+data/linkedin/**/Logins.csv
+data/linkedin/**/SearchQueries.csv
+data/linkedin/**/Security Challenges.csv
+data/linkedin/**/Comments.csv
 
 # LinkedIn export: useless noise
 data/linkedin/**/Registration.csv
@@ -30,3 +37,9 @@ data/linkedin/**/Rich_Media.csv
 data/linkedin/**/Company Follows.csv
 data/linkedin/**/Events.csv
 data/linkedin/**/Jobs/
+data/linkedin/**/Ads Clicked.csv
+data/linkedin/**/LAN Ads Engagement.csv
+data/linkedin/**/Hashtag_Follows.csv
+data/linkedin/**/Reactions.csv
+data/linkedin/**/Saved_Items.csv
+data/linkedin/**/Shares.csv
