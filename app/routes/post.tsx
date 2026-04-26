@@ -28,8 +28,6 @@ export default function Post() {
   const idx = posts.findIndex((p) => p.slug === post.slug);
   const prev = idx < posts.length - 1 ? posts[idx + 1] : null;
   const next = idx > 0 ? posts[idx - 1] : null;
-  const words = post.html.replace(/<[^>]+>/g, '').trim().split(/\s+/).length;
-  const readTime = Math.max(1, Math.round(words / 200));
 
   return (
     <section className="ta-section">
@@ -39,7 +37,7 @@ export default function Post() {
         <h1 className="ta-h1" data-reveal data-delay="2">{post.title}</h1>
         <div className="ta-post-meta" data-reveal data-delay="3">
           <span><span className="ta-key">date</span>: <time dateTime={post.date}>{post.date}</time></span>
-          <span><span className="ta-key">read</span>: ~{readTime} min</span>
+          <span><span className="ta-key">read</span>: ~{post.readTime} min</span>
         </div>
       </div>
 

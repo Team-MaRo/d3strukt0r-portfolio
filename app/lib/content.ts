@@ -4,6 +4,7 @@ export interface Post {
   date: string;
   html: string;
   excerpt: string;
+  readTime: number;
 }
 
 interface ParsedMd {
@@ -43,12 +44,14 @@ export const posts: Post[] = Object.entries(postFiles)
   .map(([path, mod]) => {
     const {frontmatter, content, html} = mod;
     const plain = content.replace(/[#>*_`]/g, '').trim();
+    const wordCount = plain ? plain.split(/\s+/).length : 0;
     return {
       slug: pathSlug(path),
       title: String(frontmatter.title ?? pathSlug(path)),
       date: parseDate(frontmatter.date ?? path.match(/\d{4}-\d{2}-\d{2}/)?.[0]),
       html,
       excerpt: plain.split('\n').find(Boolean)?.slice(0, 160) ?? '',
+      readTime: Math.max(1, Math.round(wordCount / 200)),
     };
   })
   .sort((a, b) => b.date.localeCompare(a.date));

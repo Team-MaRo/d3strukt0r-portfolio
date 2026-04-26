@@ -298,9 +298,19 @@ export function expandTemplate(md: string, vars: Record<string, unknown>): strin
 
 // marked v15 doesn't emit id attributes on headings — inject them so the TOC
 // anchors resolve.
+function stripTags(s: string): string {
+  let prev: string;
+  let out = String(s);
+  do {
+    prev = out;
+    out = out.replace(/<[^>]+>/g, '');
+  } while (out !== prev);
+  return out;
+}
+
 export function addHeadingIds(html: string): string {
   return html.replace(/<(h[2-6])>([\s\S]*?)<\/\1>/g, (_match, tag, inner) => {
-    const text = String(inner).replace(/<[^>]+>/g, '').trim();
+    const text = stripTags(inner).trim();
     return `<${tag} id="${slugify(text)}">${inner}</${tag}>`;
   });
 }
