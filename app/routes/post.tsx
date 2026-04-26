@@ -2,7 +2,7 @@ import type {Route} from './+types/post';
 import {useRef} from 'react';
 import {Link, useParams} from 'react-router';
 import {useInternalLinkNav} from '~/hooks/useInternalLinkNav';
-import {postBySlug, posts} from '~/lib/content';
+import {postBySlug, posts, postUrl} from '~/lib/content';
 
 export function meta({params}: Route.MetaArgs) {
   const p = postBySlug(params.slug);
@@ -48,7 +48,7 @@ export default function Post() {
       <nav className="ta-post-nav" aria-label="post navigation">
         {prev
           ? (
-              <Link to={`/blog/${prev.slug}`} className="ta-blog-entry prev cursor-hover">
+              <Link to={postUrl(prev)} className="ta-blog-entry prev cursor-hover">
                 <div className="ta-blog-date">← {prev.date}</div>
                 <div className="ta-blog-name">{prev.title}</div>
               </Link>
@@ -56,7 +56,7 @@ export default function Post() {
           : <span />}
         {next
           ? (
-              <Link to={`/blog/${next.slug}`} className="ta-blog-entry next cursor-hover">
+              <Link to={postUrl(next)} className="ta-blog-entry next cursor-hover">
                 <div className="ta-blog-date">{next.date} →</div>
                 <div className="ta-blog-name">{next.title}</div>
               </Link>

@@ -56,3 +56,7 @@ export const posts: Post[] = Object.entries(postFiles)
 export function postBySlug(slug: string): Post | undefined {
   return posts.find((p) => p.slug === slug);
 }
+
+export function postUrl(post: Pick<Post, 'date' | 'slug'>): string {
+  return `/${post.date.slice(0, 10).replace(/-/g, '/')}/${post.slug}`;
+}

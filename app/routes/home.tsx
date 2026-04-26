@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Flag} from '~/components/Flag';
 import {useContribGraph, useContributions, useGithubRepos, useGithubUser} from '~/hooks/useGithub';
-import {posts} from '~/lib/content';
+import {posts, postUrl} from '~/lib/content';
 import {CERTIFICATES, EXPERIENCE, LANGUAGES} from '~/lib/linkedin';
 import {DAILY_STACK, PROJECTS_FALLBACK, SKILL_GROUPS, SOCIALS, STATS} from '~/lib/site';
 
@@ -376,7 +376,7 @@ function Meta() {
         <div className="ta-glass ta-meta-card">
           <div className="ta-card-head">{t('meta_section.writing')}</div>
           {posts.slice(0, 3).map((p) => (
-            <a key={p.slug} href={`/blog/${p.slug}`} className="ta-blog-entry cursor-hover">
+            <a key={p.slug} href={postUrl(p)} className="ta-blog-entry cursor-hover">
               <div className="ta-blog-date">{p.date}</div>
               <div className="ta-blog-name">{p.title}</div>
             </a>

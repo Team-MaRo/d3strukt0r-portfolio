@@ -33,15 +33,18 @@ export function staticArtifacts(opts: Options): Plugin {
         {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&apos;'}[c]!
       ));
 
-      const entries = posts.slice(0, 20).map((p) => (
-        `  <entry>\n`
-        + `    <title>${xmlEscape(p.title)}</title>\n`
-        + `    <link href="${siteUrl}/blog/${p.slug}"/>\n`
-        + `    <updated>${p.date || now}</updated>\n`
-        + `    <id>${siteUrl}/blog/${p.slug}</id>\n`
-        + `    <content type="html">${xmlEscape(p.html)}</content>\n`
-        + `  </entry>`
-      )).join('\n');
+      const entries = posts.slice(0, 20).map((p) => {
+        const path = `/${p.date.slice(0, 10).replace(/-/g, '/')}/${p.slug}`;
+        return (
+          `  <entry>\n`
+          + `    <title>${xmlEscape(p.title)}</title>\n`
+          + `    <link href="${siteUrl}${path}"/>\n`
+          + `    <updated>${p.date || now}</updated>\n`
+          + `    <id>${siteUrl}${path}</id>\n`
+          + `    <content type="html">${xmlEscape(p.html)}</content>\n`
+          + `  </entry>`
+        );
+      }).join('\n');
 
       writeFileSync(
         join(outDir, 'atom.xml'),

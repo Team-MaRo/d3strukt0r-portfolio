@@ -15,7 +15,9 @@ const SITE_URL = 'https://d3strukt0r.dev';
 const OUT_DIR = 'build/client';
 const POSTS_DIR = join(process.cwd(), 'content', 'posts');
 
-const blogRoutes = loadPosts(POSTS_DIR).map((p) => `/blog/${p.slug}`);
+const blogRoutes = loadPosts(POSTS_DIR).map(
+  (p) => `/${p.date.slice(0, 10).replace(/-/g, '/')}/${p.slug}`,
+);
 const absOutDir = join(process.cwd(), OUT_DIR);
 
 // react-router v7 runs Vite with multiple environments (client, SSR). Scope

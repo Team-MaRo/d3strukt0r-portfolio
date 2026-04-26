@@ -1,7 +1,7 @@
 import type {Route} from './+types/blog';
 import {useTranslation} from 'react-i18next';
 import {Link} from 'react-router';
-import {posts} from '~/lib/content';
+import {posts, postUrl} from '~/lib/content';
 
 export function meta(_: Route.MetaArgs) {
   return [{title: 'Blog · Manuele'}];
@@ -34,7 +34,7 @@ export default function Blog() {
           </h2>
           <div className="ta-archive-list">
             {grouped.get(y)!.map((p) => (
-              <Link key={p.slug} to={`/blog/${p.slug}`} className="ta-blog-entry cursor-hover" data-reveal>
+              <Link key={p.slug} to={postUrl(p)} className="ta-blog-entry cursor-hover" data-reveal>
                 <div className="ta-blog-date">{p.date}</div>
                 <div className="ta-blog-name">{p.title}</div>
                 {p.excerpt && (
