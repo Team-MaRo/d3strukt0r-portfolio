@@ -10,6 +10,7 @@ import {join} from 'node:path';
 import process from 'node:process';
 
 import {parse} from 'csv-parse/sync';
+import {isNonEmpty} from '~/lib/guards';
 import {
   normalizeCertification,
   normalizeEducation,
@@ -39,7 +40,7 @@ function parseCsv(path: string): Array<Record<string, string>> {
 
 function load<T>(filename: string, normalize: (row: Record<string, string>) => T): T[] {
   const path = findCsv(filename);
-  if (!path) {
+  if (!isNonEmpty(path)) {
     console.warn(`[linkedin] ${filename}: not found, skipping`);
     return [];
   }

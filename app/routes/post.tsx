@@ -12,6 +12,8 @@ export function meta({params}: Route.MetaArgs) {
 export default function Post() {
   const {slug} = useParams();
   const post = postBySlug(slug ?? '');
+  const articleRef = useRef<HTMLElement>(null);
+  useInternalLinkNav(articleRef);
   if (!post) {
     return (
       <section className="ta-section">
@@ -23,8 +25,6 @@ export default function Post() {
     );
   }
 
-  const articleRef = useRef<HTMLElement>(null);
-  useInternalLinkNav(articleRef);
   const idx = posts.findIndex((p) => p.slug === post.slug);
   const prev = idx < posts.length - 1 ? posts[idx + 1] : null;
   const next = idx > 0 ? posts[idx - 1] : null;
@@ -41,6 +41,7 @@ export default function Post() {
         </div>
       </div>
 
+      {/* eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- post HTML is generated at build time from trusted markdown sources */}
       <article ref={articleRef} className="ta-glass ta-about-main ta-content" dangerouslySetInnerHTML={{__html: post.html}} />
 
       <nav className="ta-post-nav" aria-label="post navigation">

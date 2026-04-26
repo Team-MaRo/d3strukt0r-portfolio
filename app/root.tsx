@@ -41,8 +41,9 @@ export function Layout({children}: {children: React.ReactNode}) {
         <Meta />
         <Links />
         <script
+          // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- inline script must run before hydration to set the JS class on <html>
           dangerouslySetInnerHTML={{
-            __html: "document.documentElement.classList.add('js')",
+            __html: 'document.documentElement.classList.add(\'js\')',
           }}
         />
       </head>

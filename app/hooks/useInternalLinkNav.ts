@@ -1,5 +1,7 @@
-import {useEffect, type RefObject} from 'react';
+import type {RefObject} from 'react';
+import {useEffect} from 'react';
 import {useNavigate} from 'react-router';
+import {isNonEmpty} from '~/lib/guards';
 
 const SCROLL_DURATION_MS = 320;
 
@@ -13,8 +15,8 @@ export function smoothScrollToAnchor(id: string): boolean {
   if (!el) {
     return false;
   }
-  const paddingTop = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-  const marginTop = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  const paddingTop = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+  const marginTop = Number.parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
   const targetY = el.getBoundingClientRect().top + window.scrollY - paddingTop - marginTop;
   const startY = window.scrollY;
   const distance = targetY - startY;
@@ -28,7 +30,7 @@ export function smoothScrollToAnchor(id: string): boolean {
   const start = performance.now();
   const step = (now: number): void => {
     const t = Math.min(1, (now - start) / SCROLL_DURATION_MS);
-    const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+    const eased = 1 - (1 - t) ** 3; // ease-out cubic
     window.scrollTo({top: startY + distance * eased});
     if (t < 1) {
       requestAnimationFrame(step);
@@ -59,7 +61,7 @@ export function useInternalLinkNav<T extends HTMLElement>(ref: RefObject<T | nul
         return;
       }
       const href = a.getAttribute('href');
-      if (!href) {
+      if (!isNonEmpty(href)) {
         return;
       }
       if (a.target === '_blank' || a.hasAttribute('download')) {

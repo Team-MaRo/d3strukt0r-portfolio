@@ -26,6 +26,7 @@ import projectsDe from '../../content/linkedin/projects.de.yml';
 import projectsEnRaw from '../../content/linkedin/projects.en.yml';
 import skillsDe from '../../content/linkedin/skills.de.yml';
 import skillsEnRaw from '../../content/linkedin/skills.en.yml';
+import {isNonEmpty} from './guards';
 
 const positionsEn = (positionsEnRaw ?? []) as Array<Partial<Position>>;
 export const educationEn = (educationEnRaw ?? []) as Array<Partial<Education>>;
@@ -45,36 +46,36 @@ export const profile = profileDe as Profile;
 
 function pickStr<T>(en: Partial<T> | undefined, de: T, key: keyof T): string {
   const v = en?.[key];
-  return (typeof v === 'string' && v ? v : de[key]) as unknown as string;
+  return (typeof v === 'string' && v.length > 0 ? v : de[key]) as unknown as string;
 }
 
 // --- Derived views for site components ---------------------------------
 
 function yearOf(d: string | null): string {
-  return d ? d.slice(0, 4) : '';
+  return isNonEmpty(d) ? d.slice(0, 4) : '';
 }
 
 function period(startedOn: string | null, finishedOn: string | null, todayLabel = 'Today'): string {
   const start = yearOf(startedOn);
-  const end = finishedOn ? yearOf(finishedOn) : todayLabel;
-  if (!start && !end) {
+  const end = isNonEmpty(finishedOn) ? yearOf(finishedOn) : todayLabel;
+  if (start === '' && end === '') {
     return '';
   }
   if (start === end) {
     return start;
   }
-  return start ? `${start} — ${end}` : end;
+  return start !== '' ? `${start} — ${end}` : end;
 }
 
 function parseYm(ym: string | null): {y: number; m: number} | null {
-  if (!ym) {
+  if (!isNonEmpty(ym)) {
     return null;
   }
   const [y, m] = ym.split('-').map(Number);
-  if (!y) {
+  if (y == null || y === 0 || Number.isNaN(y)) {
     return null;
   }
-  return {y, m: m || 1};
+  return {y, m: m != null && m !== 0 ? m : 1};
 }
 
 function duration(
@@ -163,7 +164,7 @@ const EDUCATION_ENTRIES: ExpEntry[] = education.map((e, i) => {
     roleDe: e.degree,
     roleEn: pickStr(en, e, 'degree'),
     locationDe: e.location ?? '',
-    locationEn: (en?.location ?? e.location ?? '') as string,
+    locationEn: (en?.location ?? e.location ?? ''),
     durationDe: duration(e.startedOn, e.finishedOn, 'de'),
     durationEn: duration(e.startedOn, e.finishedOn, 'en'),
     employmentTypeDe: '',
@@ -218,8 +219,8 @@ const LANGUAGE_FLAG_CODES: Record<string, string> = {
 
 function flagCodeFor(...names: Array<string | undefined>): string {
   for (const n of names) {
-    const hit = n && LANGUAGE_FLAG_CODES[n.toLowerCase()];
-    if (hit) {
+    const hit = isNonEmpty(n) ? LANGUAGE_FLAG_CODES[n.toLowerCase()] : undefined;
+    if (isNonEmpty(hit)) {
       return hit;
     }
   }

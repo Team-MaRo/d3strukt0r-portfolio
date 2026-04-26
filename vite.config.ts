@@ -1,6 +1,7 @@
 import type {Plugin} from 'vite';
 import {mkdirSync} from 'node:fs';
 import {join} from 'node:path';
+import process from 'node:process';
 import ViteYaml from '@modyfi/vite-plugin-yaml';
 import {reactRouter} from '@react-router/dev/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -14,9 +15,10 @@ import {staticArtifacts} from './app/vite/plugins/static-artifacts';
 const SITE_URL = 'https://d3strukt0r.dev';
 const OUT_DIR = 'build/client';
 const POSTS_DIR = join(process.cwd(), 'content', 'posts');
+const DATE_DASH_RE = /-/g;
 
 const blogRoutes = loadPosts(POSTS_DIR).map(
-  (p) => `/${p.date.slice(0, 10).replace(/-/g, '/')}/${p.slug}`,
+  (p) => `/${p.date.slice(0, 10).replace(DATE_DASH_RE, '/')}/${p.slug}`,
 );
 const absOutDir = join(process.cwd(), OUT_DIR);
 

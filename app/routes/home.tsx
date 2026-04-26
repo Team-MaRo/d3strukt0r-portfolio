@@ -109,6 +109,7 @@ function Hero() {
             </div>
             <ul className="ta-sidecard-list">
               {nowItems.map((item, i) => (
+                // eslint-disable-next-line react/no-array-index-key -- nowItems are translation strings keyed by stable position
                 <li key={i}>
                   <span className="ta-check">{['✓', '✓', '→', '◎'][i] ?? '·'}</span> {item}
                 </li>
@@ -158,6 +159,7 @@ function About() {
       <div className="ta-about-grid">
         <div className="ta-about-main ta-glass">
           {paragraphs.map((p, i) => (
+            // eslint-disable-next-line react/no-array-index-key -- about paragraphs are translation strings keyed by stable position
             <p key={i} className={i === 0 ? 'ta-lead' : ''} data-reveal data-delay={String(i)}>{p}</p>
           ))}
         </div>
@@ -233,8 +235,10 @@ function Github() {
         </div>
         <div className="ta-contrib">
           {grid.map((week, wi) => (
+            // eslint-disable-next-line react/no-array-index-key -- contribution grid is a fixed-size weeks/days matrix; index is the position
             <div key={wi} className="ta-cc-col">
               {week.map((v, di) => (
+                // eslint-disable-next-line react/no-array-index-key -- contribution grid is a fixed-size weeks/days matrix; index is the position
                 <div key={di} className={`ta-cc-cell tl${v}`} />
               ))}
             </div>
@@ -312,7 +316,7 @@ function Experience() {
             const loc = de ? e.locationDe : e.locationEn;
             const meta = [dur, emp, loc].filter(Boolean).join(' · ');
             return (
-              <div key={i} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
+              <div key={`${e.company}-${e.sortKey}-${e.endKey}`} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
                 <div className="ta-exp-timestamp">[{e.period}]</div>
                 <div className="ta-exp-body">
                   <div className="ta-exp-company">
@@ -343,8 +347,8 @@ function Meta() {
         <div className="ta-glass ta-meta-card">
           <div className="ta-card-head">{t('meta_section.languages')}</div>
           <div className="ta-lang-list">
-            {LANGUAGES.map((l, i) => (
-              <div key={i} className="ta-lang-row">
+            {LANGUAGES.map((l) => (
+              <div key={l.nameDe} className="ta-lang-row">
                 <Flag code={l.flagCode} className="ta-lang-flag" />
                 <span className="ta-lang-name">{de ? l.nameDe : l.nameEn}</span>
                 <span className="ta-lang-level">{l.level}</span>

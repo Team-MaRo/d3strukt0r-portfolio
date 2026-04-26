@@ -6,6 +6,7 @@ import {SKILL_GROUPS, SOCIALS} from '~/lib/site';
 interface Line {kind: 'in' | 'out' | 'err' | 'system'; text: string}
 
 const PROTO_RE = /^https?:\/\//;
+const ALPHA_KEY_RE = /^[a-z]$/i;
 
 function matrix(): string[] {
   const chars = 'アイウエオカキクケコサシスセソタチツテト01';
@@ -42,16 +43,17 @@ export function TaTerminal() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && open) {
-        close(); return;
+        close();
+        return;
       }
       const tag = (e.target as Element | null)?.tagName ?? '';
-      const inForm = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement | null)?.isContentEditable;
+      const inForm = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement | null)?.isContentEditable === true;
       if ((e.key === '~' || e.key === '`') && !inForm) {
         e.preventDefault();
         setOpen((o) => !o);
         return;
       }
-      if (!inForm && /^[a-z]$/i.test(e.key)) {
+      if (!inForm && ALPHA_KEY_RE.test(e.key)) {
         bufferRef.current = (bufferRef.current + e.key.toLowerCase()).slice(-5);
         if (bufferRef.current.includes('sudo')) {
           bufferRef.current = '';
@@ -64,12 +66,18 @@ export function TaTerminal() {
   }, [open, close]);
 
   useEffect(() => {
+    let focusTimer: ReturnType<typeof setTimeout> | undefined;
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 60);
+      focusTimer = setTimeout(() => inputRef.current?.focus(), 60);
     }
     if (bodyRef.current) {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
+    return () => {
+      if (focusTimer !== undefined) {
+        clearTimeout(focusTimer);
+      }
+    };
   }, [open, history]);
 
   const commands = useMemo<Record<string, () => string[] | null>>(() => ({
@@ -88,10 +96,12 @@ export function TaTerminal() {
       `linkedin: ${SOCIALS.linkedin.replace(PROTO_RE, '')}`,
     ],
     github: () => {
-      window.open(SOCIALS.github, '_blank'); return [t('terminal.open_github')];
+      window.open(SOCIALS.github, '_blank');
+      return [t('terminal.open_github')];
     },
     linkedin: () => {
-      window.open(SOCIALS.linkedin, '_blank'); return [t('terminal.open_linkedin')];
+      window.open(SOCIALS.linkedin, '_blank');
+      return [t('terminal.open_linkedin')];
     },
     anime: () => t('terminal.anime', {returnObjects: true}) as string[],
     history: () => {
@@ -104,10 +114,12 @@ export function TaTerminal() {
     matrix,
     sudo: () => t('terminal.sudo', {returnObjects: true}) as string[],
     clear: () => {
-      setTimeout(setHistory, 0, []); return null;
+      setTimeout(setHistory, 0, []);
+      return null;
     },
     exit: () => {
-      setTimeout(close, 0); return [t('terminal.goodbye')];
+      setTimeout(close, 0);
+      return [t('terminal.goodbye')];
     },
   }), [t, de, close]);
 
@@ -116,7 +128,7 @@ export function TaTerminal() {
     const cmd = trimmed.toLowerCase();
     if (trimmed) {
       const h = cmdHistRef.current;
-      if (h[h.length - 1] !== trimmed) {
+      if (h.at(-1) !== trimmed) {
         h.push(trimmed);
       }
     }
@@ -189,6 +201,7 @@ export function TaTerminal() {
           {history.map((h, i) => {
             const cls = `ta-term-line${h.kind === 'err' ? ' ta-term-err' : ''}${h.kind === 'system' ? ' ta-term-sys' : ''}`;
             return (
+              // eslint-disable-next-line react/no-array-index-key -- terminal log lines have no stable id; index reflects append order
               <div key={i} className={cls}>
                 {h.kind === 'in' && (
                   <>

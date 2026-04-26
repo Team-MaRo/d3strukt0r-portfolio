@@ -3,6 +3,10 @@ import {join} from 'node:path';
 import matter from 'gray-matter';
 import {marked} from 'marked';
 
+const MD_EXT_RE = /\.md$/;
+const DATE_PREFIX_RE = /^\d{4}-\d{2}-\d{2}-/;
+const DATE_RE = /\d{4}-\d{2}-\d{2}/;
+
 export interface LoadedPost {
   slug: string;
   title: string;
@@ -19,8 +23,8 @@ export function loadPosts(dir: string): LoadedPost[] {
     .map((f) => {
       const raw = readFileSync(join(dir, f), 'utf8');
       const {data, content} = matter(raw);
-      const slug = f.replace(/\.md$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
-      const dateSrc = data.date ?? f.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? '';
+      const slug = f.replace(MD_EXT_RE, '').replace(DATE_PREFIX_RE, '');
+      const dateSrc = data.date ?? f.match(DATE_RE)?.[0] ?? '';
       const d = new Date(dateSrc);
       const date = Number.isNaN(d.getTime()) ? String(dateSrc) : d.toISOString();
       return {

@@ -3,6 +3,9 @@ import {copyFileSync, existsSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {loadPosts} from './posts';
 
+const XML_ESC_RE = /[&<>"']/g;
+const DATE_DASH_RE = /-/g;
+
 interface Options {
   outDir: string;
   postsDir: string;
@@ -29,17 +32,17 @@ export function staticArtifacts(opts: Options): Plugin {
 
       const posts = loadPosts(postsDir);
       const now = new Date().toISOString();
-      const xmlEscape = (s: string) => s.replace(/[&<>"']/g, (c) => (
+      const xmlEscape = (s: string) => s.replace(XML_ESC_RE, (c) => (
         {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&apos;'}[c]!
       ));
 
       const entries = posts.slice(0, 20).map((p) => {
-        const path = `/${p.date.slice(0, 10).replace(/-/g, '/')}/${p.slug}`;
+        const path = `/${p.date.slice(0, 10).replace(DATE_DASH_RE, '/')}/${p.slug}`;
         return (
           `  <entry>\n`
           + `    <title>${xmlEscape(p.title)}</title>\n`
           + `    <link href="${siteUrl}${path}"/>\n`
-          + `    <updated>${p.date || now}</updated>\n`
+          + `    <updated>${p.date !== '' ? p.date : now}</updated>\n`
           + `    <id>${siteUrl}${path}</id>\n`
           + `    <content type="html">${xmlEscape(p.html)}</content>\n`
           + `  </entry>`

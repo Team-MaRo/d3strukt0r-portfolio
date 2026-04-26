@@ -22,7 +22,8 @@ export function useReveal() {
     const m = new MutationObserver(scan);
     m.observe(document.body, {childList: true, subtree: true});
     return () => {
-      m.disconnect(); obs.disconnect();
+      m.disconnect();
+      obs.disconnect();
     };
   }, []);
 }

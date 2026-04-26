@@ -1,6 +1,7 @@
 import type {
   Certification, Education, Language, Position, Profile, Project, Skill,
 } from './schema';
+import {isNonEmpty} from '~/lib/guards';
 
 // "Jan 2022" | "Nov 2015" → "2022-01"; "" → null.
 const MONTHS: Record<string, string> = {
@@ -8,23 +9,28 @@ const MONTHS: Record<string, string> = {
   Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12',
 };
 
+const MONTH_YEAR_RE = /^([a-z]{3})\s+(\d{4})$/i;
+const YEAR_MONTH_RE = /^\d{4}-\d{2}$/;
+const YEAR_RE = /^\d{4}$/;
+
 export function parseDate(raw: string | null | undefined): string | null {
-  if (!raw) {
+  if (!isNonEmpty(raw)) {
     return null;
   }
-  const s = String(raw).trim();
-  if (!s) {
+  const s = raw.trim();
+  if (s === '') {
     return null;
   }
-  const m = /^([A-Z]{3})\s+(\d{4})$/i.exec(s);
+  const m = MONTH_YEAR_RE.exec(s);
   if (m) {
-    const mo = MONTHS[m[1] as keyof typeof MONTHS];
-    return mo ? `${m[2]}-${mo}` : null;
+    const key = m[1]!.charAt(0).toUpperCase() + m[1]!.slice(1).toLowerCase();
+    const mo = MONTHS[key];
+    return isNonEmpty(mo) ? `${m[2]}-${mo}` : null;
   }
-  if (/^\d{4}-\d{2}$/.test(s)) {
+  if (YEAR_MONTH_RE.test(s)) {
     return s;
   }
-  if (/^\d{4}$/.test(s)) {
+  if (YEAR_RE.test(s)) {
     return `${s}-01`;
   }
   return null;
@@ -56,7 +62,7 @@ export function proficiencyToStars(prof: string): number {
 // known bad values back to their canonical German forms so the source of
 // truth stays correct across re-exports.
 const LOCATION_FIXES: Record<string, string> = {
-  'Праттельн': 'Pratteln, Schweiz',
+  Праттельн: 'Pratteln, Schweiz',
   'Pratteln, Basel-Landschaft, Schweiz': 'Pratteln, Schweiz',
   'Distretto di Arlesheim': 'Arlesheim, Schweiz',
   'Distretto di Rheinfelden': 'Rheinfelden, Schweiz',
@@ -71,7 +77,7 @@ function stripRegion(raw: string): string {
   if (parts.length <= 2) {
     return parts.join(', ');
   }
-  return `${parts[0]}, ${parts[parts.length - 1]}`;
+  return `${parts[0]}, ${parts.at(-1)}`;
 }
 
 function fixLocation(raw: string): string {

@@ -1,6 +1,7 @@
 import type {Education} from './schema';
 import {existsSync, readFileSync} from 'node:fs';
 import yaml from 'js-yaml';
+import {isNonEmpty} from '~/lib/guards';
 
 // Merge hand-edited fields from an existing education.de.yml onto freshly
 // normalized entries. Matched by `startedOn` since that's the most stable key
@@ -19,6 +20,6 @@ export function preserveEducationLocation(outPath: string, entries: Education[])
   }
   return entries.map((e) => {
     const prev = byKey.get(e.startedOn ?? '');
-    return prev?.location ? {...e, location: prev.location} : e;
+    return isNonEmpty(prev?.location) ? {...e, location: prev.location} : e;
   });
 }

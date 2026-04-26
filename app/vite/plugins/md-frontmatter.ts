@@ -1,3 +1,4 @@
+import type {Highlighter} from 'shiki';
 import type {Plugin} from 'vite';
 import {readFile} from 'node:fs/promises';
 import {basename, join} from 'node:path';
@@ -6,7 +7,8 @@ import matter from 'gray-matter';
 import yaml from 'js-yaml';
 import {marked} from 'marked';
 import markedFootnote from 'marked-footnote';
-import {createHighlighter, type Highlighter} from 'shiki';
+import {createHighlighter} from 'shiki';
+import {isNonEmpty} from '../../lib/guards';
 
 const SHIKI_LANGS = [
   'ts', 'tsx', 'js', 'jsx', 'json', 'yaml', 'md', 'markdown',
@@ -39,6 +41,40 @@ function langForFilename(filename: string): string {
 }
 const SHIKI_THEMES = {light: 'github-light-default', dark: 'github-dark-default'} as const;
 
+// Shared regexes hoisted to module scope to avoid re-compilation on every call.
+const HTMLESC_AMP_KEEPENT_RE = /&(?!#?\w+;)/g;
+const HTMLESC_AMP_RE = /&/g;
+const HTMLESC_LT_RE = /</g;
+const HTMLESC_GT_RE = />/g;
+const HTMLESC_DQUOT_RE = /"/g;
+const HTMLESC_SQUOT_RE = /'/g;
+const WHITESPACE_RE = /\s+/;
+const TRAILING_NL_RE = /\n$/;
+const PRE_CLASS_RE = /<pre([^>]*)class="([^"]*)"/;
+const PRE_NO_CLASS_RE = /<pre(?![^>]*class=)/;
+const BACKTICK_RE = /`/g;
+const NON_WORD_SPACE_DASH_RE = /[^\w\s-]/g;
+const SPACES_RE = /\s+/g;
+const MULTI_DASH_RE = /-+/g;
+const TRIM_DASH_RE = /^-|-$/g;
+// ReDoS-safe heading matcher: capture the title without ambiguous leading/trailing whitespace overlap.
+const HEADING_RE = /^(#{2,6})\s+(\S(?:[^\n]*\S)?)\s*$/;
+const GIST_ID_SAFE_RE = /[^\w/-]/g;
+// eslint-disable-next-line style/max-len -- regex literal cannot be wrapped
+const IFRAME_GIST_RE = /<iframe\s+class="ta-gist"\s+src="https:\/\/gist\.github\.com\/(?:[^/"]+\/)?([a-f0-9]{6,})\.pibb"[^>]*><\/iframe>/gi;
+const FENCED_CODE_RE = /```[\s\S]*?```/g;
+const INLINE_CODE_RE = /`[^`\n]+`/g;
+// ReDoS-safe template token: explicitly require a non-} char before optional padding.
+const TEMPLATE_TOKEN_RE = /\{\{\s*(\S(?:[^}]*\S)?)\s*\}\}/g;
+const MASK_RESTORE_RE = /\0MASK(\d+)\0/g;
+const TAG_RE = /<[^>]+>/g;
+const HEADING_TAG_RE = /<(h[2-6])>([\s\S]*?)<\/\1>/g;
+const ROUTE_FILE_EXT_RE = /\.(?:tsx?|jsx?)$/;
+const TRAILING_SLASH_RE = /\/$/;
+const SLASHES_RE = /\/+/g;
+const TRAILING_SLASHES_RE = /\/+$/;
+const CRLF_RE = /\r\n/g;
+
 let highlighter: Highlighter | null = null;
 
 function highlight(code: string, lang: string): string | null {
@@ -47,7 +83,7 @@ function highlight(code: string, lang: string): string | null {
   }
   const loaded = highlighter.getLoadedLanguages();
   const resolved = loaded.includes(lang) ? lang : null;
-  if (!resolved) {
+  if (resolved == null) {
     return null;
   }
   return highlighter.codeToHtml(code, {
@@ -61,11 +97,11 @@ marked.use(markedFootnote());
 
 function htmlEscape(s: string, encode = false): string {
   return s
-    .replace(encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(encode ? HTMLESC_AMP_KEEPENT_RE : HTMLESC_AMP_RE, '&amp;')
+    .replace(HTMLESC_LT_RE, '&lt;')
+    .replace(HTMLESC_GT_RE, '&gt;')
+    .replace(HTMLESC_DQUOT_RE, '&quot;')
+    .replace(HTMLESC_SQUOT_RE, '&#39;');
 }
 
 // Support an opt-in `linenos` flag in fenced code-block info strings
@@ -75,26 +111,26 @@ function htmlEscape(s: string, encode = false): string {
 marked.use({
   renderer: {
     code({text, lang}) {
-      const tokens = (lang ?? '').trim().split(/\s+/).filter(Boolean);
+      const tokens = (lang ?? '').trim().split(WHITESPACE_RE).filter(Boolean);
       const linenos = tokens.includes('linenos');
       const primaryLang = tokens.find((t) => t !== 'linenos') ?? '';
-      const normalized = text.replace(/\n$/, '') + '\n';
+      const normalized = `${text.replace(TRAILING_NL_RE, '')}\n`;
 
       const shikiHtml = highlight(normalized, primaryLang);
       const base = shikiHtml
-        ?? `<pre><code${primaryLang ? ` class="language-${htmlEscape(primaryLang)}"` : ''}>${htmlEscape(normalized, true)}</code></pre>`;
+        ?? `<pre><code${primaryLang !== '' ? ` class="language-${htmlEscape(primaryLang)}"` : ''}>${htmlEscape(normalized, true)}</code></pre>`;
 
       if (!linenos) {
         return `${base}\n`;
       }
-      const lineCount = normalized.replace(/\n$/, '').split('\n').length;
+      const lineCount = normalized.replace(TRAILING_NL_RE, '').split('\n').length;
       const gutter = Array.from({length: lineCount}, (_, i) => String(i + 1)).join('\n');
       const gutterSpan = `<span aria-hidden="true" class="ta-linenos">${gutter}\n</span>`;
       // Inject the gutter span just before the <code> element inside <pre>, and
       // add the ta-linenos-block class so the grid layout kicks in.
       const withGutter = base
-        .replace(/<pre([^>]*)class="([^"]*)"/, `<pre$1class="$2 ta-linenos-block"`)
-        .replace(/<pre(?![^>]*class=)/, '<pre class="ta-linenos-block"')
+        .replace(PRE_CLASS_RE, `<pre$1class="$2 ta-linenos-block"`)
+        .replace(PRE_NO_CLASS_RE, '<pre class="ta-linenos-block"')
         .replace('<code', `${gutterSpan}<code`);
       return `${withGutter}\n`;
     },
@@ -102,7 +138,14 @@ marked.use({
 });
 
 export function slugify(text: string): string {
-  return text.toLowerCase().trim().replace(/`/g, '').replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(BACKTICK_RE, '')
+    .replace(NON_WORD_SPACE_DASH_RE, '')
+    .replace(SPACES_RE, '-')
+    .replace(MULTI_DASH_RE, '-')
+    .replace(TRIM_DASH_RE, '');
 }
 
 function extractHeadings(md: string): Array<{level: number; text: string; slug: string}> {
@@ -116,9 +159,9 @@ function extractHeadings(md: string): Array<{level: number; text: string; slug: 
     if (inCode) {
       continue;
     }
-    const m = /^(#{2,6})\s+(.+?)\s*$/.exec(line);
+    const m = HEADING_RE.exec(line);
     if (m) {
-      const text = m[2]!.replace(/`/g, '').trim();
+      const text = m[2]!.replace(BACKTICK_RE, '').trim();
       out.push({level: m[1]!.length, text, slug: slugify(text)});
     }
   }
@@ -137,7 +180,7 @@ function lookup(path: string, vars: Record<string, unknown>): string | undefined
   const parts = path.trim().split('.');
   let cur: unknown = vars;
   for (const key of parts) {
-    if (cur && typeof cur === 'object' && key in (cur as Record<string, unknown>)) {
+    if (cur != null && typeof cur === 'object' && key in (cur as Record<string, unknown>)) {
       cur = (cur as Record<string, unknown>)[key];
     } else {
       return undefined;
@@ -151,8 +194,9 @@ function formatNow(): string {
 }
 
 function gistEmbed(id: string): string {
-  const safe = id.replace(/[^a-zA-Z0-9/_-]/g, '');
-  return `<iframe class="ta-gist" src="https://gist.github.com/${safe}.pibb" loading="lazy" title="GitHub gist ${safe}"></iframe>`;
+  const safe = id.replace(GIST_ID_SAFE_RE, '');
+  const src = `https://gist.github.com/${safe}.pibb`;
+  return `<iframe class="ta-gist" src="${src}" loading="lazy" title="GitHub gist ${safe}"></iframe>`;
 }
 
 // Cross-origin iframes (gist.github.com) can't be measured from the parent —
@@ -192,7 +236,7 @@ async function fetchGist(id: string): Promise<Record<string, GistFile> | null> {
       const data = (await res.json()) as {files?: Record<string, GistFile | null>};
       const out: Record<string, GistFile> = {};
       for (const [k, f] of Object.entries(data.files ?? {})) {
-        if (f?.content) {
+        if (f != null && isNonEmpty(f.content)) {
           out[k] = f;
         }
       }
@@ -217,7 +261,8 @@ function renderGistFile(filename: string, content: string): string {
     const shikiHtml = highlight(content + (content.endsWith('\n') ? '' : '\n'), lang);
     body = shikiHtml ?? `<pre><code>${htmlEscape(content, true)}</code></pre>`;
   }
-  return `<figure class="ta-gist-file"><figcaption class="ta-gist-filename">${htmlEscape(filename)}</figcaption>${body}</figure>`;
+  const caption = `<figcaption class="ta-gist-filename">${htmlEscape(filename)}</figcaption>`;
+  return `<figure class="ta-gist-file">${caption}${body}</figure>`;
 }
 
 async function renderGistEmbed(id: string): Promise<string | null> {
@@ -231,9 +276,12 @@ async function renderGistEmbed(id: string): Promise<string | null> {
   }
   const parts = Object.entries(files).map(([key, f]) => renderGistFile(f.filename ?? key, f.content ?? ''));
   const gistHref = `https://gist.github.com/${id}`;
+  const linkAttrs = `href="${gistHref}" target="_blank" rel="noopener noreferrer"`;
+  const headerLink = `<a ${linkAttrs}>gist.github.com/${htmlEscape(id)}</a>`;
+  const header = `<header class="ta-gist-head"><span aria-hidden="true">❖</span> ${headerLink}</header>`;
   const out = [
     `<div class="ta-gist-embed">`,
-    `<header class="ta-gist-head"><span aria-hidden="true">❖</span> <a href="${gistHref}" target="_blank" rel="noopener noreferrer">gist.github.com/${htmlEscape(id)}</a></header>`,
+    header,
     parts.join(''),
     `</div>`,
   ].join('');
@@ -242,7 +290,8 @@ async function renderGistEmbed(id: string): Promise<string | null> {
 }
 
 async function inlineGistEmbeds(html: string): Promise<string> {
-  const matches = [...html.matchAll(/<iframe\s+class="ta-gist"\s+src="https:\/\/gist\.github\.com\/(?:[^/"]+\/)?([a-f0-9]{6,})\.pibb"[^>]*><\/iframe>/gi)];
+  IFRAME_GIST_RE.lastIndex = 0;
+  const matches = [...html.matchAll(IFRAME_GIST_RE)];
   const ids = [...new Set(matches.map((m) => m[1]!.toLowerCase()))];
   if (!ids.length) {
     return html;
@@ -250,10 +299,12 @@ async function inlineGistEmbeds(html: string): Promise<string> {
   const rendered = await Promise.all(ids.map(async (id) => [id, await renderGistEmbed(id)] as const));
   let out = html;
   for (const [id, embed] of rendered) {
-    if (!embed) {
+    if (!isNonEmpty(embed)) {
       continue;
     }
-    const re = new RegExp(`<iframe\\s+class="ta-gist"\\s+src="https:\\/\\/gist\\.github\\.com\\/(?:[^/"]+\\/)?${id}\\.pibb"[^>]*><\\/iframe>`, 'gi');
+    const prefix = `<iframe\\s+class="ta-gist"\\s+src="https:\\/\\/gist\\.github\\.com\\/(?:[^/"]+\\/)?`;
+    const suffix = `\\.pibb"[^>]*><\\/iframe>`;
+    const re = new RegExp(`${prefix}${id}${suffix}`, 'gi');
     out = out.replace(re, embed);
   }
   return out;
@@ -274,11 +325,11 @@ export function expandTemplate(md: string, vars: Record<string, unknown>): strin
     return `\x00MASK${frozen.length - 1}\x00`;
   };
   const masked = md
-    .replace(/```[\s\S]*?```/g, mask)
-    .replace(/`[^`\n]+`/g, mask);
+    .replace(FENCED_CODE_RE, mask)
+    .replace(INLINE_CODE_RE, mask);
 
   const toc = buildTocList(masked);
-  const expanded = masked.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (match, rawInner: string) => {
+  const expanded = masked.replace(TEMPLATE_TOKEN_RE, (match, rawInner: string) => {
     const inner = rawInner.trim();
     if (inner === 'toc') {
       return toc;
@@ -293,7 +344,7 @@ export function expandTemplate(md: string, vars: Record<string, unknown>): strin
     return resolved ?? match;
   });
 
-  return expanded.replace(/\x00MASK(\d+)\x00/g, (_m, idx: string) => frozen[Number(idx)]!);
+  return expanded.replace(MASK_RESTORE_RE, (_m, idx: string) => frozen[Number(idx)]!);
 }
 
 // marked v15 doesn't emit id attributes on headings — inject them so the TOC
@@ -303,13 +354,13 @@ function stripTags(s: string): string {
   let out = String(s);
   do {
     prev = out;
-    out = out.replace(/<[^>]+>/g, '');
+    out = out.replace(TAG_RE, '');
   } while (out !== prev);
   return out;
 }
 
 export function addHeadingIds(html: string): string {
-  return html.replace(/<(h[2-6])>([\s\S]*?)<\/\1>/g, (_match, tag, inner) => {
+  return html.replace(HEADING_TAG_RE, (_match, tag, inner) => {
     const text = stripTags(inner).trim();
     return `<${tag} id="${slugify(text)}">${inner}</${tag}>`;
   });
@@ -319,7 +370,7 @@ async function loadSiteVars(root: string): Promise<Record<string, unknown>> {
   try {
     const raw = await readFile(join(root, 'content', 'site.yml'), 'utf8');
     const parsed = yaml.load(raw);
-    return (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
+    return (parsed != null && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
   } catch {
     return {};
   }
@@ -337,7 +388,7 @@ interface RouteNode {
 }
 
 function nameFromFile(file: string | undefined): string {
-  return file ? basename(file).replace(/\.(tsx?|jsx?)$/, '') : '';
+  return isNonEmpty(file) ? basename(file).replace(ROUTE_FILE_EXT_RE, '') : '';
 }
 
 export function collectRouteUrls(nodes: RouteNode[]): Record<string, string> {
@@ -347,15 +398,15 @@ export function collectRouteUrls(nodes: RouteNode[]): Record<string, string> {
       const segment = n.path ?? '';
       const full = segment.startsWith('/')
         ? segment
-        : `${prefix.replace(/\/$/, '')}/${segment}`.replace(/\/+/g, '/');
-      const normalized = full.replace(/\/+$/, '') || '/';
+        : `${prefix.replace(TRAILING_SLASH_RE, '')}/${segment}`.replace(SLASHES_RE, '/');
+      const normalized = full.replace(TRAILING_SLASHES_RE, '') || '/';
       const name = nameFromFile(n.file);
-      if (n.index && name) {
-        urls[name] = prefix.replace(/\/$/, '') || '/';
-      } else if (name && segment !== '*' && !segment.includes(':')) {
+      if (n.index === true && name !== '') {
+        urls[name] = prefix.replace(TRAILING_SLASH_RE, '') || '/';
+      } else if (name !== '' && segment !== '*' && !segment.includes(':')) {
         urls[name] = normalized;
       }
-      if (n.children) {
+      if (n.children != null) {
         walk(n.children, normalized);
       }
     }
@@ -407,17 +458,17 @@ export function mdFrontmatter(): Plugin {
     },
     async load(id) {
       const [filepath, query] = id.split('?');
-      if (!filepath?.endsWith('.md') || query !== 'parsed') {
+      if (filepath?.endsWith('.md') !== true || query !== 'parsed') {
         return null;
       }
       this.addWatchFile(filepath);
-      if (siteYmlPath) {
+      if (siteYmlPath !== '') {
         this.addWatchFile(siteYmlPath);
       }
-      if (routesPath) {
+      if (routesPath !== '') {
         this.addWatchFile(routesPath);
       }
-      const raw = (await readFile(filepath, 'utf8')).replace(/\r\n/g, '\n');
+      const raw = (await readFile(filepath, 'utf8')).replace(CRLF_RE, '\n');
       const {data, content} = matter(raw);
       const expanded = expandTemplate(content, vars);
       const rendered = addHeadingIds(String(marked.parse(expanded)));

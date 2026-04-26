@@ -12,6 +12,7 @@ import type {FileHeader} from './schema';
 import {join} from 'node:path';
 
 import process from 'node:process';
+import {isNonEmpty} from '~/lib/guards';
 import {
   normalizeCertification,
   normalizeEducation,
@@ -29,7 +30,7 @@ const TOKEN = process.env.LINKEDIN_DMA_TOKEN;
 const VERSION = process.env.LINKEDIN_API_VERSION ?? '202511';
 const OUT_DIR = join(process.cwd(), 'content', 'linkedin');
 
-if (!TOKEN) {
+if (!isNonEmpty(TOKEN)) {
   console.error('[linkedin] LINKEDIN_DMA_TOKEN not set. Fill .env (see .env.example).');
   process.exit(1);
 }
@@ -45,7 +46,7 @@ interface SnapshotEnvelope {
 async function fetchDomain(domain: string): Promise<Array<Record<string, string>>> {
   const rows: Array<Record<string, string>> = [];
   let url: string | null = `https://api.linkedin.com/rest/memberSnapshotData?q=criteria&domain=${domain}`;
-  while (url) {
+  while (isNonEmpty(url)) {
     const res: Response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${TOKEN}`,
@@ -64,41 +65,48 @@ async function fetchDomain(domain: string): Promise<Array<Record<string, string>
       rows.push(...envelope.snapshotData);
     }
     const next = body.paging?.links?.find((l) => l.rel === 'next')?.href;
-    url = next ? `https://api.linkedin.com${next}` : null;
+    url = isNonEmpty(next) ? `https://api.linkedin.com${next}` : null;
   }
   return rows;
 }
 
-const header: FileHeader = {source: 'api', generatedAt: new Date().toISOString()};
+async function main(): Promise<void> {
+  const header: FileHeader = {source: 'api', generatedAt: new Date().toISOString()};
 
-const [profileRows, positionRows, educationRows, certRows, langRows, skillRows, projectRows]
-  = await Promise.all([
-    fetchDomain('PROFILE'),
-    fetchDomain('POSITIONS'),
-    fetchDomain('EDUCATION'),
-    fetchDomain('CERTIFICATIONS'),
-    fetchDomain('LANGUAGES'),
-    fetchDomain('SKILLS'),
-    fetchDomain('PROJECTS'),
-  ]);
+  const [profileRows, positionRows, educationRows, certRows, langRows, skillRows, projectRows]
+    = await Promise.all([
+      fetchDomain('PROFILE'),
+      fetchDomain('POSITIONS'),
+      fetchDomain('EDUCATION'),
+      fetchDomain('CERTIFICATIONS'),
+      fetchDomain('LANGUAGES'),
+      fetchDomain('SKILLS'),
+      fetchDomain('PROJECTS'),
+    ]);
 
-const profile = profileRows[0] ? normalizeProfile(profileRows[0]) : null;
-const positions = sortByRecent(positionRows.map(normalizePosition));
-const education = preserveEducationLocation(
-  join(OUT_DIR, 'education.de.yml'),
-  sortByRecent(educationRows.map(normalizeEducation)),
-);
-const certifications = sortByRecent(certRows.map(normalizeCertification));
-const languages = langRows.map(normalizeLanguage);
-const skills = skillRows.map(normalizeSkill);
-const projects = sortByRecent(projectRows.map(normalizeProject));
+  const profile = profileRows[0] ? normalizeProfile(profileRows[0]) : null;
+  const positions = sortByRecent(positionRows.map(normalizePosition));
+  const education = preserveEducationLocation(
+    join(OUT_DIR, 'education.de.yml'),
+    sortByRecent(educationRows.map(normalizeEducation)),
+  );
+  const certifications = sortByRecent(certRows.map(normalizeCertification));
+  const languages = langRows.map(normalizeLanguage);
+  const skills = skillRows.map(normalizeSkill);
+  const projects = sortByRecent(projectRows.map(normalizeProject));
 
-writeYaml(join(OUT_DIR, 'positions.de.yml'), positions, header);
-writeYaml(join(OUT_DIR, 'education.de.yml'), education, header);
-writeYaml(join(OUT_DIR, 'certifications.de.yml'), certifications, header);
-writeYaml(join(OUT_DIR, 'languages.de.yml'), languages, header);
-writeYaml(join(OUT_DIR, 'skills.de.yml'), skills, header);
-writeYaml(join(OUT_DIR, 'projects.de.yml'), projects, header);
-if (profile) {
-  writeYaml(join(OUT_DIR, 'profile.de.yml'), profile, header);
+  writeYaml(join(OUT_DIR, 'positions.de.yml'), positions, header);
+  writeYaml(join(OUT_DIR, 'education.de.yml'), education, header);
+  writeYaml(join(OUT_DIR, 'certifications.de.yml'), certifications, header);
+  writeYaml(join(OUT_DIR, 'languages.de.yml'), languages, header);
+  writeYaml(join(OUT_DIR, 'skills.de.yml'), skills, header);
+  writeYaml(join(OUT_DIR, 'projects.de.yml'), projects, header);
+  if (profile) {
+    writeYaml(join(OUT_DIR, 'profile.de.yml'), profile, header);
+  }
 }
+
+main().catch((err: unknown) => {
+  console.error(err);
+  process.exit(1);
+});

@@ -74,7 +74,7 @@ export default function CV() {
           const loc = de ? e.locationDe : e.locationEn;
           const meta = [dur, emp, loc].filter(Boolean).join(' · ');
           return (
-            <div key={i} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
+            <div key={`${e.company}-${e.sortKey}-${e.endKey}`} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
               <div className="ta-exp-timestamp">[{e.period}]</div>
               <div className="ta-exp-body">
                 <div className="ta-exp-company">
@@ -113,8 +113,8 @@ export default function CV() {
         <div className="ta-glass ta-meta-card" data-reveal>
           <div className="ta-card-head">{t('cv_page.languages_title')}</div>
           <div className="ta-lang-list">
-            {LANGUAGES.map((l, i) => (
-              <div key={i} className="ta-lang-row">
+            {LANGUAGES.map((l) => (
+              <div key={l.nameDe} className="ta-lang-row">
                 <Flag code={l.flagCode} className="ta-lang-flag" />
                 <span className="ta-lang-name">{de ? l.nameDe : l.nameEn}</span>
                 <span className="ta-lang-level">{l.level}</span>

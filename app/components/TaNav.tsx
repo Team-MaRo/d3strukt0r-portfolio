@@ -28,6 +28,7 @@ export function TaNav() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- close menu when route changes
     setOpen(false);
   }, [loc.pathname, loc.hash]);
 
@@ -36,6 +37,7 @@ export function TaNav() {
       const d = new Date();
       const hh = String(d.getHours()).padStart(2, '0');
       const mm = String(d.getMinutes()).padStart(2, '0');
+      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- live clock driven by interval; must update via state
       setTime(`${hh}:${mm} CET`);
     };
     tick();

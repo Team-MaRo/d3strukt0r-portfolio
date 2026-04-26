@@ -23,10 +23,17 @@ const postFiles = import.meta.glob<ParsedMd>('../../content/posts/*.md', {
   eager: true,
 });
 
+const MD_EXT_RE = /\.md$/;
+const DATE_PREFIX_RE = /^\d{4}-\d{2}-\d{2}-/;
+const MD_DECORATORS_RE = /[#>*_`]/g;
+const WHITESPACE_RE = /\s+/;
+const DATE_IN_PATH_RE = /\d{4}-\d{2}-\d{2}/;
+const DATE_DASH_RE = /-/g;
+
 function pathSlug(p: string): string {
-  const base = p.split('/').pop()!.replace(/\.md$/, '');
+  const base = p.split('/').pop()!.replace(MD_EXT_RE, '');
   // Strip leading YYYY-MM-DD- for posts.
-  return base.replace(/^\d{4}-\d{2}-\d{2}-/, '');
+  return base.replace(DATE_PREFIX_RE, '');
 }
 
 function parseDate(raw: unknown): string {
@@ -43,12 +50,12 @@ function parseDate(raw: unknown): string {
 export const posts: Post[] = Object.entries(postFiles)
   .map(([path, mod]) => {
     const {frontmatter, content, html} = mod;
-    const plain = content.replace(/[#>*_`]/g, '').trim();
-    const wordCount = plain ? plain.split(/\s+/).length : 0;
+    const plain = content.replace(MD_DECORATORS_RE, '').trim();
+    const wordCount = plain ? plain.split(WHITESPACE_RE).length : 0;
     return {
       slug: pathSlug(path),
       title: String(frontmatter.title ?? pathSlug(path)),
-      date: parseDate(frontmatter.date ?? path.match(/\d{4}-\d{2}-\d{2}/)?.[0]),
+      date: parseDate(frontmatter.date ?? path.match(DATE_IN_PATH_RE)?.[0]),
       html,
       excerpt: plain.split('\n').find(Boolean)?.slice(0, 160) ?? '',
       readTime: Math.max(1, Math.round(wordCount / 200)),
@@ -61,5 +68,5 @@ export function postBySlug(slug: string): Post | undefined {
 }
 
 export function postUrl(post: Pick<Post, 'date' | 'slug'>): string {
-  return `/${post.date.slice(0, 10).replace(/-/g, '/')}/${post.slug}`;
+  return `/${post.date.slice(0, 10).replace(DATE_DASH_RE, '/')}/${post.slug}`;
 }

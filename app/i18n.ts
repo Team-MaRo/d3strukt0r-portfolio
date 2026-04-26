@@ -10,8 +10,8 @@ if (!i18n.isInitialized) {
     .use(initReactI18next)
     .init({
       resources: {
-        en: {translation: en as Record<string, unknown>},
-        de: {translation: de as Record<string, unknown>},
+        en: {translation: en},
+        de: {translation: de},
       },
       fallbackLng: 'en',
       supportedLngs: ['en', 'de'],

@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
+import {isNonEmpty} from '~/lib/guards';
 
 export interface GhUser {
   name: string | null;
@@ -26,7 +27,7 @@ export interface GhRepo {
 function fromCache<T>(key: string): T | null {
   try {
     const v = sessionStorage.getItem(key);
-    return v ? (JSON.parse(v) as T) : null;
+    return isNonEmpty(v) ? (JSON.parse(v) as T) : null;
   } catch {
     return null;
   }
@@ -44,7 +45,9 @@ export function useGithubUser(user = 'D3strukt0r') {
     const key = `gh:user:${user}`;
     const cached = fromCache<GhUser>(key);
     if (cached) {
-      setData(cached); return;
+      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- async fetch + sessionStorage cache; state must update post-mount
+      setData(cached);
+      return;
     }
     fetch(`https://api.github.com/users/${user}`)
       .then(async (r) => (r.ok ? r.json() : Promise.reject(r.status)))
@@ -74,7 +77,9 @@ export function useGithubRepos(user = 'D3strukt0r') {
     const key = `gh:repos:v2:${user}`;
     const cached = fromCache<GhReposResult>(key);
     if (cached) {
-      setRepos(cached); return;
+      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- async fetch + sessionStorage cache; state must update post-mount
+      setRepos(cached);
+      return;
     }
     fetch(`https://api.github.com/users/${user}/repos?sort=updated&per_page=100`)
       .then(async (r) => (r.ok ? r.json() : Promise.reject(r.status)))
@@ -83,7 +88,8 @@ export function useGithubRepos(user = 'D3strukt0r') {
         const totalStars = own.reduce((s, r) => s + (r.stargazers_count ?? 0), 0);
         const totalForks = own.reduce((s, r) => s + (r.forks_count ?? 0), 0);
         const list: GhRepo[] = own
-          .sort((a, b) => (b.stargazers_count - a.stargazers_count) || (new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime()))
+          .sort((a, b) => (b.stargazers_count - a.stargazers_count)
+            || (new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime()))
           .slice(0, 12)
           .map((r) => ({
             name: r.name, full: r.full_name, desc: r.description ?? '',
@@ -114,7 +120,9 @@ export function useContributions(user = 'D3strukt0r') {
     const key = `gh:contrib:v3:${user}`;
     const cached = fromCache<GhContrib>(key);
     if (cached) {
-      setData(cached); return;
+      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect -- async fetch + sessionStorage cache; state must update post-mount
+      setData(cached);
+      return;
     }
     fetch(`https://github-contributions-api.jogruber.de/v4/${user}?y=last`)
       .then(async (r) => (r.ok ? (r.json() as Promise<JogruberResp>) : Promise.reject(r.status)))
@@ -122,7 +130,14 @@ export function useContributions(user = 'D3strukt0r') {
         const weeksCount = 26;
         const days = 7;
         const sorted = [...resp.contributions].sort((a, b) => a.date.localeCompare(b.date));
-        const grid: number[][] = Array.from({length: weeksCount}, () => Array.from({length: days}, () => 0));
+        const grid: number[][] = [];
+        for (let w = 0; w < weeksCount; w++) {
+          const row: number[] = [];
+          for (let d = 0; d < days; d++) {
+            row.push(0);
+          }
+          grid.push(row);
+        }
         // Row 0 = Monday, row 6 = Sunday. Column 25 = current week.
         const lastDate = sorted.length ? new Date(`${sorted.at(-1)!.date}T00:00:00Z`) : new Date();
         // Anchor: Monday of the last week shown (week 25).
