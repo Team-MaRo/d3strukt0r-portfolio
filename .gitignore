@@ -1,10 +1,46 @@
-# Created by https://www.toptal.com/developers/gitignore/api/jekyll
-# Edit at https://www.toptal.com/developers/gitignore?templates=jekyll
+node_modules/
+build/
+.react-router/
+.cache/
+.env
+.DS_Store
+*.log
+.pnpm-store/
+.claude/settings.local.json
+CLAUDE.md
 
-### Jekyll ###
-_site/
-.sass-cache/
-.jekyll-cache/
-.jekyll-metadata
+# LinkedIn export: sensitive (PII, private conversations, ID verification, behavioral data)
+data/linkedin/**/Profile.csv
+data/linkedin/**/Email Addresses.csv
+data/linkedin/**/Connections.csv
+data/linkedin/**/guide_messages.csv
+data/linkedin/**/PhoneNumbers.csv
+data/linkedin/**/Whatsapp Phone Numbers.csv
+data/linkedin/**/messages.csv
+data/linkedin/**/learning_coach_messages.csv
+data/linkedin/**/learning_role_play_messages.csv
+data/linkedin/**/LearningCoachMessages.csv
+data/linkedin/**/Verifications/
+data/linkedin/**/Ad_Targeting.csv
+data/linkedin/**/Invitations.csv
+data/linkedin/**/Endorsement_Received_Info.csv
+data/linkedin/**/ImportedContacts.csv
+data/linkedin/**/Inferences_about_you.csv
+data/linkedin/**/Logins.csv
+data/linkedin/**/SearchQueries.csv
+data/linkedin/**/Security Challenges.csv
+data/linkedin/**/Comments.csv
 
-# End of https://www.toptal.com/developers/gitignore/api/jekyll
+# LinkedIn export: useless noise
+data/linkedin/**/Registration.csv
+data/linkedin/**/SavedJobAlerts.csv
+data/linkedin/**/Rich_Media.csv
+data/linkedin/**/Company Follows.csv
+data/linkedin/**/Events.csv
+data/linkedin/**/Jobs/
+data/linkedin/**/Ads Clicked.csv
+data/linkedin/**/LAN Ads Engagement.csv
+data/linkedin/**/Hashtag_Follows.csv
+data/linkedin/**/Reactions.csv
+data/linkedin/**/Saved_Items.csv
+data/linkedin/**/Shares.csv

@@ -1,0 +1,40 @@
+# content/linkedin/education.de.yml
+# generated from csv @ 2026-04-23T21:11:18.187Z
+# DO NOT EDIT generated keys; German overrides (e.g. `titleDe`) are safe to add by hand.
+- school: Fachhochschule Nordwestschweiz FHNW
+  degree: Bachelor of Applied Science - BASc
+  startedOn: 2018-06
+  finishedOn: 2022-06
+  notes: >-
+    Business und IT verstehen, Menschen motivieren und vernetzen, innovative Lösungen finden und
+    umsetzen – das ist die Welt der Wirtschaftsinformatik.
+  activities: ''
+- school: IELS Malta - Institute of English Language Studies
+  degree: Cambridge English CAE (C1)
+  startedOn: 2017-10
+  finishedOn: 2018-03
+  notes: In der Schule Englisch gelernt & vorbereitet für den CAE Test
+  activities: ''
+- school: Wirtschaftsgymnasium Basel
+  degree: Eidgenössisches Fähigkeitszeugnis und Berufsmaturität
+  startedOn: 2013-06
+  finishedOn: 2016-06
+  notes: >-
+    In der Wirtschaftsmittelschule steht Volkswirtschaft, Betriebswirtschaft, Recht und Finanz- und
+    Rechnungswesen.
+  activities: ''
+  location: Basel, Schweiz
+- school: Sekundarschule Steinli
+  degree: Sekundär
+  startedOn: 2009-08
+  finishedOn: 2013-06
+  notes: ''
+  activities: ''
+  location: Möhlin, Schweiz
+- school: Primarschule Gestadeck
+  degree: ''
+  startedOn: 2004-08
+  finishedOn: 2009-06
+  notes: ''
+  activities: ''
+  location: Liestal, Schweiz

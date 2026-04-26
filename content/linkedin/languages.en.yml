@@ -1,0 +1,18 @@
+# content/linkedin/languages.en.yml
+# translated from languages.de.yml @ 2026-04-23T20:00:00Z
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
+- nameEn: German
+  level: Native
+  stars: 5
+- nameEn: Spanish
+  level: A2
+  stars: 3
+- nameEn: English
+  level: C1 · CAE
+  stars: 4
+- nameEn: Italian
+  level: A1
+  stars: 2
+- nameEn: French
+  level: B1 · DELF
+  stars: 2

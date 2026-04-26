@@ -1,0 +1,134 @@
+@layer components {
+/* Nav */
+.ta > .ta-nav {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+}
+.ta-nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 14px;
+  width: 100%;
+  max-width: var(--max);
+  min-width: 0;
+  font-family: 'JetBrains Mono';
+  font-size: 13px;
+  position: relative;
+}
+.ta-nav-brand {
+  color: var(--accent);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.ta-cursor-blink {
+  animation: taBlink 1s steps(2) infinite;
+  color: var(--accent);
+}
+@keyframes taBlink {
+  50% {
+    opacity: 0;
+  }
+}
+.ta-nav-links {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+.ta-icon.ta-nav-toggle {
+  display: none;
+}
+.ta-nav-link {
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--fg-dim);
+  font-size: 12px;
+  transition: background .15s, color .15s;
+}
+.ta-nav-link:hover {
+  background: var(--glass-strong);
+  color: var(--accent);
+}
+.ta-nav-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.ta-time {
+  font-size: 11px;
+  color: var(--fg-mute);
+  font-variant-numeric: tabular-nums;
+}
+.ta-pill {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--fg-dim);
+}
+.ta-pill .on {
+  color: var(--accent);
+}
+.ta-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-dim);
+}
+.ta-icon:hover {
+  color: var(--accent);
+}
+@media (max-width: 1024px) {
+  .ta-nav-inner {
+    gap: 12px;
+  }
+  .ta-nav-controls {
+    margin-left: auto;
+  }
+  .ta-time {
+    display: none;
+  }
+  .ta-nav-links {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    z-index: 2;
+  }
+  .ta-nav-link {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  .ta-icon.ta-nav-toggle {
+    display: flex;
+  }
+  .ta-nav.open .ta-nav-links {
+    display: flex;
+  }
+}
+}

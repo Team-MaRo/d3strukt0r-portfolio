@@ -1,0 +1,77 @@
+@layer components {
+/* Stats strip */
+.ta-stats-strip {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+@media (max-width: 640px) {
+  .ta-stats-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.ta-stat-item {
+  text-align: center;
+}
+.ta-stat-val {
+  font-family: 'Space Grotesk';
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.ta-stat-lab {
+  font-family: 'JetBrains Mono';
+  font-size: 11px;
+  color: var(--fg-mute);
+  margin-top: 4px;
+}
+/* Sections */
+.ta-section {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 80px 24px;
+  // Section already pads its top by 80px; cancel scroll-padding-top so anchor
+  // jumps land at the heading (y ≈ nav bottom + small gap), not 80px above it.
+  scroll-margin-top: -64px;
+}
+.ta-heading {
+  margin-bottom: 40px;
+}
+.ta-hnum {
+  font-family: 'JetBrains Mono';
+  font-size: 11px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.ta-hcode {
+  font-family: 'JetBrains Mono';
+  font-size: 14px;
+  color: var(--fg-dim);
+  margin-bottom: 10px;
+}
+.ta-h1 {
+  font-family: 'Space Grotesk';
+  font-weight: 500;
+  font-size: clamp(32px, 5vw, 56px);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0 0 16px;
+  text-wrap: balance;
+}
+.ta-h2 {
+  font-family: 'Space Grotesk';
+  font-weight: 500;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+  text-wrap: balance;
+}
+}

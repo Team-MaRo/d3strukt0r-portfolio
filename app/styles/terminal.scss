@@ -1,0 +1,12 @@
+// Terminal Aurora — Direction B styles.
+// Split into partials under `./terminal/`. Each partial wraps its rules in
+// `@layer components { … }` so Tailwind utilities used directly in JSX still
+// win on cascade. Load order matches the original single-file layout.
+
+@use "terminal/base";
+@use "terminal/nav";
+@use "terminal/hero";
+@use "terminal/layout";
+@use "terminal/blocks";
+@use "terminal/meta";
+@use "terminal/contact-footer";

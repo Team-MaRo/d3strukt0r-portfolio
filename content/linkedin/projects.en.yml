@@ -1,0 +1,7 @@
+# content/linkedin/projects.en.yml
+# translated from projects.de.yml @ 2026-04-23T20:00:00Z
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
+- title: weleda-webcenter-text-export
+  description: >-
+    A little web application for Weleda AG which converts the exported XML file of WebCenter into
+    raw text.  Used technologies were: HTML, CSS, JavaScript, React, TypeScript, Material UI
