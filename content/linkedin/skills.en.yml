@@ -1,0 +1,35 @@
+# content/linkedin/skills.en.yml
+# translated from skills.de.yml @ 2026-04-23T20:00:00Z
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
+- name: Ant Design
+- name: Kubernetes
+- name: English
+- name: Jenkins
+- name: React.js
+- name: Symfony Framework
+- name: DevOps
+- name: Bootstrap
+- name: Node.js
+- name: Content Management Systems (CMS)
+- name: Webpack
+- name: SASS
+- name: JavaScript
+- name: Web Development
+- name: Babel.js
+- name: ECMAScript
+- name: Cascading Style Sheets (CSS)
+- name: Redux.js
+- name: PHP
+- name: Docker Products
+- name: TypeScript
+- name: Git
+- name: Scrum
+- name: PHP Applications
+- name: Accounts Payable
+- name: Teamwork
+- name: Microsoft Office
+- name: Microsoft Excel
+- name: Microsoft PowerPoint
+- name: Microsoft Word
+- name: SAP
+- name: SAP ERP

@@ -1,0 +1,18 @@
+# content/linkedin/languages.de.yml
+# generated from csv @ 2026-04-23T21:11:18.187Z
+# DO NOT EDIT generated keys; German overrides (e.g. `titleDe`) are safe to add by hand.
+- name: Deutsch
+  proficiency: Native or bilingual proficiency
+  stars: 5
+- name: Englisch
+  proficiency: Professional working proficiency
+  stars: 4
+- name: Spanisch
+  proficiency: Limited working proficiency
+  stars: 3
+- name: Italienisch
+  proficiency: Elementary proficiency
+  stars: 2
+- name: Französisch
+  proficiency: Elementary proficiency
+  stars: 2

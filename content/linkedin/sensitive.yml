@@ -1,0 +1,37 @@
+# What gets encrypted at build time. Consumed by app/vite/plugins/seal.ts.
+#
+# Two top-level keys:
+#
+#   fields  — yml field paths to encrypt in `content/linkedin/<key>.{de,en}.yml`.
+#             Each top-level key matches a yml file basename (without language
+#             suffix and extension). Path syntax: dot-separated; `*` matches
+#             any array index. Only string values are sealed — empty strings
+#             and non-strings pass through.
+#
+#   photos  — image files to encrypt and blurhash. Each id maps to a path
+#             relative to the project root. Reference from JSX via
+#             `<SealedImage id="<id>" alt="…" />`.
+
+fields:
+  profile:
+    - lastName
+    - geoLocation
+    - summary
+
+  positions:
+    - "*.company"
+    - "*.location"
+    - "*.description"
+
+  education:
+    - "*.school"
+    - "*.location"
+    - "*.notes"
+    - "*.activities"
+
+  certifications:
+    - "*.url"
+    - "*.licenseNumber"
+
+photos:
+  profile: app/assets/profile-picture-2018.06.23.jpg

@@ -1,0 +1,17 @@
+# content/linkedin/certifications.en.yml
+# translated from certifications.de.yml @ 2026-04-23T20:00:00Z
+# Only user-facing text is translated; identifiers (company, url, dates, stars) stay unchanged.
+- name: Professional Scrum Developer™ I (PSD I)
+  authority: Scrum.org
+- name: SAP Certified Application Associate - Business Process Integration with SAP S/4HANA 1809
+  authority: SAP
+- name: Enterprise Resource Planning with SAP S/4HANA (TS410)
+  authority: erp4students
+- name: IREB Certified Professional for Requirements Engineering
+  authority: SAQ Swiss Association for Quality
+- name: Cambridge English level 2 Certificate in ESOL International (Advanced)
+  authority: Cambridge Assessment English
+- name: Cambridge English level 1 Certificate in ESOL International (First)
+  authority: Cambridge Assessment English
+- name: DELF B1
+  authority: Ministère chargé de l'Éducation nationale

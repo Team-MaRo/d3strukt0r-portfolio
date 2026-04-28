@@ -1,0 +1,10 @@
+# content/linkedin/projects.de.yml
+# generated from csv @ 2026-04-23T21:11:18.187Z
+# DO NOT EDIT generated keys; German overrides (e.g. `titleDe`) are safe to add by hand.
+- title: weleda-webcenter-text-export
+  description: >-
+    A little web application for Weleda AG which converts the exported XML file of WebCenter into
+    raw text.  Used technologies were: HTML, CSS, JavaScript, React, TypeScript, Material UI
+  url: https://weleda-webcenter-text-export.d3strukt0r.dev/
+  startedOn: 2019-12
+  finishedOn: null
