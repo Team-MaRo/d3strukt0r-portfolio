@@ -18,7 +18,7 @@ if (!i18n.isInitialized) {
       interpolation: {escapeValue: false},
       detection: {
         order: ['localStorage', 'navigator'],
-        lookupLocalStorage: 'portfolio:lang',
+        lookupLocalStorage: 'd3strukt0rs-portfolio:lang',
         caches: ['localStorage'],
       },
       returnObjects: true,

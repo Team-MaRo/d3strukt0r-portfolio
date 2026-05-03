@@ -24,3 +24,21 @@ updates:
       interval: weekly
       time: '09:30'
       timezone: Europe/Zurich
+
+  - package-ecosystem: docker
+    directory: /
+    labels:
+      - "dependabot :robot:"
+    schedule:
+      interval: weekly
+      time: '09:30'
+      timezone: Europe/Zurich
+
+  - package-ecosystem: nix
+    directory: /
+    labels:
+      - "dependabot :robot:"
+    schedule:
+      interval: weekly
+      time: '09:30'
+      timezone: Europe/Zurich

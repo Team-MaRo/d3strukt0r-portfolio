@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 
-const KEY = 'portfolio:theme';
+const KEY = 'd3strukt0rs-portfolio:theme';
 type Theme = 'dark' | 'light';
 
 function getInitial(): Theme {
