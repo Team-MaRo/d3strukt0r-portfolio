@@ -10,14 +10,26 @@ on:
 
 permissions:
   contents: read
-  # This is used to complete the identity challenge
-  # with sigstore/fulcio when running outside of PRs.
+  # Identity challenge with sigstore/fulcio (cosign keyless signing).
   id-token: write
+  # Required by actions/attest-build-provenance to write the attestation.
+  attestations: write
+  # `attest-build-provenance` writes to the GitHub-hosted attestation feed;
+  # this gives it the package-level write it needs.
+  packages: write
 
 jobs:
   build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
+    name: Build (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-24.04,     arch: amd64,   timeout: 60 }
+          - { runner: ubuntu-24.04-arm, arch: arm64,   timeout: 60 }
+          - { runner: ubuntu-24.04,     arch: riscv64, timeout: 240, emulate: true }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: ${{ matrix.timeout }}
 
     env:
       dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -26,8 +38,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # riscv64 leg only: register qemu-user binfmt handlers so the kernel can
+      # transparently exec riscv64 ELFs on this amd64 runner. Required for Nix
+      # to build any riscv64-linux derivation under emulation.
+      - name: Set up QEMU (riscv64)
+        if: matrix.emulate
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: riscv64
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      # Tell the Nix daemon it's allowed to evaluate/build riscv64-linux
+      # derivations on this host (binfmt handles the actual exec). Sandbox
+      # also needs the qemu-user-static binary visible inside the build env.
+      - name: Enable riscv64 in Nix
+        if: matrix.emulate
+        run: |
+          QEMU_BIN=$(command -v qemu-riscv64-static || echo /usr/bin/qemu-riscv64-static)
+          echo "Using qemu binary: $QEMU_BIN"
+          sudo mkdir -p /etc/nix
+          echo 'extra-platforms = riscv64-linux' | sudo tee -a /etc/nix/nix.conf
+          echo "extra-sandbox-paths = $QEMU_BIN" | sudo tee -a /etc/nix/nix.conf
+          sudo systemctl restart nix-daemon || sudo pkill -HUP nix-daemon || true
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v3
+
       # Install the cosign tool except on PR
-      - name: Install Cosign
+      - name: Install cosign
         uses: sigstore/cosign-installer@v3
         if: github.event_name != 'pull_request'
         with:
@@ -47,12 +87,16 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      - name: Extract Docker metadata
+      # Per-arch tags: SUFFIX with -<arch> so amd64/arm64 don't collide on push.
+      # The final manifest job re-runs metadata-action without the suffix to
+      # build the user-facing manifest list tags.
+      - name: Extract per-arch Docker metadata
         uses: docker/metadata-action@v6
         id: meta
         with:
           images: ${{ vars.IMAGE_NAME }}
+          flavor: |
+            suffix=-${{ matrix.arch }},onlatest=true
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -60,35 +104,195 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      - name: Build and Push Docker image
-        uses: docker/build-push-action@v7
-        id: build-and-push
+      - name: Build OCI image with Nix
+        env:
+          SEAL_DATA_KEY: ${{ secrets.SEAL_DATA_KEY }}
+          # metadata-action's `labels` output is "KEY=VAL\n…"; convert to JSON
+          # so the flake can parse it via builtins.fromJSON.
+          LABELS_RAW: ${{ steps.meta.outputs.labels }}
+          # On the emulated leg, force Nix to evaluate the riscv64-linux
+          # attribute set instead of the host's amd64 default.
+          NIX_SYSTEM_FLAG: ${{ matrix.emulate && '--system riscv64-linux' || '' }}
+        run: |
+          export DOCKER_LABELS_JSON=$(jq -Rsc '
+            split("\n")
+            | map(select(length > 0))
+            | map(split("=") | { key: .[0], value: (.[1:] | join("=")) })
+            | from_entries
+          ' <<<"$LABELS_RAW")
+          nix build --impure --print-build-logs $NIX_SYSTEM_FLAG .#dockerImage
+          # `result` is the streaming script (not a tarball).
+          ./result | docker load
+
+      - name: Tag + push per-arch images
+        id: push
+        # `env.ACT` is set to "true" by nektos/act, so local runs skip the push.
+        if: github.event_name != 'pull_request' && !env.ACT && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          # `streamLayeredImage` loads as `d3strukt0r/portfolio:latest` — find
+          # whichever tag the daemon picked.
+          LOADED=$(docker image ls --format '{{.Repository}}:{{.Tag}}' \
+                  | grep '^d3strukt0r/portfolio:' | head -1)
+          test -n "$LOADED" || { echo "loaded image not found"; exit 1; }
+
+          DIGEST=""
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            docker tag "$LOADED" "$tag"
+            docker push "$tag"
+            # Capture once; same image, same digest for every tag.
+            if [ -z "$DIGEST" ]; then
+              DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$tag" | cut -d@ -f2)
+            fi
+          done <<< "$TAGS"
+
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Generate SBOM
+        if: github.event_name != 'pull_request' && !env.ACT && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          # SBOM via syft over the loaded image. Produces SPDX JSON.
+          FIRST_TAG=$(echo "$TAGS" | head -1)
+          nix run nixpkgs#syft -- "$FIRST_TAG" -o spdx-json=sbom.json
+
+      # SLSA build provenance — replaces buildx's automatic `provenance=max`.
+      # Produces a level-3 SLSA v1.0 attestation signed by the GitHub OIDC
+      # identity, written to both Sigstore Rekor and the GitHub attestation API.
+      - name: Attest SLSA provenance
+        if: github.event_name != 'pull_request' && !env.ACT && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: actions/attest-build-provenance@v2
         with:
-          context: .
-          platforms: linux/amd64,linux/arm64 # same as base image
-          pull: true
-          push: ${{ github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != '' }}
-          sbom: true # provenance is already at =max by default on public repos
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          annotations: ${{ steps.meta.outputs.annotations }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          secrets: |
-            seal_data_key=${{ secrets.SEAL_DATA_KEY }}
+          subject-name: ${{ vars.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+      - name: Sign image and attach SBOM attestation
+        if: github.event_name != 'pull_request' && !env.ACT && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            cosign sign --yes "${tag}@${DIGEST}"
+            cosign attest --yes --predicate sbom.json --type spdxjson "${tag}@${DIGEST}"
+          done <<< "$TAGS"
+
+  manifest:
+    name: Publish multi-arch manifest list
+    needs: build
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'
+    env:
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.2.4'
+
+      # User-facing tags (no per-arch suffix). The same metadata-action call
+      # would also produce annotations, but we already have them from `build`.
+      - name: Extract user-facing Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ vars.IMAGE_NAME }}
+
+      # `imagetools create` accepts `--annotation` lines exactly in the form
+      # metadata-action emits (`manifest:KEY=VAL`). Annotations land on the OCI
+      # index; per-arch image config still has Labels baked in by Nix.
+      - name: Create + annotate manifest list per tag
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          ANNOTATIONS: ${{ steps.meta.outputs.annotations }}
+        run: |
+          ANN_FLAGS=()
+          while IFS= read -r ann; do
+            [ -z "$ann" ] && continue
+            ANN_FLAGS+=("--annotation" "$ann")
+          done <<< "$ANNOTATIONS"
+
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            docker buildx imagetools create \
+              "${ANN_FLAGS[@]}" \
+              -t "$tag" \
+              "${tag}-amd64" "${tag}-arm64" "${tag}-riscv64"
+          done <<< "$TAGS"
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
       # repository is public to avoid leaking data. If you would like to publish
       # transparency data even for private images, pass --force to cosign below.
       # https://github.com/sigstore/cosign
-      - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != '' }}
+      - name: Sign multi-arch manifest list
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
           TAGS: ${{ steps.meta.outputs.tags }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        run: |
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            DIGEST=$(docker buildx imagetools inspect "$tag" --format '{{json .Manifest}}' | jq -r .digest)
+            cosign sign --yes "${tag}@${DIGEST}"
+          done <<< "$TAGS"
+
+      # The build matrix had to push per-arch images with `<tag>-<arch>` suffixes
+      # because `docker push` requires a tag — but those suffixed tags are noise
+      # in the public Docker Hub tag list. The multi-arch manifest list created
+      # above references the per-arch images by digest, so deleting just the
+      # *tags* leaves the underlying manifests + layers reachable; pulls of
+      # `:latest` etc. continue to resolve correctly. Cosign signatures live at
+      # `<repo>:sha256-<digest>.{sig,att}` keyed by digest, so they survive too.
+      - name: Delete per-arch tags from Docker Hub
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+        run: |
+          set -euo pipefail
+          JWT=$(curl -sf -H "Content-Type: application/json" \
+                    -X POST \
+                    -d "{\"username\":\"$DOCKERHUB_USERNAME\",\"password\":\"$DOCKERHUB_TOKEN\"}" \
+                    https://hub.docker.com/v2/users/login/ | jq -r .token)
+          test -n "$JWT" && [ "$JWT" != "null" ] || { echo "Docker Hub login failed"; exit 1; }
+          NAMESPACE=${IMAGE_NAME%%/*}
+          REPO=${IMAGE_NAME#*/}
+          while IFS= read -r tagref; do
+            [ -z "$tagref" ] && continue
+            base="${tagref##*:}"
+            for arch in amd64 arm64 riscv64; do
+              archTag="${base}-${arch}"
+              code=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X DELETE \
+                -H "Authorization: JWT $JWT" \
+                "https://hub.docker.com/v2/repositories/${NAMESPACE}/${REPO}/tags/${archTag}/")
+              # 204 = deleted, 404 = already gone (safe on retries).
+              case "$code" in
+                204) echo "Deleted ${IMAGE_NAME}:${archTag}" ;;
+                404) echo "Skipped ${IMAGE_NAME}:${archTag} (already absent)" ;;
+                *) echo "Unexpected HTTP $code deleting ${archTag}"; exit 1 ;;
+              esac
+            done
+          done <<< "$TAGS"

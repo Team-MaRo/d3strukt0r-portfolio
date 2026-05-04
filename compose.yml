@@ -1,17 +1,27 @@
 services:
   dev:
-    build:
-      context: .
-      target: base
-    working_dir: /opt/portfolio
-    command: nix develop --command sh -c "pnpm install && pnpm run dev --host 0.0.0.0"
+    image: nixos/nix:2.34.6
+    working_dir: /opt/d3strukt0rs-portfolio
+    command:
+      - nix
+      - --extra-experimental-features
+      - nix-command flakes
+      - develop
+      - --command
+      - sh
+      - -c
+      - pnpm install && pnpm run dev --host 0.0.0.0
     ports:
       - "5173:5173"
     volumes:
-      - .:/opt/portfolio
-      - node_modules:/opt/portfolio/node_modules
+      - .:/opt/d3strukt0rs-portfolio
+      - node_modules:/opt/d3strukt0rs-portfolio/node_modules
+      # Persist the nix store across container restarts so devShell realisation
+      # only happens once.
+      - nix-store:/nix
     environment:
       NODE_ENV: development
 
 volumes:
   node_modules:
+  nix-store:

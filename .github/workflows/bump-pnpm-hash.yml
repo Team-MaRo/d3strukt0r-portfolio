@@ -1,0 +1,131 @@
+name: Bump pnpmDeps.hash for Dependabot
+
+# Why pull_request_target instead of pull_request:
+#   pull_request_target runs from the BASE branch (master), not the PR head.
+#   That means:
+#     - Workflow code can't be modified by an attacker via the PR.
+#     - Secrets ARE available (which pull_request from forks denies).
+#   We then explicitly check out the PR's head ref to compute & commit the
+#   new hash. This pattern is only safe because of the dependabot[bot] actor
+#   guard below — that field is set by GitHub auth and can't be spoofed by
+#   PR contents.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bump-pnpm-hash-${{ github.event.pull_request.head.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bump:
+    name: Bump pnpmDeps.hash
+    # Hard gate: only run on Dependabot's own PRs. github.actor is set by
+    # GitHub's auth layer and can't be set by PR contents — safe to trust.
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          # IMPORTANT: must be a PAT or GitHub App token, NOT GITHUB_TOKEN.
+          # Commits authored by GITHUB_TOKEN don't trigger downstream
+          # workflows, which would leave the docker.yml build stuck on
+          # "queued" after we push the hash bump. PAT/App tokens DO trigger
+          # downstream workflows.
+          #
+          # Setup options (pick one and store as repo secret HASH_BUMPER_TOKEN):
+          #   1) Fine-grained PAT: Settings → Developer Settings → Personal
+          #      access tokens → Fine-grained → Repository access: this repo
+          #      only; permissions: Contents = Read+Write, Pull requests =
+          #      Read+Write. Easiest setup, ties to a user account.
+          #   2) GitHub App: create a private app, install on this repo,
+          #      mint a token via actions/create-github-app-token. Cleanest
+          #      audit trail, no user dependency.
+          token: ${{ secrets.HASH_BUMPER_TOKEN }}
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v3
+
+      - name: Compute new pnpmDeps.hash
+        id: bump
+        env:
+          # SEAL_DATA_KEY is consumed only by Vite's seal plugin during the
+          # main bundle build. The pnpmDeps FOD only fetches from the npm
+          # registry — it doesn't read this. But the flake's evaluation
+          # touches builtins.getEnv "SEAL_DATA_KEY", which on `nix build`
+          # without a value may yield surprising eval-time messages. A
+          # placeholder keeps eval clean.
+          SEAL_DATA_KEY: bump-only-not-used
+          DOCKER_LABELS_JSON: ''
+        run: |
+          set -euo pipefail
+
+          ORIG=$(grep -oP 'hash = "\Ksha256-[A-Za-z0-9+/=]+' flake.nix | head -1)
+          echo "Original pnpmDeps.hash: $ORIG"
+
+          # lib.fakeHash sentinel. Replaces just the first hash = "sha256-…"
+          # in flake.nix. Today there's only one FOD in the file; if a
+          # second is added, narrow this to a marker line nearby.
+          FAKE='sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+          sed -i -E '0,/hash = "sha256-[A-Za-z0-9+\/=]+"/{ s|hash = "sha256-[A-Za-z0-9+\/=]+"|hash = "'"$FAKE"'"| }' flake.nix
+
+          # Provoke the hash-mismatch error and capture the "got:" hash.
+          # `|| true` because the build is expected to fail; the failure IS
+          # the signal.
+          LOG=$(nix build --impure --no-link --print-build-logs .#d3strukt0rs-portfolio 2>&1 || true)
+          NEW=$(echo "$LOG" | grep -oP 'got:\s+\Ksha256-[A-Za-z0-9+/=]+' | head -1)
+
+          if [ -z "$NEW" ]; then
+            echo "::error::Failed to extract new hash from nix build output."
+            echo "::group::Build log"
+            echo "$LOG"
+            echo "::endgroup::"
+            # Restore the original so the working tree isn't left with the
+            # fake sentinel (avoids confusing follow-up runs).
+            sed -i -E '0,/hash = "sha256-[A-Za-z0-9+\/=]+"/{ s|hash = "sha256-[A-Za-z0-9+\/=]+"|hash = "'"$ORIG"'"| }' flake.nix
+            exit 1
+          fi
+
+          echo "Computed pnpmDeps.hash: $NEW"
+
+          # Patch the new value in.
+          sed -i -E '0,/hash = "sha256-[A-Za-z0-9+\/=]+"/{ s|hash = "sha256-[A-Za-z0-9+\/=]+"|hash = "'"$NEW"'"| }' flake.nix
+
+          if [ "$NEW" = "$ORIG" ]; then
+            echo "Hash unchanged — Dependabot PR didn't move pnpm-lock.yaml in a way that affects the FOD. No commit needed."
+            exit 0
+          fi
+
+          {
+            echo "changed=true"
+            echo "old=$ORIG"
+            echo "new=$NEW"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit + push to PR branch
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add flake.nix
+          git commit -m "chore: bump pnpmDeps.hash
+
+          Reflects updated pnpm-lock.yaml.
+
+          Old: ${{ steps.bump.outputs.old }}
+          New: ${{ steps.bump.outputs.new }}"
+          git push

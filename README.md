@@ -78,24 +78,17 @@ docker run --rm -p 3000:3000 \
 
 ### Building your own image
 
-To produce an image encrypted under your own data key, pass it as a BuildKit secret so it doesn't end up in image layers or build logs:
+The image is built by `flake.nix`, not a `Dockerfile`. See [Development → Building the OCI image locally](#building-the-oci-image-locally) for the full recipe (works on Windows / macOS / Linux via a throwaway `nixos/nix` container; no host Nix install required).
 
-```shell
-SEAL_DATA_KEY="$(openssl rand -base64 32)" \
-docker build \
-  --secret id=seal_data_key,env=SEAL_DATA_KEY \
-  -t my-portfolio .
-```
-
-Save that `SEAL_DATA_KEY` somewhere safe — you'll need to pass the same value at `docker run`. Rotating the data key requires re-encrypting the content, which means a rebuild; passwords don't.
+Save the `SEAL_DATA_KEY` you build with somewhere safe — you'll need to pass the same value at `docker run`. Rotating the data key requires re-encrypting the content, which means a rebuild; passwords don't.
 
 ### Image details
 
-* **Base:** `node:24-slim` (Debian)
+* **Base:** distroless (Nix-built, no shell as PID 1, runs as `nonroot:65532`)
 * **Server:** `@react-router/serve` (SSR)
 * **Exposed port:** `3000`
-* **Healthcheck:** `wget` against `/` every 30 s
-* **Architectures:** `linux/amd64`, `linux/arm64`
+* **Healthcheck:** `curl` against `/` every 30 s
+* **Architectures:** `linux/amd64`, `linux/arm64`, `linux/riscv64`
 
 ### Tags
 
@@ -141,14 +134,50 @@ LinkedIn data sync (see `bin/linkedin/`):
 * `pnpm run sync:linkedin:csv` — import from a "Download your data" CSV export
 * `pnpm run sync:linkedin:api` — fetch live via the LinkedIn Member Data Portability API (needs `LINKEDIN_DMA_TOKEN` in `.env`)
 
-### Building the image locally
+### Building the OCI image locally
 
-```shell
-docker build -t d3strukt0r.github.io:dev .
-docker run --rm -p 3000:3000 d3strukt0r.github.io:dev
+The production image is Nix-built (`flake.nix`); there is no `Dockerfile`. If you have Nix installed, `nix build --impure .#dockerImage` is enough. Otherwise — and on Windows in particular — run Nix inside a throwaway `nixos/nix` container; everything else lives in your existing Docker daemon.
+
+PowerShell (Windows / macOS Docker Desktop):
+
+```powershell
+$env:SEAL_DATA_KEY = [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
+docker run --rm `
+  -e SEAL_DATA_KEY=$env:SEAL_DATA_KEY `
+  -v "${PWD}:/work" -w /work `
+  nixos/nix:2.34.6 `
+  nix --extra-experimental-features "nix-command flakes" `
+      build --impure .#dockerImage
+docker load --input result
+docker run --rm -p 3000:3000 `
+  -e SEAL_DATA_KEY=$env:SEAL_DATA_KEY `
+  -e REVEAL_PASSWORDS=alice,bob `
+  d3strukt0r/portfolio:latest
 ```
 
-There is also a `compose.yml` for a containerized dev server with HMR:
+Bash (Linux / WSL / macOS):
+
+```shell
+export SEAL_DATA_KEY=$(openssl rand -base64 32)
+docker run --rm \
+  -e SEAL_DATA_KEY \
+  -v "$PWD:/work" -w /work \
+  nixos/nix:2.34.6 \
+  nix --extra-experimental-features "nix-command flakes" \
+      build --impure .#dockerImage
+docker load --input result
+docker run --rm -p 3000:3000 \
+  -e SEAL_DATA_KEY \
+  -e REVEAL_PASSWORDS=alice,bob \
+  d3strukt0r/portfolio:latest
+```
+
+Notes:
+
+* `--impure` is mandatory. `flake.nix` reads `SEAL_DATA_KEY` (and `DOCKER_LABELS_JSON`) from the build environment via `builtins.getEnv`; without `--impure` they come back empty and the bundle silently builds with no seal key.
+* For repeated builds, add `-v nix-store:/nix` to the `docker run` flags so the Nix store survives across container restarts (mirrors what `compose.yml` already does for the dev shell). First build: 5–10 min. Subsequent rebuilds: seconds.
+
+For a containerized **dev server** with HMR (no image build, just `pnpm run dev` inside Nix), use `compose.yml`:
 
 ```shell
 docker compose up --build

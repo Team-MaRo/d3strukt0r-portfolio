@@ -8,8 +8,16 @@ on:
 permissions:
   contents: read
 
+# Two independent jobs (no `needs:` between them) → they run in parallel
+# and one failing job never cancels the other. Inside each job, scripts
+# use `continue-on-error: true` so later steps run regardless, and a
+# trailing aggregator turns any per-step failure into a red job. Net
+# effect: full visibility into every check while paying for one pnpm
+# install (checks job) and one nix build (trivy job).
+
 jobs:
-  build:
+  checks:
+    name: Lint, typecheck, build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,13 +35,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run linting
+      - name: Lint
+        id: lint
+        continue-on-error: true
         run: pnpm run lint
 
-      - name: Run type checking
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
         run: pnpm run typecheck
 
       - name: Build
+        id: build
+        continue-on-error: true
         run: pnpm run build
         env:
           # CI is a build smoke test — the bundle is never uploaded or
@@ -42,3 +56,106 @@ jobs:
           # don't have access to them, and CI != deploy anyway). Any 32-byte
           # base64 string works; this is 32 zero bytes.
           SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+
+      # `continue-on-error: true` forces each step's `conclusion` to
+      # success regardless of `outcome`, so the job stays green even
+      # when something failed. Re-derive the real status here.
+      - name: Aggregate results
+        if: always()
+        run: |
+          {
+            echo "| Check     | Outcome |"
+            echo "| --------- | ------- |"
+            echo "| Lint      | ${{ steps.lint.outcome }} |"
+            echo "| Typecheck | ${{ steps.typecheck.outcome }} |"
+            echo "| Build     | ${{ steps.build.outcome }} |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.lint.outcome }}" = "failure" ] \
+             || [ "${{ steps.typecheck.outcome }}" = "failure" ] \
+             || [ "${{ steps.build.outcome }}" = "failure" ]; then
+            exit 1
+          fi
+
+  trivy:
+    name: Trivy (image scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v3
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.6
+
+      - name: Build OCI image with Nix
+        env:
+          SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: |
+          nix build --impure --print-build-logs .#dockerImage
+          docker load < result
+          docker images --format '{{.Repository}}:{{.Tag}}'
+
+      # Each scan runs independently — `continue-on-error: true` ensures a
+      # finding in one scanner doesn't skip the next.
+      - name: Trivy vulnerability scan
+        id: vuln
+        continue-on-error: true
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --format table \
+            --exit-code 1 \
+            d3strukt0r/portfolio:latest
+
+      - name: Trivy secret scan
+        id: secret
+        continue-on-error: true
+        run: |
+          trivy image \
+            --scanners secret \
+            --format table \
+            --exit-code 1 \
+            d3strukt0r/portfolio:latest
+
+      - name: Trivy misconfiguration scan
+        id: misconfig
+        continue-on-error: true
+        run: |
+          trivy image \
+            --scanners misconfig \
+            --format table \
+            --exit-code 1 \
+            d3strukt0r/portfolio:latest
+
+      - name: Trivy CIS Docker compliance
+        id: compliance
+        continue-on-error: true
+        run: |
+          trivy image \
+            --compliance docker-cis-1.6.0 \
+            --report summary \
+            --exit-code 1 \
+            d3strukt0r/portfolio:latest
+
+      - name: Aggregate results
+        if: always()
+        run: |
+          {
+            echo "| Scanner       | Outcome |"
+            echo "| ------------- | ------- |"
+            echo "| Vulnerability | ${{ steps.vuln.outcome }} |"
+            echo "| Secret        | ${{ steps.secret.outcome }} |"
+            echo "| Misconfig     | ${{ steps.misconfig.outcome }} |"
+            echo "| CIS Docker    | ${{ steps.compliance.outcome }} |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.vuln.outcome }}" = "failure" ] \
+             || [ "${{ steps.secret.outcome }}" = "failure" ] \
+             || [ "${{ steps.misconfig.outcome }}" = "failure" ] \
+             || [ "${{ steps.compliance.outcome }}" = "failure" ]; then
+            exit 1
+          fi

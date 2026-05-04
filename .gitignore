@@ -1,12 +1,19 @@
 node_modules/
 build/
 .react-router/
+
+# Nix build outputs — host-specific symlinks into /nix/store, never useful to commit.
+result
+result-*
+image.tar
+
 .cache/
 .env
 .DS_Store
 *.log
 .pnpm-store/
 .claude/settings.local.json
+.claude/*.lock
 CLAUDE.md
 
 # LinkedIn export: sensitive (PII, private conversations, ID verification, behavioral data)
