@@ -8,8 +8,17 @@ on:
 permissions:
   contents: read
 
+# Two independent jobs (no `needs:` between them) → they run in parallel
+# and one failing job never cancels the other. Inside each job, scripts
+# use `continue-on-error: true` so later steps run regardless. Each check
+# wraps its command via `.github/scripts/summarize-step.sh`, which streams
+# the command's output into `$GITHUB_STEP_SUMMARY` under a `<details>`
+# block. A trailing gate step re-derives the job's pass/fail from the
+# per-step `outcome`s — no markdown table, just the actual scan output.
+
 jobs:
-  build:
+  checks:
+    name: Lint, typecheck, build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,16 +34,21 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm ci
 
-      - name: Run linting
-        run: pnpm run lint
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: bash .github/scripts/summarize-step.sh "Lint" pnpm run lint
 
-      - name: Run type checking
-        run: pnpm run typecheck
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
+        run: bash .github/scripts/summarize-step.sh "Typecheck" pnpm run typecheck
 
       - name: Build
-        run: pnpm run build
+        id: build
+        continue-on-error: true
         env:
           # CI is a build smoke test — the bundle is never uploaded or
           # shipped. Use a throwaway placeholder so the seal plugin's strict
@@ -42,3 +56,133 @@ jobs:
           # don't have access to them, and CI != deploy anyway). Any 32-byte
           # base64 string works; this is 32 zero bytes.
           SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: bash .github/scripts/summarize-step.sh "Build" pnpm run build
+
+      # `continue-on-error: true` forces each step's `conclusion` to
+      # success regardless of `outcome`. Re-derive the real status here.
+      - name: Fail if any check failed
+        if: always()
+        run: |
+          if [ "${{ steps.lint.outcome }}" = "failure" ] \
+             || [ "${{ steps.typecheck.outcome }}" = "failure" ] \
+             || [ "${{ steps.build.outcome }}" = "failure" ]; then
+            exit 1
+          fi
+
+  trivy:
+    name: Trivy (image scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Cache Nix store
+        uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-trivy-${{ hashFiles('**/flake.lock', '**/flake.nix') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-trivy-
+          gc-max-store-size-linux: 5G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-trivy-
+          purge-created: 0
+          purge-last-accessed: P7D
+          purge-primary-key: never
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.6
+
+      - name: Install Grype
+        uses: anchore/scan-action/download-grype@v6
+        id: grype-install
+
+      # Self-heal a stale pnpmDeps.hash so dependabot pnpm-lock PRs don't fail
+      # CI before bump-pnpm-hash.yml has a chance to land its fix-up commit on
+      # master. In-memory only — no commit, no push.
+      - name: Ensure flake.nix has current pnpmDeps.hash
+        env:
+          SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          DOCKER_LABELS_JSON: ''
+        run: ./bin/bump-pnpm-hash.sh
+
+      - name: Build OCI image with Nix
+        env:
+          SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: |
+          nix build --impure --print-build-logs .#dockerImage
+          docker load < result
+          docker images --format '{{.Repository}}:{{.Tag}}'
+
+      # Each scan runs independently — `continue-on-error: true` ensures a
+      # finding in one scanner doesn't skip the next.
+      #
+      # Vulnerability scanning uses Grype, not Trivy: this image is built by
+      # `dockerTools.streamLayeredImage` so packages live under /nix/store
+      # with no dpkg/rpm/apk database. Trivy's image scanner can't enumerate
+      # those (it only finds pnpm's package.json files), and `trivy sbom`
+      # against a sbomnix CycloneDX skips every `pkg:nix/...` purl as an
+      # "unsupported type". Grype's image scanner understands Nix store paths
+      # natively and matches CPEs against its CVE DB, so it actually sees the
+      # runtime closure (sqlite, glibc, openssl, …).
+      # --only-fixed filters both the table and the exit-code evaluation
+      # to findings with an upstream fix available, so CI only turns red
+      # on actionable HIGH/CRITICAL CVEs. Unfixed ones are still
+      # discoverable via the SBOM attestation that docker.yml attaches at
+      # deploy time.
+      - name: Grype vulnerability scan
+        id: vuln
+        continue-on-error: true
+        run: |
+          bash .github/scripts/summarize-step.sh "Grype vulnerability scan" \
+            "${{ steps.grype-install.outputs.cmd }}" \
+            d3strukt0r/portfolio:latest \
+            --fail-on high \
+            --only-fixed \
+            --output table
+
+      - name: Trivy secret scan
+        id: secret
+        continue-on-error: true
+        run: |
+          bash .github/scripts/summarize-step.sh "Trivy secret scan" \
+            trivy image \
+            --scanners secret \
+            --exit-code 1 \
+            d3strukt0r/portfolio:latest
+
+      - name: Trivy misconfiguration scan
+        id: misconfig
+        continue-on-error: true
+        run: |
+          bash .github/scripts/summarize-step.sh "Trivy misconfiguration scan" \
+            trivy image \
+            --scanners misconfig \
+            --exit-code 1 \
+            d3strukt0r/portfolio:latest
+
+      - name: Trivy CIS Docker compliance
+        id: compliance
+        continue-on-error: true
+        run: |
+          bash .github/scripts/summarize-step.sh "Trivy CIS Docker compliance" \
+            trivy image \
+            --compliance docker-cis-1.6.0 \
+            --report summary \
+            --exit-code 1 \
+            d3strukt0r/portfolio:latest
+
+      - name: Fail if any scan failed
+        if: always()
+        run: |
+          if [ "${{ steps.vuln.outcome }}" = "failure" ] \
+             || [ "${{ steps.secret.outcome }}" = "failure" ] \
+             || [ "${{ steps.misconfig.outcome }}" = "failure" ] \
+             || [ "${{ steps.compliance.outcome }}" = "failure" ]; then
+            exit 1
+          fi

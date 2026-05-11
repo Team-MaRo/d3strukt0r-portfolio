@@ -1,0 +1,75 @@
+name: Bump pnpmDeps.hash
+
+# Fires after a lockfile change lands on a deploy branch (typically via a
+# Dependabot merge). Runs the shared bump script, pushes the resulting
+# flake.nix fix-up as a follow-up commit. Single trusted-context workflow —
+# replaces the older compute/apply pair that triggered CodeQL's untrusted-
+# checkout rule. See AGENTS.md → Workflows.
+
+on:
+  push:
+    branches: [master, develop]
+    paths: [pnpm-lock.yaml, package.json]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bump-pnpm-hash-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    # Skip pushes the workflow itself created, otherwise we'd loop.
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # PAT/App token so the resulting push fires downstream workflows.
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Cache Nix store
+        uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-bump-${{ hashFiles('**/flake.lock', '**/flake.nix') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-bump-
+          gc-max-store-size-linux: 5G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-bump-
+          purge-created: 0
+          purge-last-accessed: P7D
+          purge-primary-key: never
+
+      - name: Run bump script
+        env:
+          # Placeholder so `builtins.getEnv "SEAL_DATA_KEY"` resolves cleanly
+          # during the FOD-mismatch probe; not consumed by the FOD itself.
+          SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          DOCKER_LABELS_JSON: ''
+        run: ./bin/bump-pnpm-hash.sh
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit + push if changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet flake.nix; then
+            echo "flake.nix unchanged; nothing to commit."
+            exit 0
+          fi
+          git add flake.nix
+          git commit -m "chore: bump pnpmDeps.hash"
+          git push origin "HEAD:${GITHUB_REF#refs/heads/}"

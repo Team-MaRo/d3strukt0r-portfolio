@@ -77,8 +77,3 @@ export interface Project {
   startedOn: string | null;
   finishedOn: string | null;
 }
-
-export interface FileHeader {
-  source: 'csv' | 'api';
-  generatedAt: string;
-}

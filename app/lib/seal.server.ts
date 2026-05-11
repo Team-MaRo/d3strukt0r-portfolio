@@ -17,6 +17,7 @@ import secrets from 'virtual:sealed-secrets';
 import {
   aesGcmEncrypt,
   b64decode,
+  b64encode,
   deriveKEK,
   KEY_BYTES,
 } from './seal-crypto';
@@ -75,7 +76,30 @@ function readPasswords(): string[] {
 const DATA_KEY: Uint8Array = readDataKey();
 const PASSWORDS: string[] = readPasswords();
 
+// Fail-fast if SEAL_DATA_KEY doesn't match the value the bundle was built
+// with. Without this, a mismatched runtime key wraps a "different" data key
+// for clients — every password silently fails as "wrong" because the
+// unwrapped key can't decrypt the fields baked into the client bundle.
+async function verifyDataKeyHash(): Promise<void> {
+  const hash = new Uint8Array(
+    await globalThis.crypto.subtle.digest('SHA-256', DATA_KEY as unknown as BufferSource),
+  );
+  const runtime = b64encode(hash);
+  if (runtime !== secrets.dataKeyHash) {
+    throw new Error(
+      '[seal] runtime SEAL_DATA_KEY does not match the value used at build time. '
+      + 'The container would silently reject every password. Set the env var to the '
+      + 'same value used by docker.yml\'s SEAL_DATA_KEY GitHub Actions secret.',
+    );
+  }
+}
+const dataKeyHashCheck = verifyDataKeyHash();
+dataKeyHashCheck.catch(() => {});
+
 async function computeWrappedKeys(): Promise<CipherText[]> {
+  // Block on the hash check so a mismatch surfaces here (and rejects the
+  // first SSR request loudly) rather than via the silent decrypt failure.
+  await dataKeyHashCheck;
   const salt = b64decode(secrets.salt);
   const out: CipherText[] = [];
   for (const pw of PASSWORDS) {

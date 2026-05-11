@@ -120,11 +120,17 @@ Then either:
 
 Prefer the manual merge for a personal site — full export runs maybe once a year, and it keeps the CI graph dependency-free.
 
+## 6. Scheduled sync workflow
+
+`.github/workflows/linkedin-sync.yml` runs `pnpm run sync:linkedin:api` on a weekly cron (`0 6 * * 1`, Mondays 06:00 UTC) plus `workflow_dispatch`. It writes a throwaway `.env` from the `LINKEDIN_DMA_TOKEN` repo secret, runs the script, and — if anything under `content/linkedin/` changed — commits the diff under `github-actions[bot]` and pushes via `GH_PAT` so that `docker.yml` re-fires and the site redeploys with the fresh content. If any API domain returns non-2xx the script exits non-zero, the workflow turns red, and the existing YAMLs are left intact (no destructive partial writes). Required secrets: `LINKEDIN_DMA_TOKEN` (new) and `GH_PAT` (already in use by `bump-pnpm-hash.yml`).
+
 ## Caveats
 
-- **Token lifetime** (60 days typical for self-serve). Regenerate before each sync.
+- **Token lifetime** is up to 12 months for self-serve (`Expires` shown in the OAuth Token Tools). Regenerate before expiry; the scheduled workflow will turn red when the token expires.
+- **Self-serve scope is server-pinned to API version 202312.** Microsoft Learn documents 202405 through 202511 as active for the Snapshot API, but those versions are only reachable with the `r_dma_portability_3rd_party` permission, which is granted only to LinkedIn-approved third-party apps. The `r_dma_portability_self_serve` scope this repo uses returns `426 NONEXISTENT_VERSION` for every version other than `202312` (and the equivalent `202312.01`). Confirmed by probing with a freshly issued 2026 token. Override `LINKEDIN_API_VERSION` only if LinkedIn extends self-serve coverage.
+- **API data may diverge from the live LinkedIn UI.** For this account the 202312 snapshot returns proficiency strings (`Languages` domain) that don't match the values shown in `linkedin.com/in/<me>` — e.g. Spanisch shows `Native or bilingual proficiency` via API while the UI shows `Grundkenntnisse` (Elementary). Cause unclear (snapshot pipeline lag, internal/external enum mismatch, or self-serve contract limitations). The CSV export is more reliable for the few domains that diverge — run `pnpm run sync:linkedin:csv` from a fresh `data/linkedin/*.csv` archive when this matters.
 - **EEA/CH only** — if LinkedIn ever thinks you're outside, the `Allow` step won't produce a token.
-- **Versioned header is mandatory** — omitting `LinkedIn-Version` returns 400.
+- **Versioned header is mandatory** — omitting `LinkedIn-Version` returns 400. Active versions per `learn.microsoft.com/en-us/linkedin/dma/member-data-portability/shared/member-snapshot-api`: Unversioned, 2024-05, 2024-08, 2024-11, 2025-02, 2025-05, 2025-08, 2025-11. As noted above, only 202312 is reachable via self-serve.
 - **Rate limit**: undocumented but generous for self-serve; well within personal-site usage.
 - **Changelog API** (separate from Snapshot) only returns the last 28 days of activity — not useful here.
 - **Not live in-browser** — static site cannot call `api.linkedin.com` directly (CORS + token exposure). Always a build-time / CI step.

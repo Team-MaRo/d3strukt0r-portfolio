@@ -4,7 +4,6 @@
 // writes YAML. Run with:
 //   pnpm run sync:linkedin:csv
 
-import type {FileHeader} from './schema';
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import process from 'node:process';
@@ -47,8 +46,6 @@ function load<T>(filename: string, normalize: (row: Record<string, string>) => T
   return parseCsv(path).map(normalize);
 }
 
-const header: FileHeader = {source: 'csv', generatedAt: new Date().toISOString()};
-
 const positions = sortByRecent(load('Positions.csv', normalizePosition));
 const education = preserveEducationLocation(
   join(OUT_DIR, 'education.de.yml'),
@@ -61,12 +58,12 @@ const projects = sortByRecent(load('Projects.csv', normalizeProject));
 const profileRows = load('Profile.csv', normalizeProfile);
 const profile = profileRows[0] ?? null;
 
-writeYaml(join(OUT_DIR, 'positions.de.yml'), positions, header);
-writeYaml(join(OUT_DIR, 'education.de.yml'), education, header);
-writeYaml(join(OUT_DIR, 'certifications.de.yml'), certifications, header);
-writeYaml(join(OUT_DIR, 'languages.de.yml'), languages, header);
-writeYaml(join(OUT_DIR, 'skills.de.yml'), skills, header);
-writeYaml(join(OUT_DIR, 'projects.de.yml'), projects, header);
+writeYaml(join(OUT_DIR, 'positions.de.yml'), positions);
+writeYaml(join(OUT_DIR, 'education.de.yml'), education);
+writeYaml(join(OUT_DIR, 'certifications.de.yml'), certifications);
+writeYaml(join(OUT_DIR, 'languages.de.yml'), languages);
+writeYaml(join(OUT_DIR, 'skills.de.yml'), skills);
+writeYaml(join(OUT_DIR, 'projects.de.yml'), projects);
 if (profile) {
-  writeYaml(join(OUT_DIR, 'profile.de.yml'), profile, header);
+  writeYaml(join(OUT_DIR, 'profile.de.yml'), profile);
 }

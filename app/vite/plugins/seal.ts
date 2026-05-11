@@ -68,6 +68,10 @@ export interface SealedSecrets {
   v: 1;
   iter: number;
   salt: string;
+  // SHA-256(dataKey), b64. seal.server.ts compares this to its runtime
+  // SEAL_DATA_KEY at boot — mismatch surfaces as a startup error instead
+  // of silent "wrong password" for every unlock attempt.
+  dataKeyHash: string;
   wrapped: CipherText[];
   fields: Record<string, CipherText>;
 }
@@ -196,8 +200,17 @@ async function build(opts: Options, strict: boolean): Promise<BuildState> {
   const isSpaBuild = process.env.SSR === 'false';
 
   const dataKeyRaw = resolveDataKey(strict);
-  const salt = globalThis.crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   const dataKey = await importDataKey(dataKeyRaw, ['encrypt']);
+  // PBKDF2 salt + boot-time fingerprint are derived from the data key so
+  // both Vite environments (client + server in React Router framework mode)
+  // bake identical values without sharing process state. The data key is
+  // public-from-the-attacker's-perspective once they have the bundle (it's
+  // wrapped under each password), so deriving the salt from it leaks
+  // nothing new; SHA-256 is one-way so neither value reveals the key.
+  const dataKeyHashBytes = new Uint8Array(
+    await globalThis.crypto.subtle.digest('SHA-256', dataKeyRaw as unknown as BufferSource),
+  );
+  const salt = dataKeyHashBytes.slice(0, SALT_BYTES);
 
   // SPA build (no server runtime): wrap with build-time passwords now.
   // SSR build: leave wrapped[] empty; the runtime fills it in via
@@ -289,6 +302,7 @@ async function build(opts: Options, strict: boolean): Promise<BuildState> {
     v: 1,
     iter: PBKDF2_ITER,
     salt: b64encode(salt),
+    dataKeyHash: b64encode(dataKeyHashBytes),
     wrapped,
     fields,
   };

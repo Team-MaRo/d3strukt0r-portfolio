@@ -35,6 +35,16 @@ export async function loader(): Promise<{wrapped: CipherText[] | null}> {
   if (!import.meta.env.SSR) {
     return {wrapped: null};
   }
+  // SPA builds (`ssr: false`) still invoke this loader once during
+  // index.html prerender with `import.meta.env.SSR === true`. In that
+  // pass, seal.server.ts's `secrets.salt` is the *server* bundle's salt,
+  // which differs from the *client* bundle's salt — wrapping with it
+  // produces a `wrapped[]` no client password can unwrap. Detect SPA via
+  // a non-empty build-time `secrets.wrapped` and skip runtime wrap.
+  const {default: secrets} = await import('virtual:sealed-secrets');
+  if (secrets.wrapped.length > 0) {
+    return {wrapped: null};
+  }
   const {getWrappedKeys} = await import('./lib/seal.server');
   return {wrapped: await getWrappedKeys()};
 }

@@ -1,0 +1,72 @@
+name: Sync LinkedIn → content/linkedin/
+
+# Pulls fresh LinkedIn DMA data weekly and commits any diff under
+# content/linkedin/. The commit pushes via GH_PAT so it fires
+# deploy-gh-pages.yml automatically and the static site redeploys. The
+# published Docker image only refreshes on the next `*.*.*` release tag
+# (docker.yml is restricted to `develop` + tag pushes). If the API call
+# fails (token expired, version rejected, network error) the script exits
+# non-zero, this workflow turns red, and the existing YAMLs stay intact
+# — no destructive partial writes. See docs/linkedin-data-portability.md.
+
+on:
+  schedule:
+    - cron: '30 9 * * 1' # Mondays 09:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linkedin-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # PAT so the resulting push fires docker.yml downstream.
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm ci
+
+      # The sync script invokes `node --env-file=.env` so .env must exist on
+      # disk. Write a throwaway one from the secret; .env is gitignored so
+      # there's nothing to leak.
+      - name: Write throwaway .env
+        env:
+          LINKEDIN_DMA_TOKEN: ${{ secrets.LINKEDIN_DMA_TOKEN }}
+        run: printf 'LINKEDIN_DMA_TOKEN=%s\n' "$LINKEDIN_DMA_TOKEN" > .env
+
+      - name: Sync
+        run: pnpm run sync:linkedin:api
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit + push if changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet content/linkedin/; then
+            echo "No changes."
+            exit 0
+          fi
+          git add content/linkedin/
+          git commit -m "chore: sync LinkedIn snapshot"
+          git push origin "HEAD:${GITHUB_REF#refs/heads/}"
