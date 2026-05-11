@@ -87,7 +87,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v9
 
       - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v3
+        uses: DeterminateSystems/magic-nix-cache-action@v13
 
       - name: Install Trivy
         uses: aquasecurity/setup-trivy@v0.2.6

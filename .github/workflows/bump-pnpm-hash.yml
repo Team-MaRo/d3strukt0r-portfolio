@@ -57,7 +57,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v9
 
       - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v3
+        uses: DeterminateSystems/magic-nix-cache-action@v13
 
       - name: Compute new pnpmDeps.hash
         id: bump
