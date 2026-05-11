@@ -54,7 +54,7 @@ jobs:
           token: ${{ secrets.HASH_BUMPER_TOKEN }}
 
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v9
+        uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@v3
