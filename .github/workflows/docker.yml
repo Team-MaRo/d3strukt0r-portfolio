@@ -10,85 +10,334 @@ on:
 
 permissions:
   contents: read
-  # This is used to complete the identity challenge
-  # with sigstore/fulcio when running outside of PRs.
+  # Identity challenge with sigstore/fulcio (cosign keyless signing).
   id-token: write
+  # `actions/attest` writes signed attestations to the GitHub attestation feed.
+  attestations: write
+  # `actions/attest` v4 records each attestation in the artifact metadata API
+  # so `gh attestation verify` can look it up by image digest.
+  artifact-metadata: write
+  # `push-to-registry: true` makes `actions/attest` push the attestation as
+  # a sidecar OCI artifact (`<digest>.att`) alongside the image.
+  packages: write
+
+# ---
+# Architecture overview
+#
+# The `build` matrix runs Nix per arch, exporting each result as a docker-archive
+# tarball into a GitHub Actions artifact. **No matrix leg ever logs into Docker
+# Hub or pushes anything to docker.io** — they don't even need credentials.
+#
+# The `manifest` job stands up a local `registry:3` service container, ferries
+# the per-arch artifacts in, pushes them into `localhost:5000`, and then runs
+# `docker buildx imagetools create` with `localhost:5000` digest sources and
+# `docker.io` destination tags. Buildkit copies the per-arch image bytes
+# straight to docker.io UNTAGGED (digest-addressable, referenced only by the
+# manifest list); the only tags that land on docker.io are the user-facing
+# ones produced by `metadata-action` (`latest`, `<branch>`, `<semver>`).
+# ---
 
 jobs:
   build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
-
-    env:
-      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+    name: Build (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-24.04,     arch: amd64,   timeout: 60 }
+          - { runner: ubuntu-24.04-arm, arch: arm64,   timeout: 60 }
+          - { runner: ubuntu-24.04,     arch: riscv64, timeout: 240, emulate: true }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: ${{ matrix.timeout }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # Install the cosign tool except on PR
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
-        if: github.event_name != 'pull_request'
+      # riscv64 leg only: register qemu-user binfmt handlers so the kernel can
+      # transparently exec riscv64 ELFs on this amd64 runner. Required for Nix
+      # to build any riscv64-linux derivation under emulation.
+      - name: Set up QEMU (riscv64)
+        if: matrix.emulate
+        uses: docker/setup-qemu-action@v4
         with:
-          cosign-release: 'v2.2.4'
+          platforms: riscv64
 
-      # Set up BuildKit Docker container builder to be able to build
-      # multi-platform images and export cache
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v22
 
-      # Login against a Docker registry except on PR
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v4
-        if: github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
-        with:
-          # Username and password (or personal access token if using 2FA) for Docker Hub login
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Tell the Nix daemon it's allowed to evaluate/build riscv64-linux
+      # derivations on this host (binfmt handles the actual exec). Sandbox
+      # also needs the qemu-user-static binary visible inside the build env.
+      - name: Enable riscv64 in Nix
+        if: matrix.emulate
+        run: |
+          QEMU_BIN=$(command -v qemu-riscv64-static || echo /usr/bin/qemu-riscv64-static)
+          echo "Using qemu binary: $QEMU_BIN"
+          sudo mkdir -p /etc/nix
+          echo 'extra-platforms = riscv64-linux' | sudo tee -a /etc/nix/nix.conf
+          echo "extra-sandbox-paths = $QEMU_BIN" | sudo tee -a /etc/nix/nix.conf
+          sudo systemctl restart nix-daemon || sudo pkill -HUP nix-daemon || true
 
-      # Extract metadata (tags, labels) for Docker
-      - name: Extract Docker metadata
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+
+      # Labels are baked into the image config at build time via
+      # DOCKER_LABELS_JSON, independent of the per-arch tags this used to
+      # emit. The `tags` output is unused here — the manifest job re-runs
+      # metadata-action with the user-facing tag set.
+      - name: Extract Docker labels
         uses: docker/metadata-action@v6
         id: meta
         with:
           images: ${{ vars.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      - name: Build and Push Docker image
-        uses: docker/build-push-action@v7
-        id: build-and-push
+      - name: Build OCI image with Nix
+        env:
+          SEAL_DATA_KEY: ${{ secrets.SEAL_DATA_KEY }}
+          # metadata-action's `labels` output is "KEY=VAL\n…"; convert to JSON
+          # so the flake can parse it via builtins.fromJSON.
+          LABELS_RAW: ${{ steps.meta.outputs.labels }}
+          # On the emulated leg, force Nix to evaluate the riscv64-linux
+          # attribute set instead of the host's amd64 default.
+          NIX_SYSTEM_FLAG: ${{ matrix.emulate && '--system riscv64-linux' || '' }}
+        run: |
+          export DOCKER_LABELS_JSON=$(jq -Rsc '
+            split("\n")
+            | map(select(length > 0))
+            | map(split("=") | { key: .[0], value: (.[1:] | join("=")) })
+            | from_entries
+          ' <<<"$LABELS_RAW")
+          nix build --impure --print-build-logs $NIX_SYSTEM_FLAG .#dockerImage
+          # streamLayeredImage's `result` is a streaming script that emits a
+          # docker-archive tarball on stdout. Capture to a file so we can
+          # ship it to the manifest job as an artifact (the manifest job
+          # never has its own Nix install — it consumes the tarball).
+          ./result > image.tar
+
+      - name: Generate SBOM (per-arch)
+        run: |
+          # syft scans the OCI tarball directly — no registry needed. Output
+          # is per-architecture because the binaries inside differ across
+          # platforms (the bytes of `node`, `libssl`, etc.). The manifest
+          # job attaches this as an attestation against the per-arch image's
+          # digest on docker.io.
+          nix run nixpkgs#syft -- docker-archive:image.tar -o spdx-json=sbom.json
+
+      - name: Upload artifact (image + SBOM)
+        uses: actions/upload-artifact@v7
         with:
-          context: .
-          platforms: linux/amd64,linux/arm64 # same as base image
-          pull: true
-          push: ${{ github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != '' }}
-          sbom: true # provenance is already at =max by default on public repos
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          annotations: ${{ steps.meta.outputs.annotations }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          secrets: |
-            seal_data_key=${{ secrets.SEAL_DATA_KEY }}
+          name: image-${{ matrix.arch }}
+          path: |
+            image.tar
+            sbom.json
+          retention-days: 1
+          if-no-files-found: error
 
-      # Sign the resulting Docker image digest except on PRs.
-      # This will only write to the public Rekor transparency log when the Docker
-      # repository is public to avoid leaking data. If you would like to publish
-      # transparency data even for private images, pass --force to cosign below.
+  manifest:
+    name: Publish multi-arch manifest list
+    needs: build
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'
+
+    services:
+      # Local registry to stage per-arch images. `imagetools create` reads
+      # from here (digest-only) and pushes the manifest list to Docker Hub.
+      # The registry's contents never leave this runner — no per-arch tags
+      # ever land on docker.io. The whole filesystem dies with the runner.
+      registry:
+        image: registry:3
+        ports:
+          - 5000:5000
+
+    env:
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    steps:
+      # Buildkit needs to know localhost:5000 is plain HTTP. We never touch
+      # the host Docker daemon's `insecure-registries` config — restarting
+      # `docker` would kill the registry service container running under it.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          buildkitd-config-inline: |
+            [registry."localhost:5000"]
+              http = true
+
+      - name: Wait for local registry
+        run: |
+          for _ in $(seq 1 30); do
+            curl -sf http://localhost:5000/v2/ >/dev/null && exit 0
+            sleep 1
+          done
+          echo "registry never came up"; exit 1
+
+      # skopeo handles the docker-archive → registry push without needing
+      # buildx or daemon-side insecure-registries config. `--tls-verify=false`
+      # is scoped to the localhost target.
+      - name: Install skopeo
+        run: sudo apt-get update -y && sudo apt-get install -y --no-install-recommends skopeo
+
+      - name: Log in to Docker Hub
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Download per-arch artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: image-*
+          path: artifacts
+
+      # Push each docker-archive into the local registry under a throwaway
+      # tag, then capture its digest. The digest is content-addressed, so
+      # it's identical when the bytes get copied to docker.io later.
+      - name: Push per-arch tarballs into local registry
+        id: stage
+        run: |
+          set -euo pipefail
+          for arch in amd64 arm64 riscv64; do
+            archive="artifacts/image-${arch}/image.tar"
+            test -f "$archive" || { echo "missing $archive"; exit 1; }
+            skopeo copy --dest-tls-verify=false \
+              docker-archive:"$archive" \
+              docker://localhost:5000/staging:${arch}
+            d=$(skopeo inspect --tls-verify=false \
+                  docker://localhost:5000/staging:${arch} \
+                  --format '{{.Digest}}')
+            echo "digest_${arch}=${d}" >> "$GITHUB_OUTPUT"
+            echo "Staged ${arch} → ${d}"
+          done
+
+      # User-facing tags: no -arch suffix. The manifest list is what the
+      # outside world sees in the tag listing.
+      - name: Extract user-facing Docker metadata
+        uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: ${{ vars.IMAGE_NAME }}
+
+      # `imagetools create` accepts:
+      #   - `--annotation` lines exactly in the form metadata-action emits
+      #     (`manifest:KEY=VAL`). Annotations land on the OCI index.
+      #   - Multiple `-t` flags pointing the same manifest list at multiple
+      #     user-facing tags (latest, master, 1.2.3, …) — one push, N tags.
+      #   - Source refs by digest (`<repo>@sha256:…`), pulling from
+      #     localhost:5000 and pushing the bytes to docker.io. The per-arch
+      #     images on docker.io end up untagged (only their digests are
+      #     reachable, via the manifest list).
+      - name: Create + push manifest list
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          ANNOTATIONS: ${{ steps.meta.outputs.annotations }}
+          DIGEST_AMD64: ${{ steps.stage.outputs.digest_amd64 }}
+          DIGEST_ARM64: ${{ steps.stage.outputs.digest_arm64 }}
+          DIGEST_RISCV64: ${{ steps.stage.outputs.digest_riscv64 }}
+        run: |
+          set -euo pipefail
+          ANN_FLAGS=()
+          while IFS= read -r ann; do
+            [ -z "$ann" ] && continue
+            ANN_FLAGS+=("--annotation" "$ann")
+          done <<< "$ANNOTATIONS"
+
+          TAG_FLAGS=()
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            TAG_FLAGS+=("-t" "$tag")
+          done <<< "$TAGS"
+
+          docker buildx imagetools create \
+            "${ANN_FLAGS[@]}" \
+            "${TAG_FLAGS[@]}" \
+            "localhost:5000/staging@${DIGEST_AMD64}" \
+            "localhost:5000/staging@${DIGEST_ARM64}" \
+            "localhost:5000/staging@${DIGEST_RISCV64}"
+
+      # Cosign signatures land at <repo>:sha256-<digest>.sig on docker.io,
+      # keyed by digest. Independent of the per-arch images being untagged.
+      - name: Sign per-arch images on Docker Hub
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+          DIGEST_AMD64: ${{ steps.stage.outputs.digest_amd64 }}
+          DIGEST_ARM64: ${{ steps.stage.outputs.digest_arm64 }}
+          DIGEST_RISCV64: ${{ steps.stage.outputs.digest_riscv64 }}
+        run: |
+          for d in "$DIGEST_AMD64" "$DIGEST_ARM64" "$DIGEST_RISCV64"; do
+            cosign sign --yes "${IMAGE_NAME}@${d}"
+          done
+
+      # Per-arch SBOM attestations. The SBOM JSON travelled inside each
+      # per-arch artifact bundle from the matrix leg.
+      - name: Attach per-arch SBOM attestations
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+          DIGEST_AMD64: ${{ steps.stage.outputs.digest_amd64 }}
+          DIGEST_ARM64: ${{ steps.stage.outputs.digest_arm64 }}
+          DIGEST_RISCV64: ${{ steps.stage.outputs.digest_riscv64 }}
+        run: |
+          set -euo pipefail
+          cosign attest --yes --predicate artifacts/image-amd64/sbom.json \
+            --type spdxjson "${IMAGE_NAME}@${DIGEST_AMD64}"
+          cosign attest --yes --predicate artifacts/image-arm64/sbom.json \
+            --type spdxjson "${IMAGE_NAME}@${DIGEST_ARM64}"
+          cosign attest --yes --predicate artifacts/image-riscv64/sbom.json \
+            --type spdxjson "${IMAGE_NAME}@${DIGEST_RISCV64}"
+
+      # SLSA build provenance per-arch image. Attaches against the digest on
+      # docker.io. The action also writes to GitHub's attestation feed via
+      # `attestations: write`. The build-step list inside the predicate
+      # reflects the manifest job's steps rather than the matrix leg's, but
+      # every SLSA-mandated field (commit SHA, workflow ref, builder OIDC
+      # identity) is identical to a matrix-side attestation — those are what
+      # `cosign verify-attestation` actually checks.
+      - name: Attest SLSA provenance (amd64)
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ vars.IMAGE_NAME }}
+          subject-digest: ${{ steps.stage.outputs.digest_amd64 }}
+          push-to-registry: true
+
+      - name: Attest SLSA provenance (arm64)
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ vars.IMAGE_NAME }}
+          subject-digest: ${{ steps.stage.outputs.digest_arm64 }}
+          push-to-registry: true
+
+      - name: Attest SLSA provenance (riscv64)
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ vars.IMAGE_NAME }}
+          subject-digest: ${{ steps.stage.outputs.digest_riscv64 }}
+          push-to-registry: true
+
+      # Sign the multi-arch manifest list itself. Distinct from the per-arch
+      # signatures above — a `cosign verify --multi-arch=index <ref>` call
+      # walks the index and checks both. This will only write to the public
+      # Rekor transparency log when the Docker repository is public to
+      # avoid leaking data; pass --force to cosign below to publish
+      # transparency data even for private images.
       # https://github.com/sigstore/cosign
-      - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != '' }}
+      - name: Sign multi-arch manifest list
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
           TAGS: ${{ steps.meta.outputs.tags }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        run: |
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            DIGEST=$(docker buildx imagetools inspect "$tag" --format '{{json .Manifest}}' | jq -r .digest)
+            cosign sign --yes "${tag}@${DIGEST}"
+          done <<< "$TAGS"

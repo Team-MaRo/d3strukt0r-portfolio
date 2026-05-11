@@ -24,3 +24,17 @@ updates:
       interval: weekly
       time: '09:30'
       timezone: Europe/Zurich
+    groups:
+      npm-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: nix
+    directory: /
+    labels:
+      - "dependabot :robot:"
+    schedule:
+      interval: weekly
+      time: '09:30'
+      timezone: Europe/Zurich
