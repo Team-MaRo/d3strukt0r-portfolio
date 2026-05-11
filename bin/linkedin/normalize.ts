@@ -37,6 +37,13 @@ export function parseDate(raw: string | null | undefined): string | null {
 }
 
 // LinkedIn proficiency string → 1–5 stars.
+// Matches the five rungs of LinkedIn's German picker:
+//   1 Grundkenntnisse                        → "Elementary proficiency"
+//   2 Gute Kenntnisse                        → "Limited working proficiency"
+//   3 Fließend                                → "Professional working proficiency"
+//   4 Verhandlungssicher                      → "Full professional proficiency"
+//   5 Muttersprache oder zweisprachig         → "Native or bilingual proficiency"
+// Order matters: "full professional" must be checked before "professional working".
 export function proficiencyToStars(prof: string): number {
   const p = (prof || '').toLowerCase();
   if (p.includes('native') || p.includes('bilingual')) {
@@ -46,13 +53,13 @@ export function proficiencyToStars(prof: string): number {
     return 4;
   }
   if (p.includes('professional working') || p.startsWith('professional ')) {
-    return 4;
-  }
-  if (p.includes('limited working')) {
     return 3;
   }
-  if (p.includes('elementary')) {
+  if (p.includes('limited working')) {
     return 2;
+  }
+  if (p.includes('elementary')) {
+    return 1;
   }
   return 1;
 }

@@ -7,8 +7,12 @@
 // The Snapshot API returns one envelope per domain. Its `snapshotData` rows
 // share the same "Human-label" column names as the CSV export, so the same
 // normalizers apply.
+//
+// Failure semantics: if ANY domain returns non-2xx, the script exits non-zero
+// WITHOUT writing partial output — the existing YAMLs stay intact. This makes
+// the scheduled `.github/workflows/linkedin-sync.yml` turn red on token expiry
+// or API outage instead of silently committing wiped data.
 
-import type {FileHeader} from './schema';
 import {join} from 'node:path';
 
 import process from 'node:process';
@@ -27,11 +31,20 @@ import {preserveEducationLocation} from './preserve';
 import {writeYaml} from './yaml';
 
 const TOKEN = process.env.LINKEDIN_DMA_TOKEN;
-const VERSION = process.env.LINKEDIN_API_VERSION ?? '202511';
+// `LinkedIn-Version: YYYYMM`. Microsoft Learn lists 202405 through 202511 as
+// active for the Snapshot API, but those versions are only reachable with the
+// `r_dma_portability_3rd_party` permission (granted to LinkedIn-approved 3rd
+// party apps). The self-serve scope `r_dma_portability_self_serve` documented
+// for individual members (see `docs/linkedin-data-portability.md`) is
+// server-pinned to the 202312 contract — every newer version returns `426
+// NONEXISTENT_VERSION`, confirmed by probing with a freshly regenerated 2026
+// token. Override `LINKEDIN_API_VERSION` if LinkedIn ever extends self-serve
+// to newer versions.
+const VERSION = process.env.LINKEDIN_API_VERSION ?? '202312';
 const OUT_DIR = join(process.cwd(), 'content', 'linkedin');
 
 if (!isNonEmpty(TOKEN)) {
-  console.error('[linkedin] LINKEDIN_DMA_TOKEN not set. Fill .env (see .env.example).');
+  console.error('[linkedin] LINKEDIN_DMA_TOKEN not set. Fill .env (see .env.dist).');
   process.exit(1);
 }
 
@@ -43,7 +56,11 @@ interface SnapshotEnvelope {
   }>;
 }
 
-async function fetchDomain(domain: string): Promise<Array<Record<string, string>>> {
+type FetchResult
+  = | {ok: true; domain: string; rows: Array<Record<string, string>>}
+    | {ok: false; domain: string; status: number; body: string};
+
+async function fetchDomain(domain: string): Promise<FetchResult> {
   const rows: Array<Record<string, string>> = [];
   let url: string | null = `https://api.linkedin.com/rest/memberSnapshotData?q=criteria&domain=${domain}`;
   while (isNonEmpty(url)) {
@@ -55,9 +72,7 @@ async function fetchDomain(domain: string): Promise<Array<Record<string, string>
       },
     });
     if (!res.ok) {
-      const body = await res.text();
-      console.warn(`[linkedin] ${domain}: ${res.status} — ${body.slice(0, 200)}`);
-      break;
+      return {ok: false, domain, status: res.status, body: await res.text()};
     }
     const body = await res.json() as SnapshotEnvelope;
     const envelope = body.elements?.[0];
@@ -67,13 +82,11 @@ async function fetchDomain(domain: string): Promise<Array<Record<string, string>
     const next = body.paging?.links?.find((l) => l.rel === 'next')?.href;
     url = isNonEmpty(next) ? `https://api.linkedin.com${next}` : null;
   }
-  return rows;
+  return {ok: true, domain, rows};
 }
 
 async function main(): Promise<void> {
-  const header: FileHeader = {source: 'api', generatedAt: new Date().toISOString()};
-
-  const [profileRows, positionRows, educationRows, certRows, langRows, skillRows, projectRows]
+  const [profileRes, positionsRes, educationRes, certsRes, languagesRes, skillsRes, projectsRes]
     = await Promise.all([
       fetchDomain('PROFILE'),
       fetchDomain('POSITIONS'),
@@ -84,25 +97,55 @@ async function main(): Promise<void> {
       fetchDomain('PROJECTS'),
     ]);
 
-  const profile = profileRows[0] ? normalizeProfile(profileRows[0]) : null;
-  const positions = sortByRecent(positionRows.map(normalizePosition));
+  const all = [profileRes, positionsRes, educationRes, certsRes, languagesRes, skillsRes, projectsRes];
+  const failures = all.filter((r): r is Extract<FetchResult, {ok: false}> => !r.ok);
+  if (failures.length > 0) {
+    for (const f of failures) {
+      console.error(`[linkedin] ${f.domain}: ${f.status} — ${f.body.slice(0, 300)}`);
+    }
+    if (failures.some((f) => f.body.includes('NONEXISTENT_VERSION'))) {
+      console.error(
+        `[linkedin] Hint: LinkedIn-Version ${VERSION} not active for this token's scope. The`
+        + ' self-serve `r_dma_portability_self_serve` contract is pinned to 202312 by LinkedIn'
+        + ' server-side; newer versions require the `r_dma_portability_3rd_party` permission'
+        + ' (LinkedIn-approved 3rd party apps only). Set LINKEDIN_API_VERSION=202312 in .env'
+        + ' to use the supported version.',
+      );
+    }
+    // Set exitCode + return rather than process.exit() — the latter races
+    // libuv's async-handle shutdown on Windows and trips an internal assertion.
+    process.exitCode = 1;
+    return;
+  }
+
+  // All entries are ok here, but the failures check doesn't narrow the
+  // destructured names — re-assert by reading .rows after a runtime guard.
+  if (
+    !profileRes.ok || !positionsRes.ok || !educationRes.ok || !certsRes.ok
+    || !languagesRes.ok || !skillsRes.ok || !projectsRes.ok
+  ) {
+    return;
+  }
+
+  const profile = profileRes.rows[0] ? normalizeProfile(profileRes.rows[0]) : null;
+  const positions = sortByRecent(positionsRes.rows.map(normalizePosition));
   const education = preserveEducationLocation(
     join(OUT_DIR, 'education.de.yml'),
-    sortByRecent(educationRows.map(normalizeEducation)),
+    sortByRecent(educationRes.rows.map(normalizeEducation)),
   );
-  const certifications = sortByRecent(certRows.map(normalizeCertification));
-  const languages = langRows.map(normalizeLanguage);
-  const skills = skillRows.map(normalizeSkill);
-  const projects = sortByRecent(projectRows.map(normalizeProject));
+  const certifications = sortByRecent(certsRes.rows.map(normalizeCertification));
+  const languages = languagesRes.rows.map(normalizeLanguage);
+  const skills = skillsRes.rows.map(normalizeSkill);
+  const projects = sortByRecent(projectsRes.rows.map(normalizeProject));
 
-  writeYaml(join(OUT_DIR, 'positions.de.yml'), positions, header);
-  writeYaml(join(OUT_DIR, 'education.de.yml'), education, header);
-  writeYaml(join(OUT_DIR, 'certifications.de.yml'), certifications, header);
-  writeYaml(join(OUT_DIR, 'languages.de.yml'), languages, header);
-  writeYaml(join(OUT_DIR, 'skills.de.yml'), skills, header);
-  writeYaml(join(OUT_DIR, 'projects.de.yml'), projects, header);
+  writeYaml(join(OUT_DIR, 'positions.de.yml'), positions);
+  writeYaml(join(OUT_DIR, 'education.de.yml'), education);
+  writeYaml(join(OUT_DIR, 'certifications.de.yml'), certifications);
+  writeYaml(join(OUT_DIR, 'languages.de.yml'), languages);
+  writeYaml(join(OUT_DIR, 'skills.de.yml'), skills);
+  writeYaml(join(OUT_DIR, 'projects.de.yml'), projects);
   if (profile) {
-    writeYaml(join(OUT_DIR, 'profile.de.yml'), profile, header);
+    writeYaml(join(OUT_DIR, 'profile.de.yml'), profile);
   }
 }
 

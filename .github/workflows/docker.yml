@@ -2,93 +2,328 @@ name: Build and push Docker image
 
 on:
   push:
-    # Publish latest or develop branch as prerelease.
     branches: [master, develop]
-    # Publish semver tags as releases.
     tags: ['*.*.*']
+    # Lockfile-only pushes (e.g. a Dependabot merge) are doomed until
+    # bump-pnpm-hash.yml lands its follow-up flake.nix commit. Skip them
+    # here; the bump push touches flake.nix and re-fires this workflow.
+    paths-ignore: [pnpm-lock.yaml, package.json]
   workflow_dispatch:
+    inputs:
+      architectures:
+        description: 'Comma-separated arches (e.g. amd64,arm64,riscv64). RISC-V is opt-in (~3-4h under QEMU).'
+        type: string
+        default: 'amd64,arm64'
 
 permissions:
   contents: read
-  # This is used to complete the identity challenge
-  # with sigstore/fulcio when running outside of PRs.
   id-token: write
+  attestations: write
+  artifact-metadata: write
+  packages: write
 
 jobs:
-  build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
+  setup:
+    name: Resolve active architectures
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+      arch_list: ${{ steps.gen.outputs.arch_list }}
+    steps:
+      - name: Build matrix from input
+        id: gen
+        env:
+          ARCHES_RAW: ${{ inputs.architectures || 'amd64,arm64' }}
+        run: |
+          set -euo pipefail
+          META=$(cat <<'EOF'
+          {
+            "amd64":   {"runner": "ubuntu-24.04",     "timeout": 60,  "nix_system": "x86_64-linux",  "emulate": false},
+            "arm64":   {"runner": "ubuntu-24.04-arm", "timeout": 60,  "nix_system": "aarch64-linux", "emulate": false},
+            "riscv64": {"runner": "ubuntu-24.04",     "timeout": 240, "nix_system": "riscv64-linux", "emulate": true}
+          }
+          EOF
+          )
+          ARCHES_JSON=$(jq -nc --arg raw "$ARCHES_RAW" \
+            '$raw | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))')
+          UNKNOWN=$(jq -r --argjson m "$META" --argjson a "$ARCHES_JSON" \
+            '$a - ($m | keys) | join(",")' <<<'null')
+          if [ -n "$UNKNOWN" ]; then
+            echo "::error::Unknown arch(es): $UNKNOWN — extend the META table in setup."
+            exit 1
+          fi
+          MATRIX=$(jq -nc --argjson meta "$META" --argjson arches "$ARCHES_JSON" \
+            '$arches | map({arch: .} + $meta[.])')
+          ARCH_LIST=$(jq -r 'join(" ")' <<<"$ARCHES_JSON")
+          echo "matrix=$MATRIX"      | tee -a "$GITHUB_OUTPUT"
+          echo "arch_list=$ARCH_LIST" | tee -a "$GITHUB_OUTPUT"
 
-    env:
-      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+  build:
+    name: Build (${{ matrix.arch }})
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: ${{ matrix.timeout }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # Install the cosign tool except on PR
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
-        if: github.event_name != 'pull_request'
+      - name: Set up QEMU
+        if: matrix.emulate
+        uses: docker/setup-qemu-action@v4
         with:
-          cosign-release: 'v2.2.4'
+          platforms: ${{ matrix.arch }}
 
-      # Set up BuildKit Docker container builder to be able to build
-      # multi-platform images and export cache
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      # Login against a Docker registry except on PR
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v4
-        if: github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
         with:
-          # Username and password (or personal access token if using 2FA) for Docker Hub login
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
 
-      # Extract metadata (tags, labels) for Docker
-      - name: Extract Docker metadata
+      # Tell nix-daemon it may build the emulated target (binfmt handles exec).
+      - name: Enable emulated target in Nix
+        if: matrix.emulate
+        env:
+          NIX_SYSTEM: ${{ matrix.nix_system }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          QEMU_BIN=$(command -v "qemu-${ARCH}-static" || echo "/usr/bin/qemu-${ARCH}-static")
+          sudo mkdir -p /etc/nix
+          echo "extra-platforms = $NIX_SYSTEM" | sudo tee -a /etc/nix/nix.conf
+          echo "extra-sandbox-paths = $QEMU_BIN" | sudo tee -a /etc/nix/nix.conf
+          sudo systemctl restart nix-daemon || sudo pkill -HUP nix-daemon || true
+
+      - name: Cache Nix store
+        uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/flake.lock', '**/flake.nix', 'pnpm-lock.yaml') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-${{ matrix.arch }}-
+          gc-max-store-size-linux: 5G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-${{ matrix.arch }}-
+          purge-created: 0
+          purge-last-accessed: P7D
+          purge-primary-key: never
+
+      - name: Extract Docker labels
         uses: docker/metadata-action@v6
         id: meta
         with:
           images: ${{ vars.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      - name: Build and Push Docker image
-        uses: docker/build-push-action@v7
-        id: build-and-push
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64 # same as base image
-          pull: true
-          push: ${{ github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != '' }}
-          sbom: true # provenance is already at =max by default on public repos
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          annotations: ${{ steps.meta.outputs.annotations }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          secrets: |
-            seal_data_key=${{ secrets.SEAL_DATA_KEY }}
-
-      # Sign the resulting Docker image digest except on PRs.
-      # This will only write to the public Rekor transparency log when the Docker
-      # repository is public to avoid leaking data. If you would like to publish
-      # transparency data even for private images, pass --force to cosign below.
-      # https://github.com/sigstore/cosign
-      - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != '' }}
+      - name: Build OCI image with Nix
         env:
-          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
+          SEAL_DATA_KEY: ${{ secrets.SEAL_DATA_KEY }}
+          LABELS_RAW: ${{ steps.meta.outputs.labels }}
+          NIX_SYSTEM_FLAG: ${{ matrix.emulate && format('--system {0}', matrix.nix_system) || '' }}
+        run: |
+          # metadata-action's labels are "KEY=VAL\n…"; flake reads it via fromJSON.
+          export DOCKER_LABELS_JSON=$(jq -Rsc '
+            split("\n")
+            | map(select(length > 0))
+            | map(split("=") | { key: .[0], value: (.[1:] | join("=")) })
+            | from_entries
+          ' <<<"$LABELS_RAW")
+          nix build --impure --print-build-logs $NIX_SYSTEM_FLAG .#dockerImage
+          # `dockerImage` is a materialized tar (streamLayeredImage piped through
+          # fixHistoryScript inside a runCommand), so result is a regular file.
+          cp -L result image.tar
+
+      - name: Generate SBOM (per-arch)
+        run: nix run nixpkgs#syft -- docker-archive:image.tar -o spdx-json=sbom.json
+
+      - name: Upload artifact (image + SBOM)
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-${{ matrix.arch }}
+          path: |
+            image.tar
+            sbom.json
+          retention-days: 1
+          if-no-files-found: error
+
+  manifest:
+    name: Publish multi-arch manifest list
+    needs: [setup, build]
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'
+
+    services:
+      registry:
+        image: registry:3
+        ports:
+          - 5000:5000
+
+    env:
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+      ARCH_LIST: ${{ needs.setup.outputs.arch_list }}
+
+    outputs:
+      digests: ${{ steps.stage.outputs.digests }}
+      tags: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      # Buildkit needs localhost:5000 marked HTTP; host docker daemon config
+      # is left alone (restarting it would kill the registry service container).
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          buildkitd-config-inline: |
+            [registry."localhost:5000"]
+              http = true
+
+      - name: Wait for local registry
+        run: |
+          for _ in $(seq 1 30); do
+            curl -sf http://localhost:5000/v2/ >/dev/null && exit 0
+            sleep 1
+          done
+          echo "registry never came up"; exit 1
+
+      - name: Install skopeo
+        run: sudo apt-get update -y && sudo apt-get install -y --no-install-recommends skopeo
+
+      - name: Log in to Docker Hub
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Download per-arch artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: image-*
+          path: artifacts
+
+      - name: Push per-arch tarballs into local registry
+        id: stage
+        run: |
+          set -euo pipefail
+          DIGESTS='{}'
+          for arch in $ARCH_LIST; do
+            archive="artifacts/image-${arch}/image.tar"
+            test -f "$archive" || { echo "missing $archive"; exit 1; }
+            skopeo copy --dest-tls-verify=false \
+              docker-archive:"$archive" \
+              docker://localhost:5000/staging:${arch}
+            d=$(skopeo inspect --tls-verify=false \
+                  docker://localhost:5000/staging:${arch} \
+                  --format '{{.Digest}}')
+            DIGESTS=$(jq -nc --argjson cur "$DIGESTS" --arg a "$arch" --arg d "$d" \
+              '$cur + {($a): $d}')
+            echo "Staged ${arch} → ${d}"
+          done
+          echo "digests=$DIGESTS" >> "$GITHUB_OUTPUT"
+
+      - name: Extract user-facing Docker metadata
+        uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: ${{ vars.IMAGE_NAME }}
+
+      - name: Create + push manifest list
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
           TAGS: ${{ steps.meta.outputs.tags }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+          ANNOTATIONS: ${{ steps.meta.outputs.annotations }}
+          DIGESTS: ${{ steps.stage.outputs.digests }}
+        run: |
+          set -euo pipefail
+          ANN_FLAGS=()
+          while IFS= read -r ann; do
+            [ -z "$ann" ] && continue
+            ANN_FLAGS+=("--annotation" "$ann")
+          done <<< "$ANNOTATIONS"
+
+          TAG_FLAGS=()
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            TAG_FLAGS+=("-t" "$tag")
+          done <<< "$TAGS"
+
+          SRC_REFS=()
+          for arch in $ARCH_LIST; do
+            d=$(jq -r --arg a "$arch" '.[$a]' <<<"$DIGESTS")
+            SRC_REFS+=("localhost:5000/staging@${d}")
+          done
+
+          docker buildx imagetools create \
+            "${ANN_FLAGS[@]}" \
+            "${TAG_FLAGS[@]}" \
+            "${SRC_REFS[@]}"
+
+      - name: Sign per-arch images on Docker Hub
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+          DIGESTS: ${{ steps.stage.outputs.digests }}
+        run: |
+          set -euo pipefail
+          for arch in $ARCH_LIST; do
+            d=$(jq -r --arg a "$arch" '.[$a]' <<<"$DIGESTS")
+            cosign sign --yes "${IMAGE_NAME}@${d}"
+          done
+
+      - name: Attach per-arch SBOM attestations
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+          DIGESTS: ${{ steps.stage.outputs.digests }}
+        run: |
+          set -euo pipefail
+          for arch in $ARCH_LIST; do
+            d=$(jq -r --arg a "$arch" '.[$a]' <<<"$DIGESTS")
+            cosign attest --yes --predicate "artifacts/image-${arch}/sbom.json" \
+              --type spdxjson "${IMAGE_NAME}@${d}"
+          done
+
+      # Signs the manifest list itself (distinct from per-arch sigs above —
+      # `cosign verify --multi-arch=index <ref>` walks the index and checks both).
+      - name: Sign multi-arch manifest list
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            DIGEST=$(docker buildx imagetools inspect "$tag" --format '{{json .Manifest}}' | jq -r .digest)
+            cosign sign --yes "${tag}@${DIGEST}"
+          done <<< "$TAGS"
+
+  attest:
+    name: Attest SLSA provenance (${{ matrix.arch }})
+    needs: [setup, manifest]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    env:
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - name: Log in to Docker Hub
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Attest SLSA provenance
+        if: vars.DOCKERHUB_USERNAME != '' && env.dockerhub_token != ''
+        uses: actions/attest@v4
+        with:
+          # actions/attest parses subject-name as <registry>/<repo>; without
+          # an explicit `docker.io/` it would treat `d3strukt0r` as the registry.
+          subject-name: docker.io/${{ vars.IMAGE_NAME }}
+          subject-digest: ${{ fromJSON(needs.manifest.outputs.digests)[matrix.arch] }}
+          push-to-registry: true

@@ -30,6 +30,7 @@ export interface SealedSecrets {
   salt: string;
   wrapped: CipherText[];
   fields: Record<string, CipherText>;
+  dataKeyHash: string;
 }
 
 export interface SealedPhotoMeta {
@@ -43,8 +44,8 @@ const SEAL_OPEN_RE = /\0SEAL:([^\0]+)\0/g;
 const SEAL_FULL_RE = /^\0SEAL:([^\0]+)\0$/;
 const PHOTO_FIELD_PREFIX = 'photo:';
 
-const SS_KEY = 'portfolio:seal:dataKey';
-const FAIL_KEY = 'portfolio:seal:fail';
+const SS_KEY = 'd3strukt0rs-portfolio:seal:dataKey';
+const FAIL_KEY = 'd3strukt0rs-portfolio:seal:fail';
 const COOLDOWN_MS = 30_000;
 const MAX_FAILS = 5;
 

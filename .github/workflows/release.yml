@@ -1,0 +1,75 @@
+name: Release
+
+# Conventional-commits → release PR → tagged release. release-please scans
+# commits since the last release on master, opens (or updates) a "release"
+# PR with the version bump + CHANGELOG.md, and on merge cuts a GitHub
+# Release + git tag. The tag push fires docker.yml (which triggers on
+# `tags: ['*.*.*']`) to build and publish the multi-arch OCI image.
+#
+# Config lives in `release-please-config.json` + `.release-please-manifest.json`.
+# `flake.nix` is tracked as an `extra-files` entry — its `version = "0.1.0"; # x-release-please-version`
+# line gets rewritten on each bump so the OCI image tag stays in sync with
+# package.json.
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      # Non-empty JSON when release-please created or updated a release PR
+      # this run. Used by `reattribute` below to decide whether to amend.
+      pr: ${{ steps.release.outputs.pr }}
+    steps:
+      - name: Create release PR / GitHub Release
+        id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          # PAT instead of GITHUB_TOKEN: GitHub suppresses workflow triggers
+          # for tags created via GITHUB_TOKEN, which would prevent docker.yml
+          # from firing on the release tag. GH_PAT is the same repo PAT used
+          # by bump-pnpm-hash.yml and linkedin-sync.yml.
+          token: ${{ secrets.GH_PAT }}
+
+  # release-please-action commits the release PR's contents as the PAT
+  # owner (the action has no input to override the commit author). Re-attribute
+  # to github-actions[bot] so the PR shows the bot as author — keeps the
+  # release-PR visually consistent with every other bot-driven workflow in
+  # the repo (bump-pnpm-hash, linkedin-sync).
+  reattribute:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.pr != '' }}
+    runs-on: ubuntu-latest
+    env:
+      # release-please's branch name varies by config (`release-please--branches--<base>`
+      # for single-package, with extra `--components--<name>` segments for component mode).
+      # The action emits the PR object as JSON — pull `headBranchName` from it instead of
+      # guessing the pattern.
+      PR_BRANCH: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+    steps:
+      - name: Checkout release-please branch
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GH_PAT }}
+          ref: ${{ env.PR_BRANCH }}
+          fetch-depth: 2
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Amend release commit as github-actions[bot]
+        run: |
+          set -euo pipefail
+          # --reset-author rewrites both author and committer to the configured
+          # identity; --no-edit keeps the existing commit message verbatim.
+          git commit --amend --reset-author --no-edit
+          git push origin "$PR_BRANCH" --force-with-lease

@@ -1,0 +1,25 @@
+# Grype configuration. Auto-discovered by `grype` when invoked from this
+# directory, so ci.yml's vulnerability scan step picks it up without needing
+# an explicit `--config` flag.
+#
+# Each ignore entry should record WHY the vulnerability is not actionable so
+# a future reader can audit the suppression. Remove the entry as soon as the
+# upstream fix lands in our nixpkgs channel (currently `nixos-25.11`).
+
+ignore:
+  # CVE-2025-70873 — sqlite ≤ 3.51.1: heap-memory information disclosure in
+  # `zipfileInflate` of the `zipfile` virtual-table extension. Triggered only
+  # by `SELECT ... FROM zipfile(<attacker-controlled blob>)`.
+  #
+  # Why ignored:
+  #   - This is a static portfolio site. Application code does not import
+  #     `node:sqlite`, doesn't open any database, and never invokes the
+  #     zipfile extension.
+  #   - sqlite is in the runtime closure only because `nodejs-slim` retains a
+  #     reference to `sqlite-*-dev` (pkgconfig + headers) — Node's built-in
+  #     `node:sqlite` module statically links sqlite into the `node` binary,
+  #     so the standalone sqlite shared library isn't loaded at runtime.
+  #
+  # Remove this entry when `nixos-25.11` backports sqlite 3.51.2+. Check via:
+  #   nix eval --raw github:NixOS/nixpkgs/nixos-25.11#sqlite.version
+  - vulnerability: CVE-2025-70873

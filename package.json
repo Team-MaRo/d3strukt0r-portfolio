@@ -1,5 +1,6 @@
 {
   "name": "@d3strukt0r/portfolio",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -18,49 +19,43 @@
     "sync:linkedin:api": "node --env-file=.env --import tsx bin/linkedin/from-api.ts"
   },
   "dependencies": {
-    "@react-router/node": "^7.14.2",
-    "@react-router/serve": "^7.14.2",
+    "@react-router/node": "^7.15.0",
+    "@react-router/serve": "^7.15.0",
     "blurhash": "^2.0.5",
-    "i18next": "^26.0.8",
+    "i18next": "^26.1.0",
     "i18next-browser-languagedetector": "^8.2.1",
-    "isbot": "^5.1.39",
+    "isbot": "^5.1.40",
     "marked-footnote": "^1.4.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "react-i18next": "^17.0.4",
-    "react-router": "^7.14.2"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-i18next": "^17.0.7",
+    "react-router": "^7.15.0"
   },
   "devDependencies": {
     "@iwf-web/eslint-coding-standard": "^1.1.0",
     "@iwf-web/tsconfig": "^1.1.0",
     "@modyfi/vite-plugin-yaml": "^1.1.1",
-    "@react-router/dev": "^7.14.2",
-    "@tailwindcss/vite": "^4.2.4",
+    "@react-router/dev": "^7.15.0",
+    "@tailwindcss/vite": "^4.3.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^24.12.2",
+    "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "csv-parse": "^6.2.1",
-    "eslint": "^10.2.1",
+    "eslint": "^10.3.0",
     "gray-matter": "^4.0.3",
-    "jiti": "^2.6.1",
+    "jiti": "^2.7.0",
     "jpeg-js": "^0.4.4",
     "js-yaml": "^4.1.1",
-    "marked": "^18.0.2",
+    "marked": "^18.0.3",
     "sass": "^1.99.0",
     "shiki": "^4.0.2",
-    "tailwindcss": "^4.2.4",
+    "tailwindcss": "^4.3.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^8.0.10",
+    "vite": "^8.0.12",
     "vite-plugin-robots-ts": "^2.1.1",
     "vite-plugin-sitemap": "^0.8.2"
   },
-  "pnpm": {
-    "overrides": {
-      "gray-matter>js-yaml": ">=3.14.2 <4",
-      "@modyfi/vite-plugin-yaml>js-yaml": ">=4.1.1"
-    }
-  },
-  "packageManager": "pnpm@10.33.2+sha512.a90faf6feeab71ad6c6e57f94e0fe1a12f5dcc22cd754db40ae9593eb6a3e0b6b12e3540218bb37ae083404b1f2ce6db2a4121e979829b4aff94b99f49da1cf8"
+  "packageManager": "pnpm@11.1.1+sha512.d1fdf5f73c617b64fa1a56a81c3c8dfe0e966e33a6010aa256b517ae77be21d93e05affc0de1a83b0e4f29d569f68b446ae8f068cd7247c0bb3df0fb4d7bdf9a"
 }
