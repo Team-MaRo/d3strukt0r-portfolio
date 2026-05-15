@@ -2,8 +2,14 @@ allowBuilds:
   '@parcel/watcher': true
   esbuild: true
 
+# `@iwf-web/tsconfig/react-strict/tsconfig.json` extends three @tsconfig/*
+# bases. tsc follows the @iwf-web/tsconfig symlink and resolves them inside
+# the .pnpm subtree, but typescript-eslint's parser resolves against the
+# symlink path and can't see them there. Public-hoisting them puts a
+# top-level symlink in node_modules/@tsconfig/* so both resolvers agree.
 publicHoistPattern:
   - "@tsconfig/*"
+
 overrides:
   gray-matter>js-yaml: '>=3.14.2 <4'
   '@modyfi/vite-plugin-yaml>js-yaml': '>=4.1.1'

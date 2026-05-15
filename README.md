@@ -4,7 +4,8 @@ Personal portfolio site for [Manuele](https://github.com/D3strukt0r) — React R
 
 [![License](https://img.shields.io/github/license/d3strukt0r/d3strukt0r.github.io?label=License)](LICENSE.txt)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa)][code-of-conduct]
-[![Docker Pulls](https://img.shields.io/docker/pulls/d3strukt0r/portfolio)](https://hub.docker.com/r/d3strukt0r/portfolio)
+[![Docker Stars](https://img.shields.io/docker/stars/d3strukt0r/portfolio)][docker]
+[![Docker Pulls](https://img.shields.io/docker/pulls/d3strukt0r/portfolio)][docker]
 
 ## Running the container
 
@@ -227,6 +228,7 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 
 This project currently uses no third-party libraries or copied code.
 
+[docker]: https://hub.docker.com/r/d3strukt0r/portfolio
 [gh-tags]: https://github.com/D3strukt0r/d3strukt0r.github.io/tags
 [gh-contributors]: https://github.com/D3strukt0r/d3strukt0r.github.io/contributors
 [contributing]: https://github.com/D3strukt0r/.github/blob/master/CONTRIBUTING.md

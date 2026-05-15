@@ -1,13 +1,17 @@
 name: Sync LinkedIn → content/linkedin/
 
 # Pulls fresh LinkedIn DMA data weekly and commits any diff under
-# content/linkedin/. The commit pushes via GH_PAT so it fires
-# deploy-gh-pages.yml automatically and the static site redeploys. The
-# published Docker image only refreshes on the next `*.*.*` release tag
-# (docker.yml is restricted to `develop` + tag pushes). If the API call
-# fails (token expired, version rejected, network error) the script exits
-# non-zero, this workflow turns red, and the existing YAMLs stay intact
-# — no destructive partial writes. See docs/linkedin-data-portability.md.
+# content/linkedin/ to `develop`. Pushing to `develop` (not `master`)
+# keeps the weekly sync out of the release-please PR on `master` —
+# releases stay a deliberate act. The push fires docker.yml on develop
+# so the dev OCI image picks up fresh data; the live site
+# (deploy-gh-pages.yml, master-only) won't redeploy until the next
+# develop→master release. Back-to-back identical sync commits are
+# squashed into one to keep develop's history clean. If the API call
+# fails (token expired, version rejected, network error) the script
+# exits non-zero, this workflow turns red, and the existing YAMLs stay
+# intact — no destructive partial writes.
+# See docs/linkedin-data-portability.md.
 
 on:
   schedule:
@@ -29,6 +33,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: develop
+          # Need HEAD~1 so the squash-with-previous check can read its subject.
+          fetch-depth: 2
           # PAT so the resulting push fires docker.yml downstream.
           token: ${{ secrets.GH_PAT }}
 
@@ -67,6 +74,38 @@ jobs:
             echo "No changes."
             exit 0
           fi
+          MSG="chore: sync LinkedIn snapshot"
           git add content/linkedin/
-          git commit -m "chore: sync LinkedIn snapshot"
-          git push origin "HEAD:${GITHUB_REF#refs/heads/}"
+          git commit -m "$MSG"
+          # If the immediately-preceding commit on develop was also a sync
+          # (nothing else landed since), squash the two into one. Otherwise
+          # push normally. --force-with-lease aborts if anything else pushed
+          # to develop between our reset and push, so we can't clobber work.
+          if git rev-parse --verify HEAD~1 >/dev/null 2>&1 \
+             && [ "$(git log -1 --skip=1 --format=%s)" = "$MSG" ]; then
+            git reset --soft HEAD~2
+            git commit -m "$MSG"
+            git push --force-with-lease origin HEAD:develop
+          else
+            git push origin HEAD:develop
+          fi
+
+      # GitHub auto-disables scheduled workflows after 60 days of repo
+      # inactivity. If develop's tip is older than KEEPALIVE_THRESHOLD_DAYS,
+      # push an empty commit so this workflow stays armed even when the
+      # LinkedIn API returns no diffs for a long stretch.
+      - name: Keepalive (prevent workflow auto-disable)
+        env:
+          KEEPALIVE_THRESHOLD_DAYS: '50'
+          KEEPALIVE_MESSAGE: 'chore: keepalive'
+        run: |
+          set -euo pipefail
+          LAST_COMMIT_EPOCH=$(git log -1 --pretty=%ct)
+          AGE_DAYS=$(( ( $(date +%s) - LAST_COMMIT_EPOCH ) / 86400 ))
+          if (( AGE_DAYS < KEEPALIVE_THRESHOLD_DAYS )); then
+            echo "last commit ${AGE_DAYS}d ago (< ${KEEPALIVE_THRESHOLD_DAYS}d threshold) — no keepalive needed"
+            exit 0
+          fi
+          echo "last commit ${AGE_DAYS}d ago — pushing keepalive commit"
+          git commit --allow-empty -m "$KEEPALIVE_MESSAGE"
+          git push origin HEAD:develop
