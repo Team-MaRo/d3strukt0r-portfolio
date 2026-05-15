@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/D3strukt0r/d3strukt0r.github.io/compare/1.0.0...1.0.1) (2026-05-15)
+
+
+### 🐛 Bug Fixes
+
+* Enhance LinkedIn data sync workflow and `develop` branch management ([0ce0a2b](https://github.com/D3strukt0r/d3strukt0r.github.io/commit/0ce0a2be07b6054b4890f4d1b6089040aff74548))
+
 ## [1.0.0](https://github.com/D3strukt0r/d3strukt0r.github.io/compare/0.1.0...1.0.0) (2026-05-15)
 
 
