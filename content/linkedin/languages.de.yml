@@ -3,14 +3,14 @@
   proficiency: Native or bilingual proficiency
   stars: 5
 - name: Spanisch
-  proficiency: Native or bilingual proficiency
-  stars: 5
-- name: Englisch
   proficiency: Professional working proficiency
   stars: 3
+- name: Englisch
+  proficiency: Full professional proficiency
+  stars: 4
 - name: Italienisch
-  proficiency: Elementary proficiency
-  stars: 1
+  proficiency: Limited working proficiency
+  stars: 2
 - name: Französisch
-  proficiency: Elementary proficiency
-  stars: 1
+  proficiency: Limited working proficiency
+  stars: 2

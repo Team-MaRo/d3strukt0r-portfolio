@@ -1,8 +1,48 @@
 # DO NOT EDIT generated keys; German overrides (e.g. `titleDe`) are safe to add by hand.
-- title: weleda-webcenter-text-export
+- title: Persönliche Portfolio- und CV-Website
   description: >-
-    A little web application for Weleda AG which converts the exported XML file of WebCenter into
-    raw text.  Used technologies were: HTML, CSS, JavaScript, React, TypeScript, Material UI
+    Aus einer Codebase werden zwei Auslieferungsvarianten erzeugt: ein statisches SPA via GitHub
+    Pages und ein SSR-fähiges, Nix-gebautes OCI-Image auf Docker Hub für Self-Hosting.  Tech-Stack:
+    React 19 · React Router v7 (Framework Mode) · TypeScript · Vite 8 · Tailwind v4 + Sass ·
+    react-i18next (DE/EN) · Node 24 · pnpm · Nix Flakes · Docker  Highlights: • Eigenes
+    Design-System „Terminal Aurora" – Glassmorphism, JetBrains Mono, Custom-Cursor,
+    Dark-/Light-Toggle und Terminal-Easter-Egg (sudo-Befehle). • Passwortgeschütztes „Sealed
+    Content"-System: PII (Arbeitgeber, Zertifikate, Profilfoto) wird zur Build-Zeit per AES-GCM +
+    PBKDF2 (600k Iterationen) verschlüsselt – das deployte Bundle enthält ausschliesslich
+    Chiffretext. • Reproduzierbares OCI-Image komplett ohne Dockerfile, gebaut aus einer Nix-Flake
+    mit minimalem Runtime-Closure (~250 MB). • Multi-Arch-CI-Pipeline (amd64/arm64/riscv64) mit
+    Cosign-Signaturen, SPDX-SBOM-Attestierung und Grype-Vulnerability-Scanning. • Automatisierter
+    LinkedIn-Daten-Sync (Member Data Portability API) generiert die Lebenslauf-Inhalte direkt in den
+    Build. • Markdown-Blog mit Shiki-Syntax-Highlighting, Footnotes und Token-Expansion zur
+    Build-Zeit. • Release-Please-Workflow mit Conventional Commits für automatisierte Versionierung
+    und Changelogs.
+  url: ''
+  startedOn: 2026-01
+  finishedOn: 2026-05
+- title: Weleda Web Center XML zu Text Konverter
+  description: >-
+    Browser-basiertes Tool für Weleda AG, das exportierte Web-Center-XML-Dateien lokal in lesbaren
+    Text umwandelt – kein Upload, keine Backend-Verarbeitung. Aus einer Codebase werden zwei
+    Auslieferungsvarianten erzeugt: ein statisches SPA via GitHub Pages und ein SSR-fähiges,
+    Nix-gebautes OCI-Image auf Docker Hub für Self-Hosting.  Tech-Stack: React 19 · React Router v7
+    (Framework Mode) · TypeScript · Vite 7 · Tailwind v4 + Sass · react-i18next · fast-xml-parser ·
+    Node 24 · pnpm · Nix Flakes · Docker  Highlights: • Komplette XML→Text-Konvertierung im Browser
+    via fast-xml-parser – Dateien verlassen nie das Gerät. • Vollständige No-JS-Fallback-Variante:
+    serverseitig gerendertes Upload-Formular plus reine CSS-Interaktion (:has()-Selektoren) für
+    Drag-Overlay und Theme-Toggle. • Dual-Mode-Build aus einer Codebase: eigenes Vite-Plugin
+    entfernt SSR-Exports im SPA-Build, damit derselbe Quellcode statisch (GH Pages) und dynamisch
+    (Docker/SSR) deployt werden kann. • Reproduzierbares, distroless OCI-Image komplett ohne
+    Dockerfile, gebaut aus einer Nix-Flake mit minimalem Runtime-Closure. • Build-Zeit-Plugin liest
+    Copyright-Jahre und -Inhaber aus LICENSE.txt und injiziert sie als globale Konstanten – Footer
+    und Legal-Artefakt bleiben automatisch synchron. • Statische Assets (Sitemap, robots.txt, 404,
+    CNAME) werden über eigene Vite-Plugins aus einer Single-Source-of-Truth (public/CNAME)
+    generiert. • UI vollständig über i18next + YAML-Locales (DE), inkl. SVG-Icons mit
+    currentColor-Theming für Light-/Dark-Mode. • Drag-and-Drop irgendwo auf der Seite, Paste-Support
+    (Cmd/Strg+V), Volltextsuche mit Treffer-Highlighting, Copy-to-Clipboard und .txt-Download. •
+    Multi-Arch-CI-Pipeline (amd64/arm64) mit Cosign-Signaturen, SBOM-Attestierung und
+    automatisiertem pnpm-Hash-Bump. • Release-Please-Workflow mit Conventional Commits für
+    automatisierte Versionierung und Changelogs. • Einheitliche Dev-Umgebungen über Docker Compose,
+    Vagrant und Devcontainer.
   url: https://weleda-webcenter-text-export.d3strukt0r.dev/
   startedOn: 2019-12
-  finishedOn: null
+  finishedOn: 2026-05
