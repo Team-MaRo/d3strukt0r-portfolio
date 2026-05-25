@@ -19,6 +19,33 @@
   url: ''
   startedOn: 2026-01
   finishedOn: 2026-05
+- title: Wund Expertin Plus — Praxis-Website
+  description: >-
+    Praxis-Website für eine Dipl. Wundexpertin SAfW im Baselland – kommuniziert Dienstleistungen
+    (akute/chronische/onkologische Wunden, Druckgeschwüre, Pflege), Praxisstandort mit Google-Maps
+    und Terminanfrage. Aus einer Codebase werden zwei Auslieferungsvarianten erzeugt: ein statisches
+    SPA via GitHub Pages und ein SSR-fähiges, Nix-gebautes OCI-Image auf Docker Hub für
+    Self-Hosting.  Tech-Stack: React 19 · React Router v7 (Framework Mode, SSR + SPA) · TypeScript ·
+    Vite 8 · Tailwind v4 + Sass · react-i18next · Node 24 · pnpm · Nix Flakes · Docker  Highlights:
+    • Dual-Mode-Build aus einer Codebase: derselbe Quellcode statisch (GH Pages) und serverseitig
+    (Docker/SSR) ausgeliefert – umschaltbar per SSR-Umgebungsvariable. • Reproduzierbares,
+    distroless OCI-Image ohne Dockerfile, gebaut aus einer Nix-Flake mit minimalem Runtime-Closure.
+    • Multi-Arch-CI (amd64/arm64/riscv64) inkl. QEMU für RISC-V, mit Cosign-Signaturen,
+    SPDX-SBOM-Attestierung, SLSA-Provenance sowie Grype- und Trivy-Scans. • Design-System auf
+    OKLCH-Basis, klassen-basierter Dark-Mode mit prefers-color-scheme-Fallback und FOUC-freier
+    Inline-Bootstrap vor React-Hydration. • Build-Zeit-Plugin liest Copyright-Jahre und -Inhaber aus
+    LICENSE.txt und injiziert sie als globale Konstanten – Footer bleibt automatisch synchron. •
+    Statische Assets (Sitemap, robots.txt, CNAME) und Multi-Resolution-Favicons (PNG + Legacy-ICO)
+    werden über eigene Vite-Plugins aus Single-Source-Quellen generiert. • Reveal-on-Scroll via
+    IntersectionObserver-Hook mit Timeout-Fallback und gestaffelten Einblend-Animationen. •
+    Google-Maps mit themen-aware Light/Dark-Styles und stylized SVG-Fallback bei
+    API-Key-Restriktionen. • Vollständige No-JS-Fallback-Variante: SSR-gerenderte Inhalte, CSS-only
+    Theme- und Scroll-UI. • UI über i18next + YAML-Locale (DE) mit Vite-HMR-Integration für
+    Live-Reload der Übersetzungen. • Release-Please mit Conventional Commits für automatisierte
+    Versionierung, Changelogs und docker.yml-Trigger.
+  url: ''
+  startedOn: 2020-05
+  finishedOn: 2026-05
 - title: Weleda Web Center XML zu Text Konverter
   description: >-
     Browser-basiertes Tool für Weleda AG, das exportierte Web-Center-XML-Dateien lokal in lesbaren
