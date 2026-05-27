@@ -16,7 +16,13 @@ import {seal} from './app/vite/plugins/seal';
 import {spaFallback} from './app/vite/plugins/spa-fallback';
 import {webManifest} from './app/vite/plugins/web-manifest';
 
-const SITE_URL = 'https://d3strukt0r.dev';
+// Resolved at workflow time from the GitHub Pages REST API: deploy-gh-pages.yml
+// fetches `gh api repos/<repo>/pages --jq .cname` and exports SITE_HOST.
+// Local dev and the CI smoke build (no Pages secret) fall back to localhost so
+// the sitemap + atom self-links still produce a parseable URL.
+const trimmedHost = process.env.SITE_HOST?.trim();
+const SITE_HOST = trimmedHost === undefined || trimmedHost === '' ? 'localhost' : trimmedHost;
+const SITE_URL = `https://${SITE_HOST}`;
 const OUT_DIR = 'build/client';
 const POSTS_DIR = join(process.cwd(), 'content', 'posts');
 const DATE_DASH_RE = /-/g;

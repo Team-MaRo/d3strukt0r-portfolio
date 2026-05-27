@@ -38,10 +38,26 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
+      # Single source of truth for the deployed hostname — Settings → Pages →
+      # Custom domain. Failing fast here surfaces a misconfigured repo before
+      # the build emits sitemap.xml / atom.xml with the wrong URL.
+      - name: Resolve Pages hostname
+        id: pages_cname
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CNAME=$(gh api "repos/${{ github.repository }}/pages" --jq '.cname')
+          if [ -z "$CNAME" ] || [ "$CNAME" = "null" ]; then
+            echo "::error::Pages API returned no custom domain. Set one in Settings → Pages → Custom domain."
+            exit 1
+          fi
+          echo "site_host=$CNAME" >> "$GITHUB_OUTPUT"
+
       - name: Build
         run: pnpm run build
         env:
           SSR: 'false'
+          SITE_HOST: ${{ steps.pages_cname.outputs.site_host }}
           SEAL_DATA_KEY: ${{ secrets.SEAL_DATA_KEY }}
           REVEAL_PASSWORDS: ${{ secrets.REVEAL_PASSWORDS }}
 
