@@ -36,6 +36,11 @@ jobs:
       - name: Install dependencies
         run: pnpm ci
 
+      - name: Audit (lockfile)
+        id: audit
+        continue-on-error: true
+        run: bash .github/scripts/summarize-step.sh "Audit (lockfile)" pnpm audit --audit-level=moderate
+
       - name: Lint
         id: lint
         continue-on-error: true
@@ -63,7 +68,8 @@ jobs:
       - name: Fail if any check failed
         if: always()
         run: |
-          if [ "${{ steps.lint.outcome }}" = "failure" ] \
+          if [ "${{ steps.audit.outcome }}" = "failure" ] \
+             || [ "${{ steps.lint.outcome }}" = "failure" ] \
              || [ "${{ steps.typecheck.outcome }}" = "failure" ] \
              || [ "${{ steps.build.outcome }}" = "failure" ]; then
             exit 1
