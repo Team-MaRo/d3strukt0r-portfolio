@@ -1,5 +1,5 @@
 import type {Plugin} from 'vite';
-import {copyFileSync, existsSync, writeFileSync} from 'node:fs';
+import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {loadPosts} from './posts';
 
@@ -13,22 +13,15 @@ interface Options {
   author: {name: string; email: string};
 }
 
-// Emits SPA-fallback + Atom feed into the build output. Sitemap + robots are
-// handled by vite-plugin-sitemap / vite-plugin-robots-ts.
-export function staticArtifacts(opts: Options): Plugin {
+// Emits an Atom feed of the latest 20 blog posts. SPA-fallback is in its own
+// plugin (spa-fallback.ts); sitemap + robots are handled by vite-plugin-sitemap
+// / vite-plugin-robots-ts.
+export function atomFeed(opts: Options): Plugin {
   return {
-    name: 'static-artifacts',
+    name: 'atom-feed',
     apply: 'build',
     closeBundle() {
       const {outDir, postsDir, siteUrl, author} = opts;
-      if (!existsSync(outDir)) {
-        return;
-      }
-
-      const indexHtml = join(outDir, 'index.html');
-      if (existsSync(indexHtml)) {
-        copyFileSync(indexHtml, join(outDir, '404.html'));
-      }
 
       const posts = loadPosts(postsDir);
       const now = new Date().toISOString();

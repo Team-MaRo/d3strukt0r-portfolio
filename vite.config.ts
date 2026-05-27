@@ -8,11 +8,12 @@ import tailwindcss from '@tailwindcss/vite';
 import {defineConfig} from 'vite';
 import {ALLOW_ALL, robots} from 'vite-plugin-robots-ts';
 import sitemap from 'vite-plugin-sitemap';
+import {atomFeed} from './app/vite/plugins/atom-feed';
 import {faviconRasters} from './app/vite/plugins/favicon-rasters';
 import {mdFrontmatter} from './app/vite/plugins/md-frontmatter';
 import {loadPosts} from './app/vite/plugins/posts';
 import {seal} from './app/vite/plugins/seal';
-import {staticArtifacts} from './app/vite/plugins/static-artifacts';
+import {spaFallback} from './app/vite/plugins/spa-fallback';
 import {webManifest} from './app/vite/plugins/web-manifest';
 
 const SITE_URL = 'https://d3strukt0r.dev';
@@ -58,7 +59,8 @@ export default defineConfig({
       content: `${ALLOW_ALL}\n`,
       sitemap: `${SITE_URL}/sitemap.xml`,
     })),
-    staticArtifacts({
+    spaFallback({outDir: absOutDir}),
+    atomFeed({
       outDir: absOutDir,
       postsDir: POSTS_DIR,
       siteUrl: SITE_URL,

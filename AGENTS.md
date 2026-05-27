@@ -99,7 +99,8 @@ Emitted by Vite plugins (`vite.config.ts`), no separate postbuild:
 
 - `vite-plugin-sitemap` → `sitemap.xml` (home, `/cv`, `/blog`, each post via `dynamicRoutes`).
 - `vite-plugin-robots-ts` → `robots.txt`.
-- `app/vite/plugins/static-artifacts.ts` → `404.html` (SPA fallback — Pages only; SSR image doesn't need it) + `atom.xml` (≤20 posts).
+- `app/vite/plugins/spa-fallback.ts` → `404.html` (SPA fallback — Pages only; SSR image doesn't need it).
+- `app/vite/plugins/atom-feed.ts` → `atom.xml` (≤20 posts).
 - `app/vite/plugins/md-frontmatter.ts` → parses `*.md?parsed` at build time so markdown deps stay out of the client bundle.
 - `app/vite/plugins/posts.ts` → shared post loader used by sitemap + atom.
 - `app/vite/plugins/seal.ts` → sealed content (see above).
