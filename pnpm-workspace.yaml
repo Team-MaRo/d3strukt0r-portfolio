@@ -1,6 +1,7 @@
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true
+  sharp: true
 
 # `@iwf-web/tsconfig/react-strict/tsconfig.json` extends three @tsconfig/*
 # bases. tsc follows the @iwf-web/tsconfig symlink and resolves them inside

@@ -8,10 +8,12 @@ import tailwindcss from '@tailwindcss/vite';
 import {defineConfig} from 'vite';
 import {ALLOW_ALL, robots} from 'vite-plugin-robots-ts';
 import sitemap from 'vite-plugin-sitemap';
+import {faviconRasters} from './app/vite/plugins/favicon-rasters';
 import {mdFrontmatter} from './app/vite/plugins/md-frontmatter';
 import {loadPosts} from './app/vite/plugins/posts';
 import {seal} from './app/vite/plugins/seal';
 import {staticArtifacts} from './app/vite/plugins/static-artifacts';
+import {webManifest} from './app/vite/plugins/web-manifest';
 
 const SITE_URL = 'https://d3strukt0r.dev';
 const OUT_DIR = 'build/client';
@@ -62,6 +64,8 @@ export default defineConfig({
       siteUrl: SITE_URL,
       author: {name: 'Manuele', email: 'gh-contact@d3st.dev'},
     }),
+    faviconRasters(),
+    webManifest(),
   ],
   resolve: {
     tsconfigPaths: true,
