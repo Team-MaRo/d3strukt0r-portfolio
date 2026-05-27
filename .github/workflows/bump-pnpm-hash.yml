@@ -56,7 +56,7 @@ jobs:
           # during the FOD-mismatch probe; not consumed by the FOD itself.
           SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           DOCKER_LABELS_JSON: ''
-        run: ./bin/bump-pnpm-hash.sh
+        run: ./.github/scripts/bump-pnpm-hash.sh
 
       - name: Configure git
         run: |

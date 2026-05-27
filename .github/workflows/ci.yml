@@ -115,7 +115,7 @@ jobs:
         env:
           SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           DOCKER_LABELS_JSON: ''
-        run: ./bin/bump-pnpm-hash.sh
+        run: ./.github/scripts/bump-pnpm-hash.sh
 
       - name: Build OCI image with Nix
         env:
