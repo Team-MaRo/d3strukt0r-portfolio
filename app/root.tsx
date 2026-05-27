@@ -10,7 +10,7 @@ import {TaNav} from './components/TaNav';
 import {TaTerminal} from './components/TaTerminal';
 import {smoothScrollToAnchor} from './hooks/useInternalLinkNav';
 import {useReveal} from './hooks/useReveal';
-import {useTheme} from './hooks/useTheme';
+import {THEME_COLOR_DARK, THEME_COLOR_LIGHT, useTheme} from './hooks/useTheme';
 import {i18n} from './i18n';
 import {setWrapped} from './lib/seal';
 
@@ -64,24 +64,41 @@ export const links: Route.LinksFunction = () => [
   {rel: 'alternate', type: 'application/atom+xml', title: 'Manuele', href: '/atom.xml'},
 ];
 
+// Pre-hydration bootstrap. Runs as the first child of <body> (so `body`
+// exists) but before any visible content paints. Three jobs:
+//   1. Mirrors the stored theme pref onto `body.classList` so the right
+//      stylesheet branch wins before React mounts (no FOUC when the user
+//      previously picked light).
+//   2. Adds `html.js` so any `no-js`-scoped CSS escape hatches activate.
+//   3. Overrides every `<meta name="theme-color">` content so the mobile
+//      browser chrome (address-bar strip) follows the in-page theme even
+//      when it disagrees with the OS preference.
+// Kept minified to one line for the fastest parse before hydration.
+// eslint-disable-next-line style/max-len -- inline IIFE intentionally minified to one line for fastest parse before hydration (avoids theme FOUC)
+const themeBootstrap = `(function(){try{var k='d3strukt0rs-portfolio:theme';var s=localStorage.getItem(k);var t=(s==='light'||s==='dark')?s:'dark';var b=document.body;b.classList.toggle('light',t==='light');b.classList.toggle('dark',t!=='light');document.documentElement.classList.add('js');var c=t==='dark'?'${THEME_COLOR_DARK}':'${THEME_COLOR_LIGHT}';document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.setAttribute('content',c);});}catch(e){document.documentElement.classList.add('js');}})();`;
+
 export function Layout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#060614" />
+        {/* Both metas ship; the inline bootstrap below overrides both content
+            attrs to the chosen theme — whichever the browser picks via the
+            `media` query then shows the right colour regardless. */}
+        <meta name="theme-color" content={THEME_COLOR_LIGHT} media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content={THEME_COLOR_DARK} media="(prefers-color-scheme: dark)" />
         <meta name="apple-mobile-web-app-title" content="Manueles Portfolio" />
         <Meta />
         <Links />
-        <script
-          // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- inline script must run before hydration to set the JS class on <html>
-          dangerouslySetInnerHTML={{
-            __html: 'document.documentElement.classList.add(\'js\')',
-          }}
-        />
       </head>
       <body className="ta dark" suppressHydrationWarning>
+        {/* Must be the first body child so the class swap happens before any
+            visible content paints. */}
+        <script
+          // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- themeBootstrap is a constant string defined above; no user input, no escaping needed
+          dangerouslySetInnerHTML={{__html: themeBootstrap}}
+        />
         <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
         <ScrollRestoration />
         <Scripts />
