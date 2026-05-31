@@ -4,7 +4,7 @@ name: Bump pnpmDeps.hash
 # Dependabot merge). Runs the shared bump script, pushes the resulting
 # flake.nix fix-up as a follow-up commit. Single trusted-context workflow —
 # replaces the older compute/apply pair that triggered CodeQL's untrusted-
-# checkout rule. See AGENTS.md → Workflows.
+# checkout rule.
 
 on:
   push:

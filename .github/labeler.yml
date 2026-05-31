@@ -3,9 +3,42 @@ documentation:
     - any-glob-to-any-file: '**/*.md'
 
 feature:
- - head-branch: ['^feature', 'feature']
+  - head-branch: ['^feature', 'feature']
 
 release:
   - all:
     - base-branch: 'master'
     - head-branch: ['^release', 'release']
+
+docker:
+  - changed-files:
+    - any-glob-to-any-file:
+        - '.docker/**/*'
+        - '.dockerignore'
+        - 'Dockerfile'
+        - 'compose.yml'
+        - 'compose.vm.dist.yml'
+
+vagrant:
+  - changed-files:
+    - any-glob-to-any-file:
+        - 'Vagrantfile'
+        - '.vagrant.config.dist.yml'
+        - 'compose.vm.dist.yml'
+
+devcontainer:
+  - changed-files:
+    - any-glob-to-any-file:
+        - '.devcontainer/**/*'
+
+source:
+  - all:
+    - changed-files:
+      - any-glob-to-any-file:
+          - 'app/**/*'
+          - 'public/**/*'
+      - all-globs-to-all-files: '!app/**/*.test.{ts,tsx}'
+
+test:
+  - changed-files:
+    - any-glob-to-any-file: 'app/**/*.test.{ts,tsx}'

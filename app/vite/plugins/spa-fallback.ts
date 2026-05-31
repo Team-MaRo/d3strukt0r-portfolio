@@ -6,10 +6,12 @@ interface Options {
   outDir: string;
 }
 
-// Copies build/client/index.html to 404.html so GitHub Pages serves the SPA
-// shell on any deep link (without this, direct hits on /anything/ fail with
-// Pages' default 404). The existence check guards SSR builds, which emit no
-// index.html in the client dir.
+// Emits the SPA-fallback 404.html (a verbatim copy of index.html) so GitHub
+// Pages serves the SPA shell on any deep URL — without this, a direct hit
+// on /anything-not-/  would return GH Pages' default 404 instead of letting
+// the React Router not-found route render. SSR builds emit no index.html
+// in this dir (the server generates HTML on the fly), so the existsSync
+// guard naturally turns this into a no-op there.
 export function spaFallback(opts: Options): Plugin {
   return {
     name: 'spa-fallback',

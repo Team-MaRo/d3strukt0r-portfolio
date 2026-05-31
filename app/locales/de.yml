@@ -1,6 +1,10 @@
 meta:
   site_title: Manuele
   tagline: Full-Stack Web Developer
+brand:
+  name: 'Manueles Portfolio'
+  short_name: 'Manueles Portfolio'
+  description: 'Persönliches Portfolio von Manuele — Full-Stack Web Developer.'
 nav:
   about: "./about"
   stack: "./stack"
