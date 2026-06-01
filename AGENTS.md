@@ -97,12 +97,18 @@ LinkedIn fields (employer/school names, locations, certificate URLs, profile pho
 
 Emitted by Vite plugins (`vite.config.ts`), no separate postbuild:
 
-- `vite-plugin-sitemap` → `sitemap.xml` (home, `/cv`, `/blog`, each post via `dynamicRoutes`).
-- `vite-plugin-robots-ts` → `robots.txt`.
+- `sitemap.xml`, `robots.txt`, and `atom.xml` (≤20 posts) each have their own plugin —
+  `app/vite/plugins/{sitemap,robots,atom}.ts` — exporting a pure `render*` fn (via the `sitemap` lib /
+  `robotstxt-util` / `feed`) **and** the build plugin (emits the static file via `this.emitFile`, gated
+  to the SPA build by `isSpa` in `vite.config.ts`; host baked in from build-time `SITE_HOST`). The SSR
+  image serves them as **resource routes** instead (`app/routes/{sitemap-xml,robots-txt,atom-xml}.ts`,
+  registered only when SSR in `routes.ts`), importing the same `render*` fn from the plugin module and
+  resolving the host per request via `app/lib/site-url.ts` `resolveSiteUrl` (env `SITE_HOST` →
+  `X-Forwarded-Host`/`Host` → request URL host; `postPath` lives there too). Output is identical across
+  both paths. (`vite-plugin-sitemap`/`-robots-ts` and the old `feeds.ts`/`static-seo.ts` were removed.)
 - `app/vite/plugins/spa-fallback.ts` → `404.html` (SPA fallback — Pages only; SSR image doesn't need it).
-- `app/vite/plugins/atom-feed.ts` → `atom.xml` (≤20 posts).
 - `app/vite/plugins/md-frontmatter.ts` → parses `*.md?parsed` at build time so markdown deps stay out of the client bundle.
-- `app/vite/plugins/posts.ts` → shared post loader used by sitemap + atom.
+- `app/vite/plugins/posts.ts` → build-time post loader for the SPA sitemap `dynamicRoutes` + the static atom feed.
 - `app/vite/plugins/seal.ts` → sealed content (see above).
 
 `public/CNAME` (`d3strukt0r.dev`) is copied verbatim.

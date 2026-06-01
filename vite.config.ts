@@ -1,20 +1,19 @@
-import type {Plugin} from 'vite';
-import {mkdirSync} from 'node:fs';
 import {join} from 'node:path';
 import process from 'node:process';
 import ViteYaml from '@modyfi/vite-plugin-yaml';
 import {reactRouter} from '@react-router/dev/vite';
 import tailwindcss from '@tailwindcss/vite';
-import {ALLOW_ALL, robots} from 'vite-plugin-robots-ts';
-import sitemap from 'vite-plugin-sitemap';
 import svgr from 'vite-plugin-svgr';
 import {defineConfig} from 'vitest/config';
-import {atomFeed} from './app/vite/plugins/atom-feed';
+import {postPath} from './app/lib/site-url';
+import {atom} from './app/vite/plugins/atom';
 import {copyrightFromLicense} from './app/vite/plugins/copyright-from-license';
 import {faviconRasters} from './app/vite/plugins/favicon-rasters';
 import {mdFrontmatter} from './app/vite/plugins/md-frontmatter';
 import {loadPosts} from './app/vite/plugins/posts';
+import {robots} from './app/vite/plugins/robots';
 import {seal} from './app/vite/plugins/seal';
+import {sitemap} from './app/vite/plugins/sitemap';
 import {spaFallback} from './app/vite/plugins/spa-fallback';
 import {webManifest} from './app/vite/plugins/web-manifest';
 
@@ -24,34 +23,21 @@ const WEB_MANIFEST_ICONS = [
 ] as const;
 
 const isVitest = process.env.VITEST === 'true';
+// SSR serves the SEO artifacts as runtime resource routes; only the SPA
+// (GitHub Pages) build emits them as static files (host known at build time).
+const isSpa = process.env.SSR === 'false';
 
-// Single source of truth for the deployed hostname: Settings → Pages →
-// Custom domain on the GitHub repo. CI workflows (deploy-gh-pages.yml,
-// docker.yml) fetch it via the Pages REST API and pass it in as
-// SITE_HOST; sitemap + robots read it here. Local dev falls back to
-// localhost because no env var is set.
+// Deployed hostname for the SPA build's static SEO files. CI's
+// deploy-gh-pages.yml passes it as SITE_HOST (from the Pages custom domain);
+// local dev falls back to localhost. The SSR image ignores this and resolves
+// the host per request (app/lib/site-url.ts).
 const trimmedHost = process.env.SITE_HOST?.trim();
 const SITE_HOST = trimmedHost === undefined || trimmedHost === '' ? 'localhost' : trimmedHost;
 const SITE_URL = `https://${SITE_HOST}`;
-const OUT_DIR = 'build/client';
 const POSTS_DIR = join(process.cwd(), 'content', 'posts');
-const DATE_DASH_RE = /-/g;
-
-const blogRoutes = loadPosts(POSTS_DIR).map(
-  (p) => `/${p.date.slice(0, 10).replace(DATE_DASH_RE, '/')}/${p.slug}`,
-);
-const absOutDir = join(process.cwd(), OUT_DIR);
-
-// sitemap + robots close their bundle hooks before react-router has flushed
-// assets to build/client on a cold build, so the dir might not exist yet.
-mkdirSync(absOutDir, {recursive: true});
-
-// react-router 7 runs Vite with multiple environments (client, ssr). Scope
-// sitemap + robots to the client build so their closeBundle hooks don't fire
-// for the SSR output (which lives at build/server/).
-function clientOnly(plugin: Plugin): Plugin {
-  return {...plugin, applyToEnvironment: (env) => env.name === 'client'};
-}
+// Loaded once for the SPA build's sitemap paths + atom feed (the SSR routes
+// derive these from the runtime post list instead).
+const blogPosts = isSpa ? loadPosts(POSTS_DIR) : [];
 
 export default defineConfig({
   plugins: [
@@ -98,26 +84,21 @@ export default defineConfig({
     mdFrontmatter(),
     ViteYaml(),
     svgr({include: '**/*.svg?react'}),
-    clientOnly(sitemap({
-      hostname: SITE_URL,
-      outDir: OUT_DIR,
-      dynamicRoutes: ['/', '/cv', '/blog', ...blogRoutes],
-      generateRobotsTxt: false,
-    })),
-    clientOnly(robots({
-      content: `${ALLOW_ALL}\n`,
-      sitemap: `${SITE_URL}/sitemap.xml`,
-    })),
-    // Not wrapped in clientOnly: react-router writes build/client/index.html
-    // during the SSR build pass, after the client env's closeBundle has fired.
-    // Running on both envs lets the copy succeed on the SSR pass.
-    spaFallback({outDir: absOutDir}),
-    atomFeed({
-      outDir: absOutDir,
-      postsDir: POSTS_DIR,
-      siteUrl: SITE_URL,
-      author: {name: 'Manuele', email: 'gh-contact@d3st.dev'},
-    }),
+    // sitemap.xml / robots.txt / atom.xml as static files — SPA build only, each
+    // via its own plugin's render fn (the SSR image serves the same through
+    // resource routes, resolving the host per request).
+    ...(isSpa
+      ? [
+          sitemap({siteUrl: SITE_URL, paths: ['/', '/cv', '/blog', ...blogPosts.map(postPath)]}),
+          robots({siteUrl: SITE_URL}),
+          atom({siteUrl: SITE_URL, posts: blogPosts, author: {name: 'Manuele', email: 'gh-contact@d3st.dev'}}),
+        ]
+      : []),
+    // Reads build/client from the resolved Vite config (no outDir passed).
+    // react-router writes build/client/index.html during the SSR build pass,
+    // after the client env's closeBundle; running on both envs lets the copy
+    // succeed on the SSR pass.
+    spaFallback(),
   ],
   resolve: {
     tsconfigPaths: true,

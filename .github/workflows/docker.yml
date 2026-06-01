@@ -27,7 +27,6 @@ permissions:
   attestations: write
   artifact-metadata: write
   packages: write
-  pages: read
 
 jobs:
   setup:
@@ -36,7 +35,6 @@ jobs:
     outputs:
       matrix: ${{ steps.gen.outputs.matrix }}
       arch_list: ${{ steps.gen.outputs.arch_list }}
-      site_host: ${{ steps.pages_cname.outputs.site_host }}
     steps:
       - name: Build matrix from input
         id: gen
@@ -65,22 +63,6 @@ jobs:
           ARCH_LIST=$(jq -r 'join(" ")' <<<"$ARCHES_JSON")
           echo "matrix=$MATRIX"      | tee -a "$GITHUB_OUTPUT"
           echo "arch_list=$ARCH_LIST" | tee -a "$GITHUB_OUTPUT"
-
-      # Authoritative source for the deployed hostname (sitemap + robots).
-      # Pulled once and fanned out via job output so every arch in the
-      # build matrix sees the same value.
-      - name: Read Pages custom domain
-        id: pages_cname
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          CNAME=$(gh api "repos/${{ github.repository }}/pages" --jq '.cname')
-          if [ -z "$CNAME" ] || [ "$CNAME" = "null" ]; then
-            echo "::error::Pages API returned no custom domain. Set one in Settings → Pages → Custom domain."
-            exit 1
-          fi
-          echo "site_host=$CNAME" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build (${{ matrix.arch }})
@@ -152,7 +134,6 @@ jobs:
           SEAL_DATA_KEY: ${{ secrets.SEAL_DATA_KEY }}
           LABELS_RAW: ${{ steps.meta.outputs.labels }}
           NIX_SYSTEM_FLAG: ${{ matrix.emulate && format('--system {0}', matrix.nix_system) || '' }}
-          SITE_HOST: ${{ needs.setup.outputs.site_host }}
         run: |
           # metadata-action's labels are "KEY=VAL\n…"; flake reads it via fromJSON.
           export DOCKER_LABELS_JSON=$(jq -Rsc '
