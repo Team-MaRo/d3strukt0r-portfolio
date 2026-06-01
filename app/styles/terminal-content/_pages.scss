@@ -42,7 +42,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     line-height: 1.2;
-    background: linear-gradient(120deg, var(--accent), var(--accent-2), var(--accent-3));
+    background: linear-gradient(120deg, var(--primary), var(--accent-2), var(--accent-3));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -82,8 +82,8 @@
     background: var(--glass);
   }
   a:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--primary);
+    border-color: var(--primary);
   }
   span {
     opacity: 0.4;

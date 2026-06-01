@@ -48,7 +48,7 @@
             pnpmDeps = pkgs.pnpm_10.fetchDeps {
               inherit (finalAttrs) pname version src;
               fetcherVersion = 2;
-              hash = "sha256-+x12wHnVtqlL6wVFLbJV6/isZHqSxit8oZk2VlNhC+w=";
+              hash = "sha256-fdXMvs1rsbt28NGw3dqQ520Bf74+hFPh5deFLWwMZnE=";
             };
 
             SEAL_DATA_KEY = builtins.getEnv "SEAL_DATA_KEY";

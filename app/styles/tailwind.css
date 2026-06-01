@@ -1,31 +1,203 @@
 @import "tailwindcss";
 
-/* Tailwind's `dark:` variant follows our JS toggle (body.dark) instead of
-   prefers-color-scheme. useTheme() toggles body.dark / body.light. */
-@custom-variant dark (&:where(body.dark, body.dark *));
-
-/* Design tokens. `@theme inline` wires Tailwind's naming onto the runtime
-   CSS custom properties declared on `.ta` / `.ta.light` in terminal.scss —
-   so utilities like `bg-accent`, `text-fg-mute`, `border-line` re-theme
-   automatically when the toggle flips. The `.ta` block in terminal.scss
-   remains the source of truth for the actual colour values. */
-@theme inline {
-  --color-bg: var(--bg);
-  --color-bg-2: var(--bg-2);
-  --color-fg: var(--fg);
-  --color-fg-dim: var(--fg-dim);
-  --color-fg-mute: var(--fg-mute);
-  --color-line: var(--border);
-  --color-glass: var(--glass);
-  --color-glass-strong: var(--glass-strong);
-  --color-accent: var(--accent);
-  --color-accent-2: var(--accent-2);
-  --color-accent-3: var(--accent-3);
-  --color-ok: var(--ok);
-
+/* Non-colour Tailwind theme tokens. Fonts mirror the Google Fonts <link> in
+   root.tsx; the radius ladder is computed off the runtime `--radius` token
+   (declared in `_tokens.scss`) so shadcn primitives' `rounded-lg/md/sm`
+   resolve. `--default-transition-duration` makes every shadcn
+   `transition-colors` (hover/focus) settle at the project's 200ms instead of
+   Tailwind's 150ms default. */
+@theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 
+  /* Radius ladder consumed by the vendored shadcn ui/* primitives. */
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Default interactive transition (hover/focus) = 200ms, matching the theme
+     flip. shadcn primitives use `transition-colors`, which reads this. */
+  --default-transition-duration: 200ms;
+
   --container-max: 1280px;
+
+  /* Aurora background + terminal accent keyframes. Registered here so the
+     `animate-*` utilities exist; the per-property theme-flip transition lives
+     in `_base.scss`. */
+  --animate-ta-float: ta-float 18s ease-in-out infinite;
+  --animate-ta-float2: ta-float2 22s ease-in-out infinite;
+  --animate-ta-blink: ta-blink 1s steps(2) infinite;
+  --animate-ta-pulse-dot: ta-pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes ta-float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(40px, -30px); }
+}
+@keyframes ta-float2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-50px, 30px); }
+}
+@keyframes ta-blink {
+  50% { opacity: 0; }
+}
+@keyframes ta-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Colour tokens — declared in a separate `@theme inline` so Tailwind inlines
+   the var() reference directly into utilities (e.g. `.bg-primary { background:
+   var(--primary); }`) instead of going through a `--color-primary:
+   var(--primary)` alias. The alias indirection interferes with the
+   per-property theme transition (consumers can see a stale value mid-flip) and
+   breaks `/alpha` (Tailwind's `bg-card/60` emits `color-mix(in oklab,
+   var(--color-card) 60%, transparent)` and needs a full colour — our
+   `oklch(...)` triples are). Inlining hands utilities the runtime variable
+   directly, so the dark/light cascade in `_tokens.scss` re-themes them all. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* App-specific aurora hues (background blobs). */
+  --color-aurora-2: var(--aurora-2);
+  --color-aurora-3: var(--aurora-3);
+}
+
+/* ── Glassmorphism surfaces ───────────────────────────────────────────────
+   Frosted translucent surfaces (cards, nav pill, mobile menu). The fill is a
+   `color-mix(... transparent)` of the runtime `--card` token, so it re-themes
+   with the dark/light cascade. Declared as `@utility` (not raw `.scss`) so they
+   sit in the components layer beneath JSX-level Tailwind utilities, and so the
+   `@media (prefers-reduced-transparency: reduce)` fallback (in `_base.scss`,
+   which flips them fully opaque + drops blur) can override them. */
+@utility ta-glass {
+  background-color: color-mix(in oklch, var(--card) 55%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+@utility ta-glass-strong {
+  background-color: color-mix(in oklch, var(--card) 80%, transparent);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+@utility ta-glass-nav {
+  background-color: color-mix(in oklch, var(--card) 62%, transparent);
+  backdrop-filter: blur(56px) saturate(180%);
+  -webkit-backdrop-filter: blur(56px) saturate(180%);
+}
+
+/* ── Aurora background bits ────────────────────────────────────────────────
+   The blob radial gradients and the masked grid overlay can't be expressed as
+   Tailwind colour utilities (they need `radial-gradient`/`linear-gradient`
+   fills with `mask-image`), so they live here as `@utility` bundles. All
+   colours are OKLCH via the runtime tokens, so they re-theme with the cascade.
+   No inline `style` needed on `TaBg`. */
+@utility ta-blob-1 {
+  background: radial-gradient(circle, var(--primary), transparent 65%);
+}
+@utility ta-blob-2 {
+  background: radial-gradient(circle, var(--aurora-2), transparent 60%);
+}
+@utility ta-blob-3 {
+  background: radial-gradient(circle, var(--aurora-3), transparent 62%);
+}
+/* Skill / qualification progress bar. The fill width is a per-item data value
+   fed through the `--ta-bar-w` custom property via `style` (the one allowed
+   inline-style escape hatch — a runtime/data value Tailwind can't JIT into a
+   static arbitrary class). */
+@utility ta-bar {
+  position: relative;
+  display: inline-block;
+  height: 6px;
+  width: 100px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--muted-foreground) 25%, transparent);
+  overflow: hidden;
+
+  & > span {
+    position: absolute;
+    inset: 0;
+    width: var(--ta-bar-w, 0);
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary), var(--aurora-2));
+  }
+}
+
+/* Inline-flag SVG sizing (rendered by `<Flag>` as an svg inside a span). */
+@utility ta-flag {
+  display: inline-flex;
+  align-items: center;
+
+  & svg {
+    width: 22px;
+    height: 15px;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent);
+  }
+}
+@utility ta-grid {
+  background-image:
+    linear-gradient(color-mix(in oklch, var(--border) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--border) 40%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at center, oklch(0% 0 0) 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, oklch(0% 0 0) 30%, transparent 80%);
+}
+
+/* Duration alias — declared as explicit `@utility` rather than via
+   `@theme --duration-*` because Tailwind v4 only mints duration utilities
+   from `--duration-*` tokens holding a literal `<time>` value. A `var()`
+   reference (which we need so tuning the runtime variable in `_tokens.scss`
+   re-routes everywhere) is silently skipped, so `.duration-theme` would fall
+   through to Tailwind's default. Defining as `@utility` emits unconditionally. */
+@utility duration-theme {
+  transition-duration: var(--theme-transition);
+}
+
+/* Class-based dark variant. Overrides Tailwind's default `dark:` (which uses
+   `prefers-color-scheme: dark`) to follow this project's `html.dark` cascade.
+   `:where()` keeps specificity at 0 so utilities still win. Colour tokens
+   already flip via the `_tokens.scss` cascade, so `dark:` is mostly used for
+   transform/opacity utilities (theme-toggle icon swap, etc). */
+@custom-variant dark (&:where(html.dark, html.dark *));
+
+/* `no-js:` — applies when the inline themeBootstrap hasn't added the `.js`
+   class to <html> (script disabled, blocked, or failed). Used to hide UI that
+   has no meaningful no-JS state (theme toggle, terminal hint). */
+@custom-variant no-js (&:where(html:not(.js), html:not(.js) *));
+
+/* Custom container caps. The default Tailwind container sets
+   `max-width = breakpoint-value`, so at the exact viewport where a breakpoint
+   triggers the available width (viewport − scrollbar) is *less* than the cap
+   and the container doesn't snap — it widens by the scrollbar's width once the
+   viewport grows past the breakpoint. Setting each cap 1rem below its
+   breakpoint reserves room for the scrollbar so the container hits its
+   max-width immediately at every breakpoint and never drifts. Tops out at
+   1264px (the prior 1280px terminal width minus the 1rem scrollbar reserve). */
+@utility container {
+  width: 100%;
+  margin-inline: auto;
+  @media (min-width: 40rem) { max-width: 39rem; }   /* sm  640 → 624 */
+  @media (min-width: 48rem) { max-width: 47rem; }   /* md  768 → 752 */
+  @media (min-width: 64rem) { max-width: 63rem; }   /* lg 1024 → 1008 */
+  @media (min-width: 80rem) { max-width: 79rem; }   /* xl 1280 → 1264 */
 }

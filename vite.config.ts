@@ -74,8 +74,10 @@ export default defineConfig({
       locale: join('app', 'locales', 'de.yml'),
       out: 'site.webmanifest',
       keys: {name: 'brand.name', short_name: 'brand.short_name', description: 'brand.description'},
-      // Static knobs; colours match the dark `--bg` token (theme defaults dark).
-      manifest: {display: 'standalone', theme_color: '#060614', background_color: '#060614'},
+      // Static knobs; colours are the sRGB-hex rendering of the dark
+      // `--background` token (oklch(16.08% 0.0103 285.19deg) → #0d0d12; theme
+      // defaults dark). Stays hex because Android launchers don't parse oklch().
+      manifest: {display: 'standalone', theme_color: '#0d0d12', background_color: '#0d0d12'},
       icons: WEB_MANIFEST_ICONS,
     }),
     // react-router's vite plugin clashes with vitest's environment setup, so

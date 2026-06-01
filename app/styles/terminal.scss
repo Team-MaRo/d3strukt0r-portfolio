@@ -1,13 +1,12 @@
-// Terminal Aurora — Direction B styles.
-// Split into partials under `./terminal/`. Each partial wraps its rules in
-// `@layer components { … }` so Tailwind utilities used directly in JSX still
-// win on cascade. Load order matches the original single-file layout.
+// Terminal Aurora — structural Sass that survives the shadcn re-skin.
+// The redesigned shell + sections (nav, hero, layout, blocks, meta, contact,
+// footer) are now built with shadcn ui/* primitives + Tailwind utilities in
+// JSX, so those partials were removed. What's left:
+//   - `base`: the `.ta` body hook, background chrome, legacy glass tokens.
+//   - `seal`: the password-gate surfaces (Sealed / SealedImage / CertLink /
+//     LockModal) — preserved verbatim, only re-tokenised.
+// Each partial wraps its rules in `@layer components { … }` so JSX-level
+// Tailwind utilities still win on the cascade.
 
 @use "terminal/base";
-@use "terminal/nav";
-@use "terminal/hero";
-@use "terminal/layout";
-@use "terminal/blocks";
-@use "terminal/meta";
-@use "terminal/contact-footer";
 @use "terminal/seal";

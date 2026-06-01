@@ -1,5 +1,8 @@
 @layer components {
-/* Easter-egg terminal overlay */
+/* Easter-egg terminal overlay. Visual rework is a SEPARATE later step — this
+   keeps the existing dark terminal aesthetic; only the theme-class selector
+   was reconciled (`.ta.light` → `html:not(.dark)`) and sRGB literals were
+   rewritten to OKLCH to satisfy the colour-space rule. */
 .ta-term-hint {
   position: fixed;
   bottom: 20px;
@@ -9,11 +12,11 @@
   border-radius: 999px;
   font-size: 12px;
   font-family: 'JetBrains Mono', monospace;
-  color: rgba(255, 255, 255, .75);
-  background: rgba(20, 20, 30, .45);
+  color: oklch(100% 0 0 / 0.75);
+  background: oklch(19.62% 0.0200 284.41deg / 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, .1);
+  border: 1px solid oklch(100% 0 0 / 0.1);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -22,15 +25,15 @@
   kbd {
     padding: 1px 5px;
     border-radius: 3px;
-    background: rgba(255, 255, 255, .1);
+    background: oklch(100% 0 0 / 0.1);
     font-size: 11px;
 
   }
 }
-.ta.light .ta-term-hint {
-  color: rgba(15, 15, 30, .75);
-  background: rgba(255, 255, 255, .6);
-  border-color: rgba(15, 15, 30, .1);
+html:not(.dark) .ta-term-hint {
+  color: oklch(17.70% 0.0307 282.81deg / 0.75);
+  background: oklch(100% 0 0 / 0.6);
+  border-color: oklch(17.70% 0.0307 282.81deg / 0.1);
 
 }
 .ta-term-backdrop {
@@ -40,7 +43,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, .5);
+  background: oklch(0% 0 0 / 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: taTermFade .18s ease;
@@ -69,13 +72,13 @@
 .ta-term-modal {
   width: min(720px, 92vw);
   height: min(480px, 80vh);
-  background: rgba(15, 15, 25, .85);
+  background: oklch(17.37% 0.0206 284.05deg / 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, .12);
+  border: 1px solid oklch(100% 0 0 / 0.12);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 30px 100px rgba(0, 0, 0, .5), 0 0 0 1px rgba(255, 255, 255, .04), inset 0 1px 0 rgba(255, 255, 255, .06);
+  box-shadow: 0 30px 100px oklch(0% 0 0 / 0.5), 0 0 0 1px oklch(100% 0 0 / 0.04), inset 0 1px 0 oklch(100% 0 0 / 0.06);
   display: flex;
   flex-direction: column;
   animation: taTermPop .22s cubic-bezier(.2, .8, .2, 1);
@@ -84,12 +87,12 @@
 }
 .ta-term-bar {
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  border-bottom: 1px solid oklch(100% 0 0 / 0.08);
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: rgba(255, 255, 255, .55);
+  color: oklch(100% 0 0 / 0.55);
   .ta-dot {
     cursor: pointer;
     width: 12px;
@@ -108,17 +111,17 @@
   overflow-y: auto;
   font-size: 13px;
   line-height: 1.55;
-  color: rgba(255, 255, 255, .85);
+  color: oklch(100% 0 0 / 0.85);
 
 }
 .ta-term-line {
   white-space: pre-wrap;
   word-break: break-word;
   &.ta-term-err {
-    color: #ff6b8a;
+    color: oklch(71.83% 0.1814 9.97deg);
   }
   &.ta-term-sys {
-    color: rgba(255, 255, 255, .4);
+    color: oklch(100% 0 0 / 0.4);
   }
 }
 .ta-term-form {
@@ -128,31 +131,31 @@
 
 }
 .ta-term-user {
-  color: #22d3ee;
+  color: oklch(79.71% 0.1339 211.53deg);
 }
 .ta-term-tilde {
-  color: #a78bfa;
+  color: oklch(70.90% 0.1592 293.54deg);
 }
 .ta-term-pct {
-  color: rgba(255, 255, 255, .55);
+  color: oklch(100% 0 0 / 0.55);
 
 }
 .ta-term-pwlabel {
-  color: #fbbf24;
+  color: oklch(83.69% 0.1644 84.43deg);
 }
 .ta-term-prompt {
-  color: #fbbf24;
+  color: oklch(83.69% 0.1644 84.43deg);
 }
 .ta-term-input {
   flex: 1;
   background: transparent;
   border: none;
   outline: none;
-  color: rgba(255, 255, 255, .95);
+  color: oklch(100% 0 0 / 0.95);
   font-family: inherit;
   font-size: 13px;
   padding: 0;
-  caret-color: #a78bfa;
+  caret-color: oklch(70.90% 0.1592 293.54deg);
 
 }
 }

@@ -35,7 +35,7 @@
   }
   h4 {
     font-size: 15px;
-    color: var(--accent);
+    color: var(--primary);
     font-family: 'JetBrains Mono';
 
   }
@@ -48,8 +48,8 @@
 
   }
   a {
-    color: var(--accent);
-    border-bottom: 1px dashed rgba(34, 211, 238, 0.4);
+    color: var(--primary);
+    border-bottom: 1px dashed color-mix(in oklch, var(--primary) 40%, transparent);
     transition: color .15s, border-color .15s;
     &:hover {
       color: var(--accent-2);
@@ -71,7 +71,7 @@
     margin: 0.3em 0;
   }
   ul li::marker {
-    color: var(--accent);
+    color: var(--primary);
   }
   ol li::marker {
     color: var(--accent-2);
@@ -81,7 +81,7 @@
   blockquote {
     margin: 1em 0;
     padding: 12px 16px;
-    border-left: 3px solid var(--accent);
+    border-left: 3px solid var(--primary);
     background: var(--glass-strong);
     border-radius: 0 6px 6px 0;
     color: var(--fg-dim);
@@ -95,7 +95,7 @@
     border-radius: 3px;
     background: var(--glass-strong);
     border: 1px solid var(--border);
-    color: var(--accent);
+    color: var(--primary);
   }
   pre {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
@@ -103,7 +103,7 @@
     padding: 18px 22px;
     margin: 1.2em 0;
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.3);
+    background: oklch(0% 0 0 / 0.3);
     border: 1px solid var(--border);
     overflow-x: auto;
     line-height: 1.55;
@@ -175,7 +175,7 @@
     margin: 1.2em 0;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.2);
+    background: oklch(0% 0 0 / 0.2);
   }
   .ta-gist-embed {
     margin: 1.2em 0;
@@ -197,7 +197,7 @@
       color: var(--fg-dim);
       border-bottom: none;
       &:hover {
-        color: var(--accent);
+        color: var(--primary);
       }
     }
   }
@@ -217,7 +217,7 @@
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 12px;
     color: var(--accent-2);
-    background: rgba(0, 0, 0, 0.15);
+    background: oklch(0% 0 0 / 0.15);
     border-bottom: 1px solid var(--border);
   }
   .ta-gist-prose {
@@ -267,7 +267,7 @@
     border-bottom: 1px solid var(--border);
   }
   thead th {
-    color: var(--accent);
+    color: var(--primary);
     font-weight: 500;
     font-size: 11px;
     text-transform: uppercase;
@@ -285,12 +285,12 @@
 
   }
 }
-.ta.light .ta-content pre {
-  background: rgba(15, 15, 30, 0.05);
+html:not(.dark) .ta-content pre {
+  background: oklch(17.70% 0.0307 282.81deg / 0.05);
 
 }
-.ta.light .ta-content pre.shiki,
-.ta.light .ta-content pre.shiki span {
+html:not(.dark) .ta-content pre.shiki,
+html:not(.dark) .ta-content pre.shiki span {
   color: var(--shiki-light);
   background-color: var(--shiki-light-bg);
 }

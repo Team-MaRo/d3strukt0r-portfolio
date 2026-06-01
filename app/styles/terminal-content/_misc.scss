@@ -6,7 +6,9 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Custom cursor (dynamic transform/opacity/size set imperatively via refs) */
+/* Custom cursor (transform/opacity/size set imperatively via refs; the hover
+   colour swap is driven by toggling `.is-hover` so no colour goes inline). The
+   dot follows `--aurora-2`, the ring `--primary`, both in OKLCH. */
 .ta-cursor-dot,
 .ta-cursor-ring {
   position: fixed;
@@ -19,15 +21,23 @@
 .ta-cursor-ring {
   width: 28px;
   height: 28px;
-  border: 1.5px solid rgba(167, 139, 250, .6);
+  border: 1.5px solid color-mix(in oklch, var(--primary) 60%, transparent);
+  background: transparent;
   z-index: 9999;
   transition: width .18s, height .18s, border-color .18s, background .18s, opacity .15s;
   mix-blend-mode: difference;
+
+  &.is-hover {
+    width: 48px;
+    height: 48px;
+    border-color: color-mix(in oklch, var(--aurora-2) 85%, transparent);
+    background: color-mix(in oklch, var(--aurora-2) 10%, transparent);
+  }
 }
 .ta-cursor-dot {
   width: 8px;
   height: 8px;
-  background: rgba(34, 211, 238, .85);
+  background: color-mix(in oklch, var(--aurora-2) 85%, transparent);
   z-index: 10000;
   transition: opacity .15s;
 }
@@ -37,7 +47,7 @@
   margin: 32px 0 16px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 16px;
-  color: var(--accent);
+  color: var(--primary);
 }
 .ta-blog-excerpt {
   margin-top: 4px;
@@ -49,7 +59,7 @@
   margin-top: 16px;
 }
 .ta-err {
-  color: #ff6b8a;
+  color: oklch(71.83% 0.1814 9.97deg);
 }
 
 /* CV page spacing + layout tweaks */

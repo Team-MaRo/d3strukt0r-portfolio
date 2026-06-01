@@ -1,48 +1,16 @@
 @layer components {
-/* Terminal Aurora — Direction B styles */
-html {
-  scrollbar-gutter: stable;
-  // Nav is fixed at top:16px with ~44px inner height — keep anchored jumps
-  // (TOC links, footnote refs, heading hash links) from landing behind it.
-  scroll-padding-top: 80px;
-}
-body {
-  overflow-x: clip;
-}
+/* Terminal Aurora — structural chrome. Colour TOKENS live in
+   `app/styles/_tokens.scss` (shadcn names at :root + the `dark` mixin); this
+   file only consumes them. `.ta` is the body styling hook (font, layout), no
+   longer a token scope — the theme class lives on <html>. */
 .ta {
-  --bg: #060614;
-  --bg-2: #0b0b1e;
-  --fg: rgba(230, 235, 245, 0.95);
-  --fg-dim: rgba(230, 235, 245, 0.55);
-  --fg-mute: rgba(230, 235, 245, 0.38);
-  --border: rgba(167, 139, 250, 0.18);
-  --glass: rgba(18, 20, 38, 0.55);
-  --glass-strong: rgba(30, 32, 55, 0.7);
-  --accent: #22d3ee;
-  --accent-2: #a78bfa;
-  --accent-3: #f472b6;
-  --ok: #4ade80;
-  --max: 1280px;
   font-family: 'Inter', system-ui, sans-serif;
-  color: var(--fg);
-  background: var(--bg);
+  color: var(--foreground);
+  background: var(--background);
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
   line-height: 1.5;
-}
-.ta.light {
-  --bg: #f3f2ee;
-  --bg-2: #e8e6e0;
-  --fg: rgba(15, 15, 30, 0.92);
-  --fg-dim: rgba(15, 15, 30, 0.6);
-  --fg-mute: rgba(15, 15, 30, 0.4);
-  --border: rgba(99, 102, 241, 0.18);
-  --glass: rgba(255, 255, 255, 0.55);
-  --glass-strong: rgba(255, 255, 255, 0.8);
-  --accent: #0891b2;
-  --accent-2: #6366f1;
-  --accent-3: #db2777;
 }
 .ta * {
   box-sizing: border-box;
@@ -70,10 +38,10 @@ body {
   color: var(--fg-mute);
 }
 .ta-accent {
-  color: var(--accent);
+  color: var(--primary);
 }
 .ta-ok {
-  color: var(--ok);
+  color: var(--primary);
   font-family: 'JetBrains Mono';
   font-size: 11px;
 }
@@ -106,19 +74,19 @@ body {
   filter: blur(140px);
   opacity: 0.4;
 }
-.ta.light .ta-blob {
+html:not(.dark) .ta-blob {
   opacity: 0.25;
 }
 .ta-b1 {
   top: -300px;
   right: -200px;
-  background: radial-gradient(circle, #6366f1, transparent 65%);
+  background: radial-gradient(circle, var(--aurora-2), transparent 65%);
   animation: taFloat1 18s ease-in-out infinite;
 }
 .ta-b2 {
   bottom: -250px;
   left: -150px;
-  background: radial-gradient(circle, #ec4899, transparent 60%);
+  background: radial-gradient(circle, var(--aurora-3), transparent 60%);
   animation: taFloat2 22s ease-in-out infinite;
 }
 @keyframes taFloat1 {
@@ -134,18 +102,20 @@ body {
 .ta-grid-overlay {
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(167,139,250,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(167,139,250,.05) 1px, transparent 1px);
+  background-image: linear-gradient(color-mix(in oklch, var(--primary) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklch, var(--primary) 5%, transparent) 1px, transparent 1px);
   background-size: 60px 60px;
   mask-image: radial-gradient(ellipse at center, black 40%, transparent 85%);
   -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 85%);
 }
-.ta.light .ta-grid-overlay {
-  background-image: linear-gradient(rgba(99,102,241,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.06) 1px, transparent 1px);
-}
 .ta {
   position: relative;
 }
-.ta > *:not(.ta-bg, .ta-cursor-ring, .ta-cursor-dot, .ta-term-hint, .ta-term-backdrop, .ta-seal-modal-backdrop) {
+/* Direct children of <body class="ta"> get a stacking context above the fixed
+   background. Position-fixed overlays (background, cursor, terminal, seal modal,
+   and the redesigned glass nav + mobile menu) are excluded so they keep their
+   own `position: fixed` — the `.ta > *` rule would otherwise out-specify the
+   Tailwind `.fixed` utility (0,2,0 vs 0,1,0) and collapse them to relative. */
+.ta > *:not(.ta-bg, .ta-cursor-ring, .ta-cursor-dot, .ta-term-hint, .ta-term-backdrop, .ta-seal-modal-backdrop, .ta-nav-fixed, .ta-overlay-fixed) {
   position: relative;
   z-index: 1;
 }
@@ -156,9 +126,9 @@ body {
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 20px 40px rgba(0,0,0,.25);
+  box-shadow: 0 1px 0 oklch(100% 0 0 / 0.04) inset, 0 20px 40px oklch(0% 0 0 / 0.25);
 }
-.ta.light .ta-glass {
-  box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 12px 30px rgba(15,15,30,.07);
+html:not(.dark) .ta-glass {
+  box-shadow: 0 1px 0 oklch(100% 0 0 / 0.8) inset, 0 12px 30px oklch(14.17% 0.0044 285.82deg / 0.07);
 }
 }

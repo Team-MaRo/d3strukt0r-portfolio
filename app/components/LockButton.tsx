@@ -34,7 +34,7 @@ export function LockButton() {
     <>
       <button
         type="button"
-        className="ta-icon cursor-hover"
+        className="inline-flex size-9 items-center justify-center rounded-md border border-input bg-background/40 text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-hover"
         onClick={handleClick}
         aria-label={state.unlocked ? t('seal.relock') : t('seal.unlock')}
         title={state.unlocked ? t('seal.relock') : t('seal.unlock')}

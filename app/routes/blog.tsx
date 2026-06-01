@@ -1,6 +1,7 @@
 import type {Route} from './+types/blog';
 import {useTranslation} from 'react-i18next';
 import {Link} from 'react-router';
+import {Reveal} from '~/components/Reveal';
 import {posts, postUrl} from '~/lib/content';
 
 export function meta(_: Route.MetaArgs) {
@@ -20,31 +21,44 @@ export default function Blog() {
   const years = Array.from(grouped.keys()).sort().reverse();
 
   return (
-    <section className="ta-section">
-      <div className="ta-page-head">
-        <div className="ta-hnum" data-reveal>~/blog</div>
-        <div className="ta-hcode" data-reveal data-delay="1"><span className="ta-dim">$</span> {t('blog_page.code')}</div>
-        <h1 className="ta-h1" data-reveal data-delay="2">{t('blog_page.title')}</h1>
-      </div>
-
-      {years.map((y) => (
-        <div key={y}>
-          <h2 className="ta-h2 ta-blog-year" data-reveal>
-            <span className="ta-dim">▸</span> {y}/
-          </h2>
-          <div className="ta-archive-list">
-            {grouped.get(y)!.map((p) => (
-              <Link key={p.slug} to={postUrl(p)} className="ta-blog-entry cursor-hover" data-reveal>
-                <div className="ta-blog-date">{p.date}</div>
-                <div className="ta-blog-name">{p.title}</div>
-                {p.excerpt && (
-                  <div className="ta-dim ta-blog-excerpt">↳ {p.excerpt}</div>
-                )}
-              </Link>
-            ))}
-          </div>
+    <section className="w-full pt-32 pb-20 md:pt-40">
+      <div className="container">
+        <div className="mb-12">
+          <Reveal><div className="mb-1.5 font-mono text-xs text-primary">~/blog</div></Reveal>
+          <Reveal delay={0.07}>
+            <div className="mb-3 font-mono text-sm text-muted-foreground">
+              <span className="opacity-50">$</span> {t('blog_page.code')}
+            </div>
+          </Reveal>
+          <Reveal delay={0.14}>
+            <h1 className="font-display text-4xl font-medium tracking-tight md:text-5xl">{t('blog_page.title')}</h1>
+          </Reveal>
         </div>
-      ))}
+
+        {years.map((y) => (
+          <div key={y}>
+            <Reveal>
+              <h2 className="mt-8 mb-4 font-mono text-base text-primary">
+                <span className="text-muted-foreground">▸</span> {y}/
+              </h2>
+            </Reveal>
+            <div className="flex flex-col gap-2.5">
+              {grouped.get(y)!.map((p, i) => (
+                <Reveal key={p.slug} delay={(i % 4) * 0.06}>
+                  <Link
+                    to={postUrl(p)}
+                    className="block rounded-lg border border-border bg-muted/40 p-4 font-mono text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 cursor-hover"
+                  >
+                    <div className="text-[11px] text-primary">{p.date}</div>
+                    <div className="mt-1">{p.title}</div>
+                    {p.excerpt && <div className="mt-1 text-muted-foreground">↳ {p.excerpt}</div>}
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

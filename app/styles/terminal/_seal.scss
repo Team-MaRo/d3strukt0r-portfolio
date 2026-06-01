@@ -5,17 +5,17 @@
     gap: 4px;
     padding: 0 6px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px dashed rgba(255, 255, 255, 0.18);
+    background: oklch(100% 0 0 / 0.04);
+    border: 1px dashed oklch(100% 0 0 / 0.18);
     color: var(--color-fg-mute);
     cursor: pointer;
     user-select: none;
     line-height: 1.2;
     vertical-align: baseline;
 
-    .ta.light & {
-      background: rgba(0, 0, 0, 0.04);
-      border-color: rgba(0, 0, 0, 0.18);
+    html:not(.dark) & {
+      background: oklch(0% 0 0 / 0.04);
+      border-color: oklch(0% 0 0 / 0.18);
     }
 
     &:hover {
@@ -74,8 +74,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #fff;
-      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+      color: oklch(100% 0 0);
+      filter: drop-shadow(0 2px 6px oklch(0% 0 0 / 0.55));
       transition: transform 0.18s ease;
       line-height: 0;
     }
@@ -94,20 +94,20 @@
     letter-spacing: 0.02em;
     text-decoration: none;
     color: var(--color-fg-mute);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: oklch(100% 0 0 / 0.03);
+    border: 1px solid oklch(100% 0 0 / 0.16);
     vertical-align: 2px;
     transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 
-    .ta.light & {
-      background: rgba(0, 0, 0, 0.03);
-      border-color: rgba(0, 0, 0, 0.18);
+    html:not(.dark) & {
+      background: oklch(0% 0 0 / 0.03);
+      border-color: oklch(0% 0 0 / 0.18);
     }
 
     &:hover {
       color: var(--color-accent);
       border-color: var(--color-accent);
-      background: rgba(123, 138, 255, 0.08);
+      background: oklch(67.64% 0.1718 275.33deg / 0.08);
     }
 
     .ta-cred-chip-arrow {
@@ -136,7 +136,7 @@
   .ta-seal-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(8, 6, 18, 0.72);
+    background: oklch(13.34% 0.0275 291.23deg / 0.72);
     backdrop-filter: blur(6px);
     z-index: 200;
     display: flex;
@@ -178,17 +178,17 @@
 
   .ta-seal-input {
     font-family: var(--font-mono);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: oklch(100% 0 0 / 0.04);
+    border: 1px solid oklch(100% 0 0 / 0.18);
     border-radius: 8px;
     color: inherit;
     padding: 10px 12px;
     outline: none;
     transition: border-color 0.15s ease;
 
-    .ta.light & {
-      background: rgba(0, 0, 0, 0.04);
-      border-color: rgba(0, 0, 0, 0.18);
+    html:not(.dark) & {
+      background: oklch(0% 0 0 / 0.04);
+      border-color: oklch(0% 0 0 / 0.18);
     }
 
     &:focus {
@@ -204,7 +204,7 @@
     margin-top: 10px;
     font-family: var(--font-mono);
     font-size: 0.82rem;
-    color: #ff6b8a;
+    color: oklch(71.83% 0.1814 9.97deg);
   }
 
   .ta-seal-close {

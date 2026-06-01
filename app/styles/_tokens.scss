@@ -1,0 +1,128 @@
+// ─── Design tokens (shadcn/ui names, OKLCH palette from the redesign) ───────
+// Dark is the DEFAULT theme for this portfolio. Light is declared at `:root`
+// so it is the cascade baseline; the `dark` mixin flips the runtime variables
+// to dark under both `html.dark` (JS path) and `prefers-color-scheme: dark`
+// on unset html (no-JS path — bootstrap defaults to dark when there is no
+// stored pref, but a no-JS visitor with an explicit OS preference still gets
+// the matching theme).
+//
+// Theme class lives on <html> (not <body>) so the bootstrap script can set it
+// from <head> before any stylesheet evaluates — see `themeBootstrap` in
+// `app/root.tsx`. With the class on :root before the body element exists, the
+// per-utility colour cross-fade transitions in `_base.scss` have nothing to
+// animate on first paint (no FOUC).
+//
+// Colours are full `oklch(L% C Hdeg)` triples for perceptual uniformity (the
+// design handoff supplied HSL; values here converted via culori one-off). The
+// shadcn `--color-*` aliases that Tailwind utilities consume are declared in
+// `tailwind.css` `@theme inline` (e.g. `--color-background: var(--background)`)
+// — they resolve through the cascaded value at the consuming element, so they
+// need no per-scope redeclaration here.
+
+@use 'mixins' as *;
+
+:root {
+  // ── shadcn semantic tokens — light ──
+  --background:            oklch(100% 0 0);
+  --foreground:            oklch(14.17% 0.0044 285.82deg);
+  --card:                  oklch(100% 0 0);
+  --card-foreground:       oklch(14.17% 0.0044 285.82deg);
+  // shadcn primitives (sonner, popover-backed bits) resolve --popover*; this
+  // design has no distinct popover surface, so map it to the card tokens.
+  --popover:               var(--card);
+  --popover-foreground:    var(--card-foreground);
+  --muted:                 oklch(96.83% 0.0014 286.37deg);
+  --muted-foreground:      oklch(51.61% 0.0134 285.92deg);
+  --accent:                oklch(95.24% 0.0020 286.36deg);
+  --accent-foreground:     oklch(14.17% 0.0044 285.82deg);
+  --secondary:             oklch(96.83% 0.0014 286.37deg);
+  --secondary-foreground:  oklch(21.02% 0.0060 285.87deg);
+  --border:                oklch(90.34% 0.0050 286.30deg);
+  --input:                 oklch(90.34% 0.0050 286.30deg);
+  --primary:               oklch(57.86% 0.2137 27.17deg);
+  --primary-foreground:    oklch(100% 0 0);
+  --destructive:           oklch(57.86% 0.2137 27.17deg);
+  --ring:                  oklch(57.86% 0.2137 27.17deg);
+
+  // ── app-specific extras (aurora blobs) — light ──
+  --aurora-2:              oklch(63.81% 0.1987 15.39deg);
+  --aurora-3:              oklch(67.57% 0.1913 40.67deg);
+
+  // Radius ladder. shadcn primitives read --radius-{sm,md,lg,xl} (mapped in
+  // tailwind.css off this base).
+  --radius:                0.75rem;
+
+  // Theme crossfade duration. Tunable here — every theme-related transition
+  // (and the default interactive hover/focus, via --default-transition-duration
+  // in tailwind.css) routes through this 200ms value.
+  --theme-transition:      200ms;
+
+  color-scheme: light;
+}
+
+// Dark cascade — covers both `html.dark` (JS path) and the no-JS fallback
+// `@media (prefers-color-scheme: dark)` on unset html. See `_mixins.scss`.
+@include dark {
+  --background:            oklch(16.08% 0.0103 285.19deg);
+  --foreground:            oklch(98.48% 0 0);
+  --card:                  oklch(21.51% 0.0131 285.24deg);
+  --card-foreground:       oklch(98.48% 0 0);
+  --popover:               var(--card);
+  --popover-foreground:    var(--card-foreground);
+  --muted:                 oklch(26.94% 0.0120 285.57deg);
+  --muted-foreground:      oklch(70.17% 0.0159 285.98deg);
+  --accent:                oklch(28.90% 0.0133 285.54deg);
+  --accent-foreground:     oklch(98.48% 0 0);
+  --secondary:             oklch(26.94% 0.0120 285.57deg);
+  --secondary-foreground:  oklch(98.48% 0 0);
+  --border:                oklch(30.82% 0.0145 285.52deg);
+  --input:                 oklch(32.71% 0.0158 285.50deg);
+  --primary:               oklch(68.18% 0.1749 22.90deg);
+  --primary-foreground:    oklch(20.28% 0.0257 19.54deg);
+  --destructive:           oklch(68.18% 0.1749 22.90deg);
+  --ring:                  oklch(68.18% 0.1749 22.90deg);
+
+  --aurora-2:              oklch(69.43% 0.1711 12.47deg);
+  --aurora-3:              oklch(73.32% 0.1555 48.55deg);
+
+  color-scheme: dark;
+}
+
+// ─── Legacy compatibility aliases ──────────────────────────────────────────
+// The pre-redesign Sass that this FOUNDATION stage intentionally does not yet
+// re-skin (`terminal-content/_content.scss`, `_pages.scss`) still consumes the
+// old raw token names (`--fg`, `--fg-dim`, `--glass`, …). Map them onto the new
+// shadcn tokens so those surfaces keep rendering until the components stage
+// re-skins / deletes those files. Defined at `:root` only — `var()` resolves
+// through the cascaded (dark or light) shadcn value at the consuming element.
+//
+// NOTE: the old `--accent` / `--accent-2` / `--accent-3` (cyan/violet/pink
+// brand hues) are intentionally NOT re-aliased — `--accent` now belongs to the
+// shadcn surface token. Kept files that needed those brand hues NOW (the
+// terminal blog-year heading, the seal modal) are reconciled directly to
+// `--primary` / `--aurora-*` in their own SCSS. The remaining `var(--accent)`
+// references in `_content.scss` / `_pages.scss` resolve to the shadcn surface
+// token in the interim and are re-skinned in the components stage.
+//
+// REMOVE these once every consumer has migrated to the shadcn names.
+:root {
+  --fg:           var(--foreground);
+  --fg-dim:       var(--muted-foreground);
+  --fg-mute:      var(--muted-foreground);
+  --glass:        color-mix(in oklch, var(--card) 55%, transparent);
+  --glass-strong: color-mix(in oklch, var(--card) 80%, transparent);
+  --max:          1280px;   // legacy container width used by pre-redesign layout Sass
+
+  // Legacy `--color-*` names the seal modal reads directly.
+  --color-fg-mute: var(--muted-foreground);
+  --color-accent:  var(--primary);
+
+  // Legacy brand-hue aliases for the kept markdown-content Sass
+  // (`terminal-content/_content.scss`, `_pages.scss`). The old design used a
+  // cyan/violet/pink triad; the redesign's brand triad is the red `--primary`
+  // plus the two aurora hues. `--accent` is the shadcn surface token now, so
+  // those files reference `--primary` directly; `--accent-2`/`--accent-3` map
+  // onto the aurora hues here. REMOVE once those files are fully re-skinned.
+  --accent-2: var(--aurora-2);
+  --accent-3: var(--aurora-3);
+}
