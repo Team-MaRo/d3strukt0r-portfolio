@@ -49,9 +49,14 @@ export function useGsapReveal<T extends HTMLElement = HTMLElement>(
         registered = true;
       }
 
-      // Skip all motion under reduced-motion — `matchMedia` adds the timeline
-      // only when the user has expressed no preference against motion, so the
-      // element keeps its visible-by-default state otherwise.
+      // Gate motion with `gsap.matchMedia` so toggling `prefers-reduced-motion`
+      // mid-session enables/disables the reveal LIVE: turning motion off reverts
+      // the no-preference branch (no tween → element stays visible), turning it
+      // back on re-adds it. Accepted tradeoff: the matchMedia revert/re-add
+      // refreshes ScrollTrigger, which scrolls the page to the top at the toggle
+      // moment — a known GSAP behaviour we tolerate in exchange for live
+      // reduced-motion handling. (Do NOT "fix" this by reading the preference
+      // once — that makes the toggle require a reload.)
       const mm = gsap.matchMedia();
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         gsap.set(el, {opacity: 0, y});
@@ -74,6 +79,7 @@ export function useGsapReveal<T extends HTMLElement = HTMLElement>(
         };
       });
 
+      // Re-measure after fonts settle + one frame after mount.
       const refresh = () => ScrollTrigger.refresh();
       const raf = requestAnimationFrame(refresh);
       if (typeof document !== 'undefined' && document.fonts != null) {

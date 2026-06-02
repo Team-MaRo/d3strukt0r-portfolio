@@ -57,6 +57,12 @@
   // in tailwind.css) routes through this 200ms value.
   --theme-transition:      200ms;
 
+  // macOS traffic-light dots (terminal chrome — hero card + popup). Fixed
+  // brand colours, theme-independent (not redeclared in the dark block).
+  --mac-red:               oklch(69.36% 0.1964 26.36deg);
+  --mac-yellow:            oklch(83.48% 0.1612 80.91deg);
+  --mac-green:             oklch(72.80% 0.2173 144.71deg);
+
   color-scheme: light;
 }
 

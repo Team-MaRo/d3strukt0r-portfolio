@@ -267,7 +267,7 @@ export function TaTerminal() {
 
   if (!open) {
     return (
-      <div onClick={openTerm} role="button" tabIndex={0} className="ta-term-hint">
+      <div onClick={openTerm} role="button" tabIndex={0} className="ta-term-hint no-js:hidden">
         <span className="ta-accent">▸</span> {t('terminal.hint')} <kbd>~</kbd> {t('terminal.hint_suffix')}
       </div>
     );

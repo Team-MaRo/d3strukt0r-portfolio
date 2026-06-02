@@ -1,6 +1,9 @@
 import {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Link, useLocation, useNavigate} from 'react-router';
+import CloseIcon from '~/assets/icons/close.svg?react';
+import MenuIcon from '~/assets/icons/menu.svg?react';
+import MoonIcon from '~/assets/icons/moon.svg?react';
 import {LockButton} from '~/components/LockButton';
 import {Switch} from '~/components/ui/switch';
 import {ToggleGroup, ToggleGroupItem} from '~/components/ui/toggle-group';
@@ -14,22 +17,6 @@ const NAV_ITEMS = [
   {key: 'work', hash: 'work'},
   {key: 'contact', hash: 'contact'},
 ] as const;
-
-function MoonIcon() {
-  return (
-    <svg
-      className="size-3.5 text-muted-foreground"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      aria-hidden
-    >
-      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-    </svg>
-  );
-}
 
 export function TaNav() {
   const {t, i18n} = useTranslation();
@@ -113,7 +100,7 @@ export function TaNav() {
               {Brand}
             </Link>
 
-            <div className="mx-auto hidden items-center gap-1 md:flex">
+            <div className="mx-auto hidden items-center gap-1 lg:flex">
               {NAV_ITEMS.map((it) => (
                 <Link
                   key={it.key}
@@ -138,15 +125,15 @@ export function TaNav() {
               </Link>
             </div>
 
-            <div className="ml-auto flex items-center gap-2 md:ml-0">
-              <div className="hidden items-center gap-2 md:flex">
+            <div className="ml-auto flex items-center gap-2 lg:ml-0">
+              <div className="hidden items-center gap-2 lg:flex">
                 <ToggleGroup
                   type="single"
                   value={lang}
                   onValueChange={(v) => v && setLang(v as 'en' | 'de')}
                   variant="outline"
                   size="sm"
-                  className="bg-muted/60"
+                  className="bg-muted/60 no-js:hidden"
                 >
                   <ToggleGroupItem value="en" aria-label="English" className="font-mono text-xs">
                     EN
@@ -156,7 +143,7 @@ export function TaNav() {
                   </ToggleGroupItem>
                 </ToggleGroup>
                 <div className="flex items-center gap-1.5 no-js:hidden">
-                  <MoonIcon />
+                  <MoonIcon className="size-3.5 text-muted-foreground" aria-hidden />
                   <Switch
                     checked={isDark}
                     onCheckedChange={(v) => setTheme(v ? 'dark' : 'light')}
@@ -164,19 +151,19 @@ export function TaNav() {
                     className="cursor-hover"
                   />
                 </div>
-                <LockButton />
+                <span className="no-js:hidden">
+                  <LockButton />
+                </span>
               </div>
 
               <button
                 type="button"
-                className="inline-flex size-9 items-center justify-center rounded-md border border-input bg-background/40 text-muted-foreground transition-colors duration-200 hover:text-foreground cursor-hover md:hidden"
+                className="inline-flex size-9 items-center justify-center rounded-md border border-input bg-background/40 text-muted-foreground transition-colors duration-200 hover:text-foreground cursor-hover lg:hidden"
                 onClick={() => setOpen(true)}
                 aria-label="open menu"
                 aria-expanded={open}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-                  <path d="M4 7h16M4 12h16M4 17h16" />
-                </svg>
+                <MenuIcon width={18} height={18} aria-hidden />
               </button>
             </div>
           </nav>
@@ -185,7 +172,7 @@ export function TaNav() {
 
       {open && (
         <div
-          className="ta-overlay-fixed fixed inset-0 z-[60] flex items-start justify-center bg-background/70 px-4 pt-6 backdrop-blur-md md:hidden"
+          className="ta-overlay-fixed fixed inset-0 z-[60] flex items-start justify-center bg-background/70 px-4 pt-6 backdrop-blur-md lg:hidden"
           onClick={() => setOpen(false)}
           role="presentation"
         >
@@ -207,7 +194,7 @@ export function TaNav() {
                   onValueChange={(v) => v && setLang(v as 'en' | 'de')}
                   variant="outline"
                   size="sm"
-                  className="bg-muted/60"
+                  className="bg-muted/60 no-js:hidden"
                 >
                   <ToggleGroupItem value="en" aria-label="English" className="font-mono text-xs">
                     en
@@ -231,9 +218,7 @@ export function TaNav() {
                   aria-label="close menu"
                   className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground cursor-hover"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-                    <path d="M6 6l12 12M18 6L6 18" />
-                  </svg>
+                  <CloseIcon width={16} height={16} aria-hidden />
                 </button>
               </span>
             </div>

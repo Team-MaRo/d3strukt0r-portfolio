@@ -24,7 +24,7 @@ export function meta(_: Route.MetaArgs) {
 
 const ASCII_NAME = String.raw`  __  __                        _
  |  \/  | __ _ _ __  _   _  ___| | ___
- | |\/| |/ _\` | '_ \| | | |/ _ \ |/ _ \
+ | |\/| |/ _\`| '_ \| | | |/ _ \ |/ _ \
  | |  | | (_| | | | | |_| |  __/ |  __/
  |_|  |_|\__,_|_| |_|\__,_|\___|_|\___|`;
 
@@ -133,9 +133,9 @@ function Hero() {
         <Reveal delay={0.18}>
           <Card glass className="overflow-hidden p-0">
             <div className="flex items-center gap-1.5 border-b border-border/70 bg-background/20 px-4 py-3">
-              <span className="size-3 rounded-full bg-primary/90" />
-              <span className="size-3 rounded-full bg-aurora-3/90" />
-              <span className="size-3 rounded-full bg-aurora-2/90" />
+              <span className="size-3 rounded-full bg-[var(--mac-red)]" />
+              <span className="size-3 rounded-full bg-[var(--mac-yellow)]" />
+              <span className="size-3 rounded-full bg-[var(--mac-green)]" />
               <span className="ml-2 font-mono text-[11px] text-muted-foreground">manuele@portfolio — ~</span>
             </div>
             <div className="p-5 font-mono text-[13px]">
@@ -485,6 +485,14 @@ function Meta() {
   );
 }
 
+// Outbound social buttons in the Contact section. `key` doubles as the
+// `SOCIALS` href field and the `contact.<key>` i18n label key.
+const CONTACT_SOCIALS = [
+  {key: 'github'},
+  {key: 'linkedin'},
+  {key: 'twitter'},
+] as const satisfies ReadonlyArray<{key: keyof typeof SOCIALS}>;
+
 function Contact() {
   const {t} = useTranslation();
   return (
@@ -503,15 +511,11 @@ function Contact() {
               </a>
             </Button>
             <div className="flex flex-wrap justify-center gap-2">
-              <Button asChild variant="outline" size="sm">
-                <a href={SOCIALS.github} target="_blank" rel="noreferrer">{t('contact.github')}</a>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <a href={SOCIALS.linkedin} target="_blank" rel="noreferrer">{t('contact.linkedin')}</a>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <a href={SOCIALS.twitter} target="_blank" rel="noreferrer">{t('contact.twitter')}</a>
-              </Button>
+              {CONTACT_SOCIALS.map((s) => (
+                <Button key={s.key} asChild variant="outline" size="sm">
+                  <a href={SOCIALS[s.key]} target="_blank" rel="noreferrer">{t(`contact.${s.key}`)}</a>
+                </Button>
+              ))}
             </div>
           </div>
         </Card>

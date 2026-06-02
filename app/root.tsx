@@ -102,7 +102,7 @@ export function Layout({children}: {children: React.ReactNode}) {
         <Meta />
         <Links />
       </head>
-      <body className="ta" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
         <ScrollRestoration />
         <Scripts />

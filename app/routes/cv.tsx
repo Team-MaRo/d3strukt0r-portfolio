@@ -19,6 +19,13 @@ export function meta(_: Route.MetaArgs) {
   return [{title: 'CV · Manuele'}];
 }
 
+// "Elsewhere" outbound links. `key` indexes into `SOCIALS` for the href.
+const ELSEWHERE_LINKS = [
+  {key: 'linkedin', label: 'LinkedIn'},
+  {key: 'github', label: 'GitHub'},
+  {key: 'xing', label: 'Xing'},
+] as const satisfies ReadonlyArray<{key: keyof typeof SOCIALS; label: string}>;
+
 function Heading({num, code, title, level = 'h2'}: {num?: string; code: string; title: string; level?: 'h2' | 'h3'}) {
   const Tag = level;
   return (
@@ -250,9 +257,17 @@ export default function CV() {
         </Reveal>
         <Reveal>
           <div className="flex flex-wrap gap-2">
-            <a href={SOCIALS.linkedin} target="_blank" rel="noreferrer" className="rounded-md border border-input bg-background/40 px-3 py-1.5 font-mono text-sm text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground cursor-hover">LinkedIn</a>
-            <a href={SOCIALS.github} target="_blank" rel="noreferrer" className="rounded-md border border-input bg-background/40 px-3 py-1.5 font-mono text-sm text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground cursor-hover">GitHub</a>
-            <a href={SOCIALS.xing} target="_blank" rel="noreferrer" className="rounded-md border border-input bg-background/40 px-3 py-1.5 font-mono text-sm text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground cursor-hover">Xing</a>
+            {ELSEWHERE_LINKS.map((l) => (
+              <a
+                key={l.key}
+                href={SOCIALS[l.key]}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-md border border-input bg-background/40 px-3 py-1.5 font-mono text-sm text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground cursor-hover"
+              >
+                {l.label}
+              </a>
+            ))}
           </div>
         </Reveal>
       </div>

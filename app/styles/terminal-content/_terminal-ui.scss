@@ -99,6 +99,9 @@ html:not(.dark) .ta-term-hint {
     height: 12px;
     border-radius: 50%;
 
+    &.r { background: var(--mac-red); }
+    &.y { background: var(--mac-yellow); }
+    &.g { background: var(--mac-green); }
   }
 }
 .ta-term-title {

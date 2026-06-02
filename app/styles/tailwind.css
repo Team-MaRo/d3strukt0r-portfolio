@@ -196,8 +196,13 @@
 @utility container {
   width: 100%;
   margin-inline: auto;
+  /* Horizontal gutter so content never touches the viewport edges (esp. on
+     mobile, below the first max-width cap). Widens at lg, matching the design's
+     1.5rem → 2rem container padding. With `box-sizing: border-box` the padding
+     sits inside the caps below, so it doesn't affect the scrollbar reserve. */
+  padding-inline: 1.5rem;
   @media (min-width: 40rem) { max-width: 39rem; }   /* sm  640 → 624 */
   @media (min-width: 48rem) { max-width: 47rem; }   /* md  768 → 752 */
-  @media (min-width: 64rem) { max-width: 63rem; }   /* lg 1024 → 1008 */
+  @media (min-width: 64rem) { max-width: 63rem; padding-inline: 2rem; }   /* lg 1024 → 1008 */
   @media (min-width: 80rem) { max-width: 79rem; }   /* xl 1280 → 1264 */
 }
