@@ -264,24 +264,24 @@ function Github() {
   return (
     <Section className="py-8">
       <Reveal>
-        <Card glass className="p-8">
+        <Card glass className="p-5 sm:p-8">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-5">
             <div className="flex items-center gap-4">
-              <Avatar size="lg" className="size-14 border border-border/70">
+              <Avatar size="lg" className="size-11 border border-border/70 sm:size-14">
                 <AvatarImage src={user?.avatar} alt="" />
                 <AvatarFallback className="font-display">M</AvatarFallback>
               </Avatar>
-              <div>
+              <div className="min-w-0">
                 <div className="font-mono text-sm text-muted-foreground">
                   <span className="opacity-50">$</span> {t('github.code')}
                 </div>
-                <h3 className="font-display text-2xl font-medium tracking-tight">
+                <h3 className="font-display text-xl font-medium tracking-tight break-all sm:text-2xl">
                   github.com/<span className="text-primary">D3strukt0r</span>
                 </h3>
               </div>
             </div>
             {user && (
-              <div className="flex gap-7">
+              <div className="grid w-full grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:w-auto sm:gap-7">
                 <div className="text-center">
                   <div className="font-display text-2xl font-medium">{user.public_repos}</div>
                   <div className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">{t('github.repos')}</div>

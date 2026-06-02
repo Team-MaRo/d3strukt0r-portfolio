@@ -74,6 +74,7 @@ jobs:
         env:
           SSR: 'false'
           SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          REVEAL_PASSWORDS: $3cretP@ssw0rd
         run: bash .github/scripts/summarize-step.sh "Build (static / SPA)" pnpm run build
 
       # `continue-on-error: true` forces each step's `conclusion` to
