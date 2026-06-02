@@ -101,7 +101,7 @@ function Hero() {
             </Badge>
           </Reveal>
           <Reveal delay={0.06}>
-            <h1 className="text-balance font-display text-4xl leading-[1.05] font-medium tracking-tight md:text-6xl">
+            <h1 className="text-balance font-display text-4xl leading-display font-medium tracking-tight md:text-6xl">
               {t('hero.title')}
             </h1>
           </Reveal>
@@ -136,14 +136,14 @@ function Hero() {
               <span className="size-3 rounded-full bg-[var(--mac-red)]" />
               <span className="size-3 rounded-full bg-[var(--mac-yellow)]" />
               <span className="size-3 rounded-full bg-[var(--mac-green)]" />
-              <span className="ml-2 font-mono text-[11px] text-muted-foreground">manuele@portfolio — ~</span>
+              <span className="ml-2 font-mono text-xs text-muted-foreground">manuele@portfolio — ~</span>
             </div>
-            <div className="p-5 font-mono text-[13px]">
+            <div className="p-5 font-mono text-sm">
               <div className="text-foreground">
                 <span className="text-primary">→</span> {typed}
                 <span className="animate-ta-blink text-primary">▌</span>
               </div>
-              <pre className="mt-3 overflow-hidden bg-[linear-gradient(120deg,var(--primary),var(--aurora-2),var(--aurora-3))] bg-clip-text font-mono text-[10px] leading-tight whitespace-pre text-transparent select-none">
+              <pre className="mt-3 overflow-hidden bg-[linear-gradient(120deg,var(--primary),var(--aurora-2),var(--aurora-3))] bg-clip-text font-mono text-2xs leading-tight whitespace-pre text-transparent select-none">
                 {ASCII_NAME}
               </pre>
               <ul className="mt-4 space-y-1 text-muted-foreground">
@@ -174,7 +174,7 @@ function Stats() {
               <div className="bg-[linear-gradient(135deg,var(--primary),var(--aurora-2))] bg-clip-text font-display text-3xl font-medium tracking-tight text-transparent md:text-4xl">
                 {s.value}
               </div>
-              <div className="mt-1 font-mono text-[11px] text-muted-foreground">{t(s.labelKey)}</div>
+              <div className="mt-1 font-mono text-xs text-muted-foreground">{t(s.labelKey)}</div>
             </div>
           ))}
         </Card>
@@ -208,7 +208,7 @@ function About() {
         <Reveal delay={0.12}>
           <Card glass hover className="p-6">
             <div className="mb-3 font-mono text-xs text-primary">{t('about.identity_title')}</div>
-            <pre className="font-mono text-[13px] leading-7 text-muted-foreground">{`{
+            <pre className="font-mono text-sm leading-7 text-muted-foreground">{`{
   "from":   "Switzerland",
   "edu":    "BSc Business IT",
   "speaks": ${LANGUAGES.length},
@@ -239,10 +239,10 @@ function Skills() {
               <div className="mb-4 flex items-center gap-2 font-mono text-sm text-primary">
                 <span className="text-muted-foreground">▸</span> {t(`skills.groups.${g.key}`)}/
               </div>
-              <ul className="space-y-1.5 font-mono text-[13px]">
+              <ul className="space-y-1.5 font-mono text-sm">
                 {g.items.map((item, i) => (
                   <li key={item} className="flex items-center gap-3 text-foreground/90 transition-colors duration-200 hover:text-foreground">
-                    <span className="text-[11px] text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="text-xs text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -284,41 +284,41 @@ function Github() {
               <div className="grid w-full grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:w-auto sm:gap-7">
                 <div className="text-center">
                   <div className="font-display text-2xl font-medium">{user.public_repos}</div>
-                  <div className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">{t('github.repos')}</div>
+                  <div className="font-mono text-2xs tracking-wide text-muted-foreground uppercase">{t('github.repos')}</div>
                 </div>
                 <div className="text-center">
                   <div className="font-display text-2xl font-medium">{user.followers}</div>
-                  <div className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">{t('github.followers')}</div>
+                  <div className="font-mono text-2xs tracking-wide text-muted-foreground uppercase">{t('github.followers')}</div>
                 </div>
                 {contrib && (
                   <div className="text-center">
                     <div className="font-display text-2xl font-medium">{contrib.total}</div>
-                    <div className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">{t('github.contributions')}</div>
+                    <div className="font-mono text-2xs tracking-wide text-muted-foreground uppercase">{t('github.contributions')}</div>
                   </div>
                 )}
                 <div className="text-center">
                   <div className="font-display text-2xl font-medium">{user.created_at?.slice(0, 4)}</div>
-                  <div className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">{t('github.joined')}</div>
+                  <div className="font-mono text-2xs tracking-wide text-muted-foreground uppercase">{t('github.joined')}</div>
                 </div>
               </div>
             )}
           </div>
-          <div className="flex gap-[3px] overflow-x-auto pb-2">
+          <div className="flex gap-[0.1875rem] overflow-x-auto pb-2">
             {grid.map((week, wi) => (
               // eslint-disable-next-line react/no-array-index-key -- contribution grid is a fixed-size weeks/days matrix; index is the position
-              <div key={wi} className="flex flex-col gap-[3px]">
+              <div key={wi} className="flex flex-col gap-[0.1875rem]">
                 {week.map((v, di) => (
                   // eslint-disable-next-line react/no-array-index-key -- contribution grid is a fixed-size weeks/days matrix; index is the position
-                  <div key={di} className={cn('size-3 rounded-[3px] transition-colors duration-200', lvl[v])} />
+                  <div key={di} className={cn('size-3 rounded-[0.1875rem] transition-colors duration-200', lvl[v])} />
                 ))}
               </div>
             ))}
           </div>
-          <div className="mt-3 flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
+          <div className="mt-3 flex items-center gap-2 font-mono text-xs text-muted-foreground">
             <span>{t('github.weeks')}</span>
             {lvl.map((c, i) => (
               // eslint-disable-next-line react/no-array-index-key -- legend cells are a fixed 5-level scale keyed by position
-              <div key={i} className={cn('size-2.5 rounded-[3px]', c)} />
+              <div key={i} className={cn('size-2.5 rounded-[0.1875rem]', c)} />
             ))}
           </div>
         </Card>
@@ -350,13 +350,13 @@ function Projects() {
             <a href={r.url} target="_blank" rel="noreferrer" className="group block h-full cursor-hover">
               <Card glass hover className="flex h-full flex-col p-5">
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="font-mono text-[11px] text-primary">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="font-mono text-xs text-primary">{String(i + 1).padStart(2, '0')}</span>
                   <span className="truncate font-mono text-sm font-medium">
                     <span className="text-muted-foreground">~/</span>{r.name}
                   </span>
-                  <span className="ml-auto font-mono text-[11px] text-muted-foreground">★ {r.stars}</span>
+                  <span className="ml-auto font-mono text-xs text-muted-foreground">★ {r.stars}</span>
                 </div>
-                <p className="mb-4 line-clamp-2 min-h-10 font-mono text-[13px] leading-relaxed text-muted-foreground">
+                <p className="mb-4 line-clamp-2 min-h-10 font-mono text-sm leading-relaxed text-muted-foreground">
                   {r.desc || t('work.no_desc')}
                 </p>
                 <div className="mt-auto flex items-center gap-2">
@@ -389,7 +389,7 @@ function Experience() {
             const role = de ? e.roleDe : e.roleEn;
             return (
               <Reveal key={`${e.company}-${e.sortKey}-${e.endKey}`} delay={i * 0.08}>
-                <Card glass hover className="grid items-center gap-5 p-6 sm:grid-cols-[160px_1fr]">
+                <Card glass hover className="grid items-center gap-5 p-6 sm:grid-cols-[10rem_1fr]">
                   <div className="font-mono text-sm text-primary">[{e.period}]</div>
                   <div>
                     <div className="font-display text-lg font-medium">
@@ -397,7 +397,7 @@ function Experience() {
                       {' '}
                       <span className="text-muted-foreground">/ {role}</span>
                     </div>
-                    <div className="mt-1 mb-3 font-mono text-[11px] text-muted-foreground">
+                    <div className="mt-1 mb-3 font-mono text-xs text-muted-foreground">
                       {[dur, emp].filter(Boolean).join(' · ')}
                       {(dur || emp) && loc ? ' · ' : ''}
                       <Sealed value={loc} onLockedClick={openLockModal} />
@@ -432,7 +432,7 @@ function Meta() {
                 <div key={l.nameDe} className="flex items-center gap-3">
                   <Flag code={l.flagCode} className="ta-flag shrink-0" />
                   <span className="font-mono text-sm">{de ? l.nameDe : l.nameEn}</span>
-                  <span className="ml-auto font-mono text-[10px] text-muted-foreground">{l.level}</span>
+                  <span className="ml-auto font-mono text-2xs text-muted-foreground">{l.level}</span>
                   <span className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((n) => (
                       <span key={n} className={cn('h-3 w-1 rounded-sm', n <= l.stars ? 'bg-primary' : 'bg-border')} />
@@ -448,11 +448,11 @@ function Meta() {
             <div className="mb-4 font-mono text-xs text-primary">{t('meta_section.certificates')}</div>
             <div className="space-y-3">
               {CERTIFICATES.map((c) => (
-                <div key={c.nameDe} className="grid grid-cols-[44px_1fr] gap-3 border-b border-dashed border-border pb-3 last:border-0 last:pb-0">
+                <div key={c.nameDe} className="grid grid-cols-[2.75rem_1fr] gap-3 border-b border-dashed border-border pb-3 last:border-0 last:pb-0">
                   <span className="font-mono text-sm text-primary">{c.year}</span>
                   <div>
                     <div className="font-display text-sm leading-snug font-medium">{de ? c.nameDe : c.nameEn}</div>
-                    <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">↳ {de ? c.issuerDe : c.issuerEn}</div>
+                    <div className="mt-0.5 font-mono text-xs text-muted-foreground">↳ {de ? c.issuerDe : c.issuerEn}</div>
                   </div>
                 </div>
               ))}
@@ -469,7 +469,7 @@ function Meta() {
                   to={postUrl(p)}
                   className="block rounded-lg border border-border bg-muted/40 p-4 font-mono text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 cursor-hover"
                 >
-                  <div className="text-[11px] text-primary">{p.date}</div>
+                  <div className="text-xs text-primary">{p.date}</div>
                   <div className="mt-1 truncate">{p.title}</div>
                   {p.excerpt && <div className="mt-1 line-clamp-1 text-muted-foreground">↳ {p.excerpt}</div>}
                 </Link>

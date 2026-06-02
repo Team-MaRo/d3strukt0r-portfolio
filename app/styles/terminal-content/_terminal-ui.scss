@@ -5,12 +5,12 @@
    rewritten to OKLCH to satisfy the colour-space rule. */
 .ta-term-hint {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 1.25rem;
+  right: 1.25rem;
   z-index: 500;
-  padding: 8px 14px;
+  padding: 0.5rem 0.875rem;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-family: 'JetBrains Mono', monospace;
   color: oklch(100% 0 0 / 0.75);
   background: oklch(19.62% 0.0200 284.41deg / 0.45);
@@ -19,14 +19,14 @@
   border: 1px solid oklch(100% 0 0 / 0.1);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   cursor: pointer;
   user-select: none;
   kbd {
-    padding: 1px 5px;
-    border-radius: 3px;
+    padding: 0.0625rem 0.3125rem;
+    border-radius: 0.1875rem;
     background: oklch(100% 0 0 / 0.1);
-    font-size: 11px;
+    font-size: 0.6875rem;
 
   }
 }
@@ -70,13 +70,13 @@ html:not(.dark) .ta-term-hint {
   }
 }
 .ta-term-modal {
-  width: min(720px, 92vw);
-  height: min(480px, 80vh);
+  width: min(45rem, 92vw);
+  height: min(30rem, 80vh);
   background: oklch(17.37% 0.0206 284.05deg / 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid oklch(100% 0 0 / 0.12);
-  border-radius: 14px;
+  border-radius: 0.875rem;
   overflow: hidden;
   box-shadow: 0 30px 100px oklch(0% 0 0 / 0.5), 0 0 0 1px oklch(100% 0 0 / 0.04), inset 0 1px 0 oklch(100% 0 0 / 0.06);
   display: flex;
@@ -86,17 +86,17 @@ html:not(.dark) .ta-term-hint {
 
 }
 .ta-term-bar {
-  padding: 10px 14px;
+  padding: 0.625rem 0.875rem;
   border-bottom: 1px solid oklch(100% 0 0 / 0.08);
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 0.5rem;
+  font-size: 0.75rem;
   color: oklch(100% 0 0 / 0.55);
   .ta-dot {
     cursor: pointer;
-    width: 12px;
-    height: 12px;
+    width: 0.75rem;
+    height: 0.75rem;
     border-radius: 50%;
 
     &.r { background: var(--mac-red); }
@@ -105,14 +105,14 @@ html:not(.dark) .ta-term-hint {
   }
 }
 .ta-term-title {
-  margin-left: 12px;
+  margin-left: 0.75rem;
 
 }
 .ta-term-body {
   flex: 1;
-  padding: 14px 18px;
+  padding: 0.875rem 1.125rem;
   overflow-y: auto;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: oklch(100% 0 0 / 0.85);
 
@@ -129,8 +129,8 @@ html:not(.dark) .ta-term-hint {
 }
 .ta-term-form {
   display: flex;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
 
 }
 .ta-term-user {
@@ -156,7 +156,7 @@ html:not(.dark) .ta-term-hint {
   outline: none;
   color: oklch(100% 0 0 / 0.95);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   padding: 0;
   caret-color: oklch(70.90% 0.1592 293.54deg);
 

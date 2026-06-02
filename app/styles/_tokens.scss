@@ -117,7 +117,7 @@
   --fg-mute:      var(--muted-foreground);
   --glass:        color-mix(in oklch, var(--card) 55%, transparent);
   --glass-strong: color-mix(in oklch, var(--card) 80%, transparent);
-  --max:          1280px;   // legacy container width used by pre-redesign layout Sass
+  --max:          80rem;    // legacy container width used by pre-redesign layout Sass
 
   // Legacy `--color-*` names the seal modal reads directly.
   --color-fg-mute: var(--muted-foreground);

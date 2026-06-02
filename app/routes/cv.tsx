@@ -53,7 +53,7 @@ function Bar({pct}: {pct: number}) {
 
 function SkillRow({name, children}: {name: string; children: ReactNode}) {
   return (
-    <div className="flex items-center justify-between gap-3 py-1 font-mono text-[13px]">
+    <div className="flex items-center justify-between gap-3 py-1 font-mono text-sm">
       <span>{name}</span>
       {children}
     </div>
@@ -97,7 +97,7 @@ export default function CV() {
                   className="w-full rounded-lg"
                   onLockedClick={openLockModal}
                 />
-                <div className="mt-3 font-mono text-[11px] text-muted-foreground">
+                <div className="mt-3 font-mono text-xs text-muted-foreground">
                   <span className="opacity-50">$</span> file ~/manuele.jpg
                 </div>
               </Card>
@@ -105,7 +105,7 @@ export default function CV() {
             <Reveal delay={0.1}>
               <Card glass className="p-6">
                 <div className="mb-3 font-mono text-xs text-primary">~/identity.json</div>
-                <pre className="font-mono text-[13px] leading-7 text-muted-foreground">{`{
+                <pre className="font-mono text-sm leading-7 text-muted-foreground">{`{
   "from":   "Switzerland",
   "edu":    "BSc Business IT",
   "speaks": ${LANGUAGES.length},
@@ -130,7 +130,7 @@ export default function CV() {
             const role = de ? e.roleDe : e.roleEn;
             return (
               <Reveal key={`${e.company}-${e.sortKey}-${e.endKey}`} delay={(i % 4) * 0.06}>
-                <Card glass hover className="grid items-center gap-5 p-6 sm:grid-cols-[160px_1fr]">
+                <Card glass hover className="grid items-center gap-5 p-6 sm:grid-cols-[10rem_1fr]">
                   <div className="font-mono text-sm text-primary">[{e.period}]</div>
                   <div>
                     <div className="font-display text-lg font-medium">
@@ -138,7 +138,7 @@ export default function CV() {
                       {' '}
                       <span className="text-muted-foreground">/ {role}</span>
                     </div>
-                    <div className="mt-1 mb-3 font-mono text-[11px] text-muted-foreground">
+                    <div className="mt-1 mb-3 font-mono text-xs text-muted-foreground">
                       {[dur, emp].filter(Boolean).join(' · ')}
                       {(dur || emp) && loc ? ' · ' : ''}
                       <Sealed value={loc} onLockedClick={openLockModal} />
@@ -179,7 +179,7 @@ export default function CV() {
                   <div key={l.nameDe} className="flex items-center gap-3">
                     <Flag code={l.flagCode} className="ta-flag shrink-0" />
                     <span className="font-mono text-sm">{de ? l.nameDe : l.nameEn}</span>
-                    <span className="ml-auto font-mono text-[10px] text-muted-foreground">{l.level}</span>
+                    <span className="ml-auto font-mono text-2xs text-muted-foreground">{l.level}</span>
                     <span className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((n) => (
                         <span key={n} className={cn('h-3 w-1 rounded-sm', n <= l.stars ? 'bg-primary' : 'bg-border')} />
@@ -188,7 +188,7 @@ export default function CV() {
                   </div>
                 ))}
               </div>
-              <p className="mt-4 font-mono text-[11px] text-muted-foreground">
+              <p className="mt-4 font-mono text-xs text-muted-foreground">
                 {t('cv_page.certs_on_request')}
                 <a href={`mailto:${SOCIALS.email}`} className="text-primary cursor-hover hover:underline">{t('cv_page.email_me')}</a>
               </p>
@@ -200,13 +200,13 @@ export default function CV() {
               <div className="mb-4 font-mono text-xs text-primary">{t('cv_page.certs_title')}</div>
               <div className="space-y-3">
                 {CERTIFICATES.map((c) => (
-                  <div key={c.nameDe} className="grid grid-cols-[44px_1fr] gap-3 border-b border-dashed border-border pb-3 last:border-0 last:pb-0">
+                  <div key={c.nameDe} className="grid grid-cols-[2.75rem_1fr] gap-3 border-b border-dashed border-border pb-3 last:border-0 last:pb-0">
                     <span className="font-mono text-sm text-primary">{c.year}</span>
                     <div>
                       <div className="font-display text-sm leading-snug font-medium">
                         <CertLink url={c.url}>{de ? c.nameDe : c.nameEn}</CertLink>
                       </div>
-                      <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">↳ {de ? c.issuerDe : c.issuerEn}</div>
+                      <div className="mt-0.5 font-mono text-xs text-muted-foreground">↳ {de ? c.issuerDe : c.issuerEn}</div>
                     </div>
                   </div>
                 ))}

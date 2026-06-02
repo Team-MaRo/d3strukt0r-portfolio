@@ -71,7 +71,7 @@ export default function Post() {
                   to={postUrl(prev)}
                   className="block rounded-lg border border-border bg-muted/40 p-4 font-mono text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 cursor-hover"
                 >
-                  <div className="text-[11px] text-primary">← {prev.date}</div>
+                  <div className="text-xs text-primary">← {prev.date}</div>
                   <div className="mt-1">{prev.title}</div>
                 </Link>
               )
@@ -82,7 +82,7 @@ export default function Post() {
                   to={postUrl(next)}
                   className="block rounded-lg border border-border bg-muted/40 p-4 text-right font-mono text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 cursor-hover"
                 >
-                  <div className="text-[11px] text-primary">{next.date} →</div>
+                  <div className="text-xs text-primary">{next.date} →</div>
                   <div className="mt-1">{next.title}</div>
                 </Link>
               )

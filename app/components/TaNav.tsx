@@ -79,7 +79,7 @@ export function TaNav() {
 
   const Brand = (
     <>
-      <span className="inline-block h-4 w-2 animate-ta-blink rounded-[1px] bg-primary" aria-hidden />
+      <span className="inline-block h-4 w-2 animate-ta-blink rounded-[0.0625rem] bg-primary" aria-hidden />
       <span className="font-mono text-sm font-medium">
         manuele<span className="text-muted-foreground">@ch</span>
       </span>
@@ -183,7 +183,7 @@ export function TaNav() {
             aria-modal="true"
           >
             <div className="flex items-center gap-2 border-b border-border px-4 py-3 font-mono text-sm">
-              <span className="inline-block h-4 w-2 animate-ta-blink rounded-[1px] bg-primary" aria-hidden />
+              <span className="inline-block h-4 w-2 animate-ta-blink rounded-[0.0625rem] bg-primary" aria-hidden />
               <span className="font-medium">
                 manuele<span className="text-muted-foreground">@ch</span>:~$
               </span>
@@ -228,7 +228,7 @@ export function TaNav() {
                   key={it.key}
                   to={`/#${it.hash}`}
                   onClick={onHashLink(it.hash)}
-                  className="px-5 py-3.5 font-mono text-[15px] text-foreground/90 transition-colors duration-200 hover:bg-accent hover:text-primary cursor-hover"
+                  className="px-5 py-3.5 font-mono text-base text-foreground/90 transition-colors duration-200 hover:bg-accent hover:text-primary cursor-hover"
                 >
                   {t(`nav.${it.key}`)}
                 </Link>
@@ -236,14 +236,14 @@ export function TaNav() {
               <Link
                 to="/blog"
                 onClick={() => setOpen(false)}
-                className="px-5 py-3.5 font-mono text-[15px] text-foreground/90 transition-colors duration-200 hover:bg-accent hover:text-primary cursor-hover"
+                className="px-5 py-3.5 font-mono text-base text-foreground/90 transition-colors duration-200 hover:bg-accent hover:text-primary cursor-hover"
               >
                 {t('nav.blog')}
               </Link>
               <Link
                 to="/cv"
                 onClick={() => setOpen(false)}
-                className="px-5 py-3.5 font-mono text-[15px] text-foreground/90 transition-colors duration-200 hover:bg-accent hover:text-primary cursor-hover"
+                className="px-5 py-3.5 font-mono text-base text-foreground/90 transition-colors duration-200 hover:bg-accent hover:text-primary cursor-hover"
               >
                 {t('nav.cv')}
               </Link>

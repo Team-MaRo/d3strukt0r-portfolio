@@ -10,7 +10,7 @@ html {
   scrollbar-gutter: stable;
   // Nav is fixed near the top — keep anchored jumps (TOC links, footnote refs,
   // heading hash links) from landing behind it.
-  scroll-padding-top: 80px;
+  scroll-padding-top: 5rem;
 }
 
 body {

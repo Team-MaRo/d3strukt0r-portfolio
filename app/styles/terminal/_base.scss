@@ -28,9 +28,9 @@ body button {
 }
 body kbd {
   font-family: 'JetBrains Mono';
-  font-size: 11px;
-  padding: 1px 5px;
-  border-radius: 3px;
+  font-size: 0.6875rem;
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 0.1875rem;
   background: var(--glass-strong);
   border: 1px solid var(--border);
 }
@@ -43,20 +43,20 @@ body kbd {
 .ta-ok {
   color: var(--primary);
   font-family: 'JetBrains Mono';
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .ta-chip {
   font-family: 'JetBrains Mono';
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 4px;
+  font-size: 0.625rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.25rem;
   background: var(--glass-strong);
   border: 1px solid var(--border);
   color: var(--fg-dim);
 }
 .ta-chip.sm {
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
 }
 /* Background */
 .ta-bg {
@@ -68,8 +68,8 @@ body kbd {
 }
 .ta-blob {
   position: absolute;
-  width: 800px;
-  height: 800px;
+  width: 50rem;
+  height: 50rem;
   border-radius: 50%;
   filter: blur(140px);
   opacity: 0.4;
@@ -78,14 +78,14 @@ html:not(.dark) .ta-blob {
   opacity: 0.25;
 }
 .ta-b1 {
-  top: -300px;
-  right: -200px;
+  top: -18.75rem;
+  right: -12.5rem;
   background: radial-gradient(circle, var(--aurora-2), transparent 65%);
   animation: taFloat1 18s ease-in-out infinite;
 }
 .ta-b2 {
-  bottom: -250px;
-  left: -150px;
+  bottom: -15.625rem;
+  left: -9.375rem;
   background: radial-gradient(circle, var(--aurora-3), transparent 60%);
   animation: taFloat2 22s ease-in-out infinite;
 }
@@ -125,7 +125,7 @@ body > *:not(.ta-bg, .ta-cursor-ring, .ta-cursor-dot, .ta-term-hint, .ta-term-ba
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 0.625rem;
   box-shadow: 0 1px 0 oklch(100% 0 0 / 0.04) inset, 0 20px 40px oklch(0% 0 0 / 0.25);
 }
 html:not(.dark) .ta-glass {

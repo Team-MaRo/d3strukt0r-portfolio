@@ -49,7 +49,7 @@ export default function Blog() {
                     to={postUrl(p)}
                     className="block rounded-lg border border-border bg-muted/40 p-4 font-mono text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 cursor-hover"
                   >
-                    <div className="text-[11px] text-primary">{p.date}</div>
+                    <div className="text-xs text-primary">{p.date}</div>
                     <div className="mt-1">{p.title}</div>
                     {p.excerpt && <div className="mt-1 text-muted-foreground">↳ {p.excerpt}</div>}
                   </Link>
