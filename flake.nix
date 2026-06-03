@@ -37,7 +37,7 @@
           # different store hash, which is the cache behaviour we want.
           d3strukt0rs-portfolio = pkgs.stdenv.mkDerivation (finalAttrs: {
             pname = "d3strukt0rs-portfolio";
-            version = "1.0.1"; # x-release-please-version
+            version = "1.1.0"; # x-release-please-version
             src = ./.;
 
             nativeBuildInputs = [
