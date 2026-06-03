@@ -2,6 +2,12 @@ node_modules/
 build/
 .react-router/
 
+# Cloudflare Workers — local wrangler state + generated worker types.
+.wrangler
+.dev.vars*
+worker-configuration.d.ts
+.mf
+
 # Nix build outputs — host-specific symlinks into /nix/store, never useful to commit.
 result
 result-*
@@ -16,38 +22,7 @@ image.tar
 .claude/*.lock
 CLAUDE.md
 
-# LinkedIn export: sensitive (PII, private conversations, ID verification, behavioral data)
-data/linkedin/**/Profile.csv
-data/linkedin/**/Email Addresses.csv
-data/linkedin/**/Connections.csv
-data/linkedin/**/guide_messages.csv
-data/linkedin/**/PhoneNumbers.csv
-data/linkedin/**/Whatsapp Phone Numbers.csv
-data/linkedin/**/messages.csv
-data/linkedin/**/learning_coach_messages.csv
-data/linkedin/**/learning_role_play_messages.csv
-data/linkedin/**/LearningCoachMessages.csv
-data/linkedin/**/Verifications/
-data/linkedin/**/Ad_Targeting.csv
-data/linkedin/**/Invitations.csv
-data/linkedin/**/Endorsement_Received_Info.csv
-data/linkedin/**/ImportedContacts.csv
-data/linkedin/**/Inferences_about_you.csv
-data/linkedin/**/Logins.csv
-data/linkedin/**/SearchQueries.csv
-data/linkedin/**/Security Challenges.csv
-data/linkedin/**/Comments.csv
-
-# LinkedIn export: useless noise
-data/linkedin/**/Registration.csv
-data/linkedin/**/SavedJobAlerts.csv
-data/linkedin/**/Rich_Media.csv
-data/linkedin/**/Company Follows.csv
-data/linkedin/**/Events.csv
-data/linkedin/**/Jobs/
-data/linkedin/**/Ads Clicked.csv
-data/linkedin/**/LAN Ads Engagement.csv
-data/linkedin/**/Hashtag_Follows.csv
-data/linkedin/**/Reactions.csv
-data/linkedin/**/Saved_Items.csv
-data/linkedin/**/Shares.csv
+# LinkedIn export — entire directory is local-only. PII / private conversations /
+# ID verification / behavioral data live here; CI uses the API path
+# (`pnpm run sync:linkedin:api`), not the CSV one.
+data/linkedin/

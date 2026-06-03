@@ -1,1 +1,6 @@
 *.sh text eol=lf
+
+# Repo metadata should never end up inside a `git archive` tarball.
+.gitattributes export-ignore
+.gitignore     export-ignore
+.gitkeep       export-ignore

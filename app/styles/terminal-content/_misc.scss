@@ -2,11 +2,13 @@
 
 /* ErrorBoundary fallback in app/root.tsx */
 .ta-err-main {
-  padding: 80px 24px;
+  padding: 5rem 1.5rem;
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Custom cursor (dynamic transform/opacity/size set imperatively via refs) */
+/* Custom cursor (transform/opacity/size set imperatively via refs; the hover
+   colour swap is driven by toggling `.is-hover` so no colour goes inline). The
+   dot follows `--aurora-2`, the ring `--primary`, both in OKLCH. */
 .ta-cursor-dot,
 .ta-cursor-ring {
   position: fixed;
@@ -17,67 +19,75 @@
   opacity: 0;
 }
 .ta-cursor-ring {
-  width: 28px;
-  height: 28px;
-  border: 1.5px solid rgba(167, 139, 250, .6);
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1.5px solid color-mix(in oklch, var(--primary) 60%, transparent);
+  background: transparent;
   z-index: 9999;
   transition: width .18s, height .18s, border-color .18s, background .18s, opacity .15s;
   mix-blend-mode: difference;
+
+  &.is-hover {
+    width: 3rem;
+    height: 3rem;
+    border-color: color-mix(in oklch, var(--aurora-2) 85%, transparent);
+    background: color-mix(in oklch, var(--aurora-2) 10%, transparent);
+  }
 }
 .ta-cursor-dot {
-  width: 8px;
-  height: 8px;
-  background: rgba(34, 211, 238, .85);
+  width: 0.5rem;
+  height: 0.5rem;
+  background: color-mix(in oklch, var(--aurora-2) 85%, transparent);
   z-index: 10000;
   transition: opacity .15s;
 }
 
 /* Blog archive year heading + excerpt */
 .ta-blog-year {
-  margin: 32px 0 16px;
+  margin: 2rem 0 1rem;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 16px;
-  color: var(--accent);
+  font-size: 1rem;
+  color: var(--primary);
 }
 .ta-blog-excerpt {
-  margin-top: 4px;
-  font-size: 12px;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
 }
 
 /* 404 page "find" line */
 .ta-404-find {
-  margin-top: 16px;
+  margin-top: 1rem;
 }
 .ta-err {
-  color: #ff6b8a;
+  color: oklch(71.83% 0.1814 9.97deg);
 }
 
 /* CV page spacing + layout tweaks */
 .ta-heading--lg {
-  margin-top: 64px;
+  margin-top: 4rem;
 }
 .ta-heading--md {
-  margin-top: 40px;
+  margin-top: 2.5rem;
 }
 .ta-qual-legend {
-  margin-bottom: 18px;
+  margin-bottom: 1.125rem;
   .ta-meta-row {
     margin: 0;
-    gap: 10px;
+    gap: 0.625rem;
   }
 }
 .ta-cv-note {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  margin: 14px 0 0;
+  font-size: 0.6875rem;
+  margin: 0.875rem 0 0;
 }
 .ta-cv-note--elsewhere {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  margin: 0 0 16px;
+  font-size: 0.75rem;
+  margin: 0 0 1rem;
 }
 .ta-cv-h3 {
-  font-size: clamp(20px, 2.2vw, 26px);
+  font-size: clamp(1.25rem, 2.2vw, 1.625rem);
 }
 .ta-contact-socials--start {
   justify-content: flex-start;

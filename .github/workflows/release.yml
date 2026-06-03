@@ -7,7 +7,7 @@ name: Release
 # `tags: ['*.*.*']`) to build and publish the multi-arch OCI image.
 #
 # Config lives in `release-please-config.json` + `.release-please-manifest.json`.
-# `flake.nix` is tracked as an `extra-files` entry — its `version = "0.1.0"; # x-release-please-version`
+# `flake.nix` is tracked as an `extra-files` entry — its `version = "0.0.0"; # x-release-please-version`
 # line gets rewritten on each bump so the OCI image tag stays in sync with
 # package.json.
 

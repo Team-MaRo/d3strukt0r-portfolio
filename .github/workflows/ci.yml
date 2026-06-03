@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   checks:
-    name: Lint, typecheck, build
+    name: Lint, typecheck, test, build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,6 +36,11 @@ jobs:
       - name: Install dependencies
         run: pnpm ci
 
+      - name: Audit (lockfile vulnerabilities)
+        id: audit
+        continue-on-error: true
+        run: bash .github/scripts/summarize-step.sh "Audit (lockfile)" pnpm audit --audit-level=moderate
+
       - name: Lint
         id: lint
         continue-on-error: true
@@ -46,8 +51,13 @@ jobs:
         continue-on-error: true
         run: bash .github/scripts/summarize-step.sh "Typecheck" pnpm run typecheck
 
-      - name: Build
-        id: build
+      - name: Test
+        id: test
+        continue-on-error: true
+        run: bash .github/scripts/summarize-step.sh "Test" pnpm run test
+
+      - name: Build (SSR)
+        id: build-ssr
         continue-on-error: true
         env:
           # CI is a build smoke test — the bundle is never uploaded or
@@ -56,16 +66,28 @@ jobs:
           # don't have access to them, and CI != deploy anyway). Any 32-byte
           # base64 string works; this is 32 zero bytes.
           SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-        run: bash .github/scripts/summarize-step.sh "Build" pnpm run build
+        run: bash .github/scripts/summarize-step.sh "Build (SSR)" pnpm run build
+
+      - name: Build (static / SPA)
+        id: build-spa
+        continue-on-error: true
+        env:
+          SSR: 'false'
+          SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          REVEAL_PASSWORDS: $3cretP@ssw0rd
+        run: bash .github/scripts/summarize-step.sh "Build (static / SPA)" pnpm run build
 
       # `continue-on-error: true` forces each step's `conclusion` to
       # success regardless of `outcome`. Re-derive the real status here.
       - name: Fail if any check failed
         if: always()
         run: |
-          if [ "${{ steps.lint.outcome }}" = "failure" ] \
+          if [ "${{ steps.audit.outcome }}" = "failure" ] \
+             || [ "${{ steps.lint.outcome }}" = "failure" ] \
              || [ "${{ steps.typecheck.outcome }}" = "failure" ] \
-             || [ "${{ steps.build.outcome }}" = "failure" ]; then
+             || [ "${{ steps.test.outcome }}" = "failure" ] \
+             || [ "${{ steps.build-ssr.outcome }}" = "failure" ] \
+             || [ "${{ steps.build-spa.outcome }}" = "failure" ]; then
             exit 1
           fi
 
@@ -96,10 +118,10 @@ jobs:
           purge-primary-key: never
 
       - name: Install Trivy
-        uses: aquasecurity/setup-trivy@v0.2.6
+        uses: aquasecurity/setup-trivy@v0.3.1
 
       - name: Install Grype
-        uses: anchore/scan-action/download-grype@v6
+        uses: anchore/scan-action/download-grype@v7
         id: grype-install
 
       # Self-heal a stale pnpmDeps.hash so dependabot pnpm-lock PRs don't fail
@@ -109,7 +131,7 @@ jobs:
         env:
           SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           DOCKER_LABELS_JSON: ''
-        run: ./bin/bump-pnpm-hash.sh
+        run: ./.github/scripts/bump-pnpm-hash.sh
 
       - name: Build OCI image with Nix
         env:

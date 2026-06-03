@@ -158,6 +158,12 @@ fourohfour:
   title: "Lost in the void."
   sub: "That URL doesn't resolve. Maybe a stale link, maybe a typo — let's get you home."
   home: "cd ~"
+error:
+  not_found_title: "Lost in the void."
+  not_found_sub: "That URL doesn't resolve. Maybe a stale link, maybe a typo — let's get you home."
+  title: "Something broke."
+  sub: "An unexpected error occurred. The terminal logged it — try heading home and reloading."
+  home: "cd ~"
 seal:
   unlock: "Unlock private details"
   relock: "Re-lock private details"

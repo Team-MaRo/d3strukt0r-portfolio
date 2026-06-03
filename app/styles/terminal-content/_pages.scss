@@ -1,17 +1,17 @@
 @layer components {
 /* Page header (ta-heading equivalent) */
 .ta-page-head {
-  margin-bottom: 32px;
+  margin-bottom: 2rem;
 
 }
 /* Post meta */
 .ta-post-meta {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--fg-mute);
-  margin-bottom: 18px;
+  margin-bottom: 1.125rem;
   display: flex;
-  gap: 16px;
+  gap: 1rem;
   flex-wrap: wrap;
   .ta-key {
     color: var(--accent-2);
@@ -22,13 +22,13 @@
 .ta-post-nav {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 40px;
+  gap: 0.875rem;
+  margin-top: 2.5rem;
   .ta-blog-entry.next {
     text-align: right;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 40rem) {
   .ta-post-nav {
     grid-template-columns: 1fr;
 
@@ -37,12 +37,12 @@
 /* 404 */
 .ta-404 {
   text-align: center;
-  padding: 80px 24px;
+  padding: 5rem 1.5rem;
   pre {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 0.75rem;
     line-height: 1.2;
-    background: linear-gradient(120deg, var(--accent), var(--accent-2), var(--accent-3));
+    background: linear-gradient(120deg, var(--primary), var(--accent-2), var(--accent-3));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -50,40 +50,40 @@
     display: inline-block;
     max-width: 100%;
     overflow: hidden;
-    margin: 0 auto 24px;
+    margin: 0 auto 1.5rem;
 
   }
 }
 .ta-archive-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.625rem;
 
 }
 .ta-timeline {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin: 24px 0 40px;
+  gap: 0.625rem;
+  margin: 1.5rem 0 2.5rem;
 
 }
 .ta-pagination {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  margin-top: 32px;
+  gap: 0.625rem;
+  margin-top: 2rem;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
   a, span {
-    padding: 8px 14px;
-    border-radius: 5px;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.3125rem;
     border: 1px solid var(--border);
     color: var(--fg-dim);
     background: var(--glass);
   }
   a:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--primary);
+    border-color: var(--primary);
   }
   span {
     opacity: 0.4;

@@ -1,0 +1,31 @@
+{
+  // Standalone type-check project for the Cloudflare Workers entry
+  // (workers/app.ts) + its generated runtime types (worker-configuration.d.ts,
+  // gitignored, produced by `wrangler types`). Checked separately from the app
+  // (`tsc --noEmit -p tsconfig.cloudflare.json` in the `typecheck` script) so
+  // the Workers runtime's global `fetch`/`Response`/`ExportedHandler`/`Env`
+  // declarations stay out of the DOM-typed app project.
+  //
+  // It also pulls in two narrow React Router typegen artifacts (NOT the
+  // per-route app types, which would drag app source into this project):
+  //   - +server-build.d.ts → types for `virtual:react-router/server-build`
+  //   - +future.ts         → declares `Future.v8_middleware: true`, so
+  //                          `createRequestHandler` accepts the v8
+  //                          `RouterContextProvider` the worker builds.
+  "extends": "@iwf-web/tsconfig/react-strict/tsconfig.json",
+  "include": [
+    "workers/**/*",
+    "worker-configuration.d.ts",
+    ".react-router/types/+server-build.d.ts",
+    ".react-router/types/+future.ts"
+  ],
+  "compilerOptions": {
+    "types": ["node", "vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./app/*"]
+    },
+    "resolveJsonModule": true,
+    "allowJs": true
+  }
+}

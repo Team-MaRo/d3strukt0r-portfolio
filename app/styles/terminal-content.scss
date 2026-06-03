@@ -1,9 +1,10 @@
-// Markdown content rendered inside .ta-glass cards (pages, posts, archive),
-// plus the easter-egg terminal overlay and a few page-specific utilities.
+// Markdown content rendered inside glass cards (posts), page-specific helpers,
+// the easter-egg terminal overlay, and small misc utilities (custom cursor,
+// error fallback). The `_reveal.scss` partial was removed — scroll reveals are
+// now per-section GSAP via `<Reveal>` (visible-by-default), not a CSS gate.
 // Split into partials under `./terminal-content/`.
 
 @use "terminal-content/content";
 @use "terminal-content/pages";
-@use "terminal-content/reveal";
 @use "terminal-content/terminal-ui";
 @use "terminal-content/misc";

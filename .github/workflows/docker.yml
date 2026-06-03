@@ -6,9 +6,8 @@ on:
     # branch-tag on the default branch (since :latest is meant to come
     # from flavor.latest=auto on the highest semver, not a branch alias),
     # which would leave `imagetools create` with zero -t flags and fail
-    # the manifest job. Master ships exclusively via `*.*.*` release tags
-    # from release.yml; ci.yml's trivy job covers the smoke-build path on
-    # master pushes.
+    # the manifest job. Master ships exclusively via `*.*.*` release tags;
+    # ci.yml's trivy job covers the smoke-build path on master pushes.
     branches: [develop]
     tags: ['*.*.*']
     # Lockfile-only pushes (e.g. a Dependabot merge) are doomed until

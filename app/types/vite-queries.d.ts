@@ -1,4 +1,5 @@
 /// <reference types="@modyfi/vite-plugin-yaml/modules" />
+/// <reference types="vite-plugin-svgr/client" />
 
 // Module declarations for Vite's build-time query suffixes used in this app.
 

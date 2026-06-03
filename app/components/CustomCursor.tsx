@@ -1,8 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
 
-const COLOR = 'rgba(34, 211, 238, 0.85)';
-const RING = 'rgba(167, 139, 250, 0.6)';
-
 export function CustomCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
@@ -72,13 +69,9 @@ export function CustomCursor() {
       const t = e.target as Element | null;
       const hov = !!t?.closest?.('a, button, [role="button"], input, textarea, .cursor-hover');
       s.hover = hov;
-      if (ringRef.current) {
-        const sz = hov ? '48px' : '28px';
-        ringRef.current.style.width = sz;
-        ringRef.current.style.height = sz;
-        ringRef.current.style.borderColor = hov ? COLOR : RING;
-        ringRef.current.style.background = hov ? 'rgba(34,211,238,.1)' : 'transparent';
-      }
+      // Colour/size swap lives in CSS (`.ta-cursor-ring.is-hover`) so no colour
+      // goes inline — only the JS-driven position stays imperative.
+      ringRef.current?.classList.toggle('is-hover', hov);
     };
     let raf = 0;
     const loop = () => {

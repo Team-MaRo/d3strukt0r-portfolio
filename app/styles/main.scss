@@ -1,2 +1,6 @@
+// Token cascade + global base first (light at :root, dark via the `dark`
+// mixin), then the structural terminal partials that consume the tokens.
+@use "tokens";
+@use "base";
 @use "terminal";
 @use "terminal-content";

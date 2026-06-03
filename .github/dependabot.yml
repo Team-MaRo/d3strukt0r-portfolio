@@ -14,6 +14,7 @@ updates:
       - "dependabot :robot:"
     schedule:
       interval: weekly # on monday
+      day: monday # TODO: remove when dependabot learned to default to monday and not to friday
       time: '09:30'
       timezone: Europe/Zurich
 
@@ -24,8 +25,11 @@ updates:
       - "dependabot :robot:"
     schedule:
       interval: weekly
+      day: monday # TODO: remove when dependabot learned to default to monday and not to friday
       time: '09:30'
       timezone: Europe/Zurich
+    cooldown:
+      default-days: 1 # Match pnpm 11 default minimumReleaseAge (1440 min = 1 day)
     groups:
       npm-minor-patch:
         update-types:
@@ -39,5 +43,6 @@ updates:
       - "dependabot :robot:"
     schedule:
       interval: weekly
+      day: monday # TODO: remove when dependabot learned to default to monday and not to friday
       time: '09:30'
       timezone: Europe/Zurich

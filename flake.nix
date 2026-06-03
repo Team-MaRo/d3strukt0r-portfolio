@@ -4,7 +4,7 @@
   inputs = {
     # Branch ref (not SHA): `nix flake update` resolves to the latest commit,
     # and Dependabot's nix ecosystem watches the resulting flake.lock.
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     # Shared scripts + lib helpers. `follows` keeps a duplicate nixpkgs out
     # of flake.lock.
@@ -48,7 +48,7 @@
             pnpmDeps = pkgs.pnpm_10.fetchDeps {
               inherit (finalAttrs) pname version src;
               fetcherVersion = 2;
-              hash = "sha256-Rchh+ifxglfEyIcugVyaNfYldf7CRpPmfr46DfUApNg=";
+              hash = "sha256-KiGgieysGGOo+waZqh86Ohq3+JkO+kIvMQ8IDDpkIJU=";
             };
 
             SEAL_DATA_KEY = builtins.getEnv "SEAL_DATA_KEY";

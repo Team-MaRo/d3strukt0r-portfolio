@@ -2,15 +2,15 @@ import type {Route} from './+types/root';
 import type {CipherText} from './lib/seal';
 import {useEffect} from 'react';
 import {I18nextProvider, useTranslation} from 'react-i18next';
-import {isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData, useLocation} from 'react-router';
+import {isRouteErrorResponse, Link, Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData, useLocation} from 'react-router';
 import {CustomCursor} from './components/CustomCursor';
 import {TaBg} from './components/TaBg';
 import {TaFooter} from './components/TaFooter';
 import {TaNav} from './components/TaNav';
 import {TaTerminal} from './components/TaTerminal';
+import {Card} from './components/ui/card';
 import {smoothScrollToAnchor} from './hooks/useInternalLinkNav';
-import {useReveal} from './hooks/useReveal';
-import {useTheme} from './hooks/useTheme';
+import {THEME_COLOR_DARK, THEME_COLOR_LIGHT, useTheme} from './hooks/useTheme';
 import {i18n} from './i18n';
 import {setWrapped} from './lib/seal';
 
@@ -64,24 +64,46 @@ export const links: Route.LinksFunction = () => [
   {rel: 'alternate', type: 'application/atom+xml', title: 'Manuele', href: '/atom.xml'},
 ];
 
+// Pre-hydration bootstrap. Runs in <head> before stylesheets evaluate — writes
+// to <html> (`document.documentElement`) because <body> doesn't exist yet
+// during head parsing. Putting the theme class on the root element pre-CSS-eval
+// means body inherits the right variable cascade from its first computed style,
+// so the per-utility colour cross-fade in `_base.scss` has nothing to animate on
+// load (no FOUC). Three jobs:
+//   1. Sets html.light / html.dark for the first paint. Reads localStorage;
+//      with no stored pref defaults to DARK, but still honours an explicit
+//      `prefers-color-scheme: light` so a light-OS first-time visitor isn't
+//      forced into dark.
+//   2. Adds `html.js` so any `no-js`-scoped CSS escape hatches activate.
+//   3. Overrides every `<meta name="theme-color">` content so the mobile
+//      browser chrome (address-bar strip) follows the in-page theme even when
+//      it disagrees with the OS preference.
+// Kept minified to one line for the fastest parse before hydration.
+// eslint-disable-next-line style/max-len -- inline IIFE intentionally minified to one line for fastest parse before hydration (avoids theme FOUC)
+const themeBootstrap = `(function(){try{var k='d3strukt0rs-portfolio:theme';var s=localStorage.getItem(k);var t=(s==='light'||s==='dark')?s:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.classList.add(t,'js');var c=t==='dark'?'${THEME_COLOR_DARK}':'${THEME_COLOR_LIGHT}';document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.setAttribute('content',c);});}catch(e){document.documentElement.classList.add('dark','js');}})();`;
+
 export function Layout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#060614" />
+        {/* Both metas ship; the inline bootstrap below overrides both content
+            attrs to the chosen theme — whichever the browser picks via the
+            `media` query then shows the right colour regardless. */}
+        <meta name="theme-color" content={THEME_COLOR_LIGHT} media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content={THEME_COLOR_DARK} media="(prefers-color-scheme: dark)" />
         <meta name="apple-mobile-web-app-title" content="Manueles Portfolio" />
+        {/* Must run before <Links /> so the theme class is on <html> before any
+            stylesheet evaluates — that's what prevents the FOUC. */}
+        <script
+          // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- themeBootstrap is a constant string defined above; no user input, no escaping needed
+          dangerouslySetInnerHTML={{__html: themeBootstrap}}
+        />
         <Meta />
         <Links />
-        <script
-          // eslint-disable-next-line react-dom/no-dangerously-set-innerhtml -- inline script must run before hydration to set the JS class on <html>
-          dangerouslySetInnerHTML={{
-            __html: 'document.documentElement.classList.add(\'js\')',
-          }}
-        />
       </head>
-      <body className="ta dark" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
         <ScrollRestoration />
         <Scripts />
@@ -91,9 +113,9 @@ export function Layout({children}: {children: React.ReactNode}) {
 }
 
 export default function App() {
-  // Sync body class with theme preference + run global hooks.
+  // Sync theme preference + run global hooks. Scroll reveals are now per-section
+  // GSAP via <Reveal> (visible-by-default), not a global IntersectionObserver.
   useTheme();
-  useReveal();
   const {i18n} = useTranslation();
   const loc = useLocation();
   const data = useLoaderData<typeof loader>();
@@ -132,14 +154,48 @@ export default function App() {
 }
 
 export function ErrorBoundary({error}: Route.ErrorBoundaryProps) {
-  const message = isRouteErrorResponse(error)
-    ? `${error.status} ${error.statusText}`
-    : error instanceof Error
-      ? error.message
-      : 'Unknown error';
+  const {t} = useTranslation();
+
+  // Mirror the example's logic: route error responses surface their status
+  // (404 gets a dedicated copy), every other thrown value is a generic 500.
+  // In dev only, an `Error` instance also exposes its message + stack so the
+  // failing call site is visible; production ships the friendly copy alone.
+  const isRouteError = isRouteErrorResponse(error);
+  const status = isRouteError ? error.status : 500;
+  const is404 = isRouteError && error.status === 404;
+
+  const title = is404 ? t('error.not_found_title') : t('error.title');
+  const sub = is404
+    ? t('error.not_found_sub')
+    : isRouteError && error.statusText
+      ? error.statusText
+      : t('error.sub');
+
+  const isDev = import.meta.env.DEV;
+  const details = isDev && error instanceof Error ? error.message : undefined;
+  const stack = isDev && error instanceof Error ? error.stack : undefined;
+
   return (
-    <main className="ta-err-main">
-      <h1>{message}</h1>
-    </main>
+    <section className="w-full pt-32 pb-20 md:pt-40">
+      <div className="container">
+        <Card glass className="px-6 py-20 text-center">
+          <div className="font-mono text-sm text-muted-foreground">
+            <span className="opacity-50">$</span> ./recover --status {status} ·{' '}
+            <span className="text-primary">{is404 ? 'not found' : 'error'}</span>
+          </div>
+          <h1 className="mt-4 font-display text-4xl font-medium tracking-tight md:text-5xl">{title}</h1>
+          <p className="mx-auto mt-4 max-w-lg text-muted-foreground">{sub}</p>
+          {details != null && <p className="mx-auto mt-4 max-w-lg font-mono text-xs text-muted-foreground">{details}</p>}
+          {stack != null && (
+            <pre className="ta-err-stack mx-auto mt-6 max-w-full overflow-auto rounded-lg p-4 text-left font-mono text-xs">
+              <code>{stack}</code>
+            </pre>
+          )}
+          <Link to="/" className="mt-6 inline-flex items-center gap-2 font-mono text-primary cursor-hover hover:underline">
+            <span aria-hidden>→</span> {t('error.home')}
+          </Link>
+        </Card>
+      </div>
+    </section>
   );
 }

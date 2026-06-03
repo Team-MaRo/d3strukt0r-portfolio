@@ -1,17 +1,32 @@
+import type {ReactNode} from 'react';
 import type {Route} from './+types/home';
 import {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
+import {Link} from 'react-router';
 import {Flag} from '~/components/Flag';
+import {Reveal} from '~/components/Reveal';
 import {Sealed} from '~/components/Sealed';
+import {Avatar, AvatarFallback, AvatarImage} from '~/components/ui/avatar';
+import {Badge} from '~/components/ui/badge';
+import {Button} from '~/components/ui/button';
+import {Card} from '~/components/ui/card';
+import {Separator} from '~/components/ui/separator';
 import {useContribGraph, useContributions, useGithubRepos, useGithubUser} from '~/hooks/useGithub';
 import {posts, postUrl} from '~/lib/content';
 import {CERTIFICATES, EXPERIENCE, LANGUAGES} from '~/lib/linkedin';
 import {openLockModal} from '~/lib/seal-modal';
-import {DAILY_STACK, PROJECTS_FALLBACK, SKILL_GROUPS, SOCIALS, STATS} from '~/lib/site';
+import {PROJECTS_FALLBACK, SKILL_GROUPS, SOCIALS, STATS} from '~/lib/site';
+import {cn} from '~/lib/utils';
 
 export function meta(_: Route.MetaArgs) {
   return [{title: 'Manuele · Full-Stack Web Developer'}];
 }
+
+const ASCII_NAME = String.raw`  __  __                        _
+ |  \/  | __ _ _ __  _   _  ___| | ___
+ | |\/| |/ _\`| '_ \| | | |/ _ \ |/ _ \
+ | |  | | (_| | | | | |_| |  __/ |  __/
+ |_|  |_|\__,_|_| |_|\__,_|\___|_|\___|`;
 
 export default function Home() {
   return (
@@ -29,19 +44,34 @@ export default function Home() {
   );
 }
 
-function Heading({num, code, title}: {num: string; code: string; title: string}) {
+// Full-bleed section + the scrollbar-aware snapping container.
+function Section({id, className, children}: {id?: string; className?: string; children: ReactNode}) {
   return (
-    <div className="ta-heading">
-      <div className="ta-hnum" data-reveal>{num}</div>
-      <div className="ta-hcode" data-reveal data-delay="1"><span className="ta-dim">$</span> {code}</div>
-      <h2 className="ta-h2" data-reveal data-delay="2">{title}</h2>
+    <section id={id} className={cn('w-full', className)}>
+      <div className="container">{children}</div>
+    </section>
+  );
+}
+
+function SectionLabel({num, code, children}: {num: string; code: string; children: ReactNode}) {
+  return (
+    <div className="mb-10">
+      <Reveal><div className="mb-1.5 font-mono text-xs text-primary">{num}</div></Reveal>
+      <Reveal delay={0.07}>
+        <div className="mb-3 font-mono text-sm text-muted-foreground">
+          <span className="opacity-50">$</span> {code}
+        </div>
+      </Reveal>
+      <Reveal delay={0.14}>
+        <h2 className="font-display text-3xl font-medium tracking-tight md:text-4xl">{children}</h2>
+      </Reveal>
     </div>
   );
 }
 
 function Hero() {
-  const {t, i18n} = useTranslation();
-  const lang = i18n.resolvedLanguage ?? 'en';
+  const {t} = useTranslation();
+  const user = useGithubUser();
   const nowItems = t('hero.now', {returnObjects: true}) as string[];
   const [typed, setTyped] = useState('');
   const full = t('hero.whoami_cmd');
@@ -54,158 +84,174 @@ function Hero() {
       if (i >= full.length) {
         window.clearInterval(id);
       }
-    }, 60);
+    }, 65);
     return () => window.clearInterval(id);
   }, [full]);
 
   const date = new Date().toISOString().slice(0, 10);
 
   return (
-    <section id="top" className="ta-hero">
-      <div className="ta-hero-grid">
-        <div className="ta-hero-main">
-          <div className="ta-shell ta-glass">
-            <div className="ta-shell-head">
-              <span className="ta-dot r" /><span className="ta-dot y" /><span className="ta-dot g" />
-              <span className="ta-shell-title">zsh — manuele@portfolio — ~</span>
+    <Section id="top" className="pt-32 pb-16 md:pt-40 md:pb-20">
+      <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:items-start">
+        <div>
+          <Reveal>
+            <Badge variant="mono" className="mb-6 gap-2 py-1">
+              <span className="size-1.5 animate-ta-pulse-dot rounded-full bg-primary" />
+              {t('location')}
+            </Badge>
+          </Reveal>
+          <Reveal delay={0.06}>
+            <h1 className="text-balance font-display text-4xl leading-display font-medium tracking-tight md:text-6xl">
+              {t('hero.title')}
+            </h1>
+          </Reveal>
+          <Reveal delay={0.14}>
+            <p className="mt-6 max-w-xl text-base text-muted-foreground md:text-lg">{t('hero.sub')}</p>
+          </Reveal>
+          <Reveal delay={0.22}>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild variant="gradient" size="lg" className="font-mono">
+                <a href="#work">
+                  {t('hero.cta_work')} <span aria-hidden>→</span>
+                </a>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="font-mono">
+                <a href="#contact">{t('hero.cta_contact')}</a>
+              </Button>
             </div>
-            <div className="ta-shell-body">
-              <div>
-                <span className="ta-prompt">→</span>{' '}
-                <span>{typed}<span className="ta-cursor-blink">▌</span></span>
+          </Reveal>
+          <Reveal delay={0.3}>
+            <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 font-mono text-xs text-muted-foreground">
+              <span><span className="text-primary">●</span> {t('hero.online')}</span>
+              {user && <span><b className="text-foreground">{user.public_repos}</b> {t('github.repos')}</span>}
+              {user && <span><b className="text-foreground">{user.followers}</b> {t('github.followers')}</span>}
+              <span><b className="text-foreground">{LANGUAGES.length}</b> {t('stats.languages')}</span>
+            </div>
+          </Reveal>
+        </div>
+
+        <Reveal delay={0.18}>
+          <Card glass className="overflow-hidden p-0">
+            <div className="flex items-center gap-1.5 border-b border-border/70 bg-background/20 px-4 py-3">
+              <span className="size-3 rounded-full bg-[var(--mac-red)]" />
+              <span className="size-3 rounded-full bg-[var(--mac-yellow)]" />
+              <span className="size-3 rounded-full bg-[var(--mac-green)]" />
+              <span className="ml-2 font-mono text-xs text-muted-foreground">manuele@portfolio — ~</span>
+            </div>
+            <div className="p-5 font-mono text-sm">
+              <div className="text-foreground">
+                <span className="text-primary">→</span> {typed}
+                <span className="animate-ta-blink text-primary">▌</span>
               </div>
-              <pre className="ta-ascii">{String.raw`  __  __                        _
- |  \/  | __ _ _ __  _   _  ___| | ___
- | |\/| |/ _\`| '_ \| | | |/ _ \ |/ _ \
- | |  | | (_| | | | | |_| |  __/ |  __/
- |_|  |_|\__,_|_| |_|\__,_|\___|_|\___|`}
+              <pre className="mt-3 overflow-hidden bg-[linear-gradient(120deg,var(--primary),var(--aurora-2),var(--aurora-3))] bg-clip-text font-mono text-2xs leading-tight whitespace-pre text-transparent select-none">
+                {ASCII_NAME}
               </pre>
-              <div className="ta-meta-row">
-                <span><span className="ta-key">{t('hero.name_label')}</span>: Manuele</span>
-                <span><span className="ta-key">{t('hero.role_label')}</span>: Full-Stack Web Dev</span>
-                <span><span className="ta-key">{t('hero.loc_label')}</span>: {t('location')}</span>
-                <span className="ta-ok">● {t('hero.online')}</span>
-              </div>
+              <ul className="mt-4 space-y-1 text-muted-foreground">
+                {nowItems.map((item, i) => (
+                  // eslint-disable-next-line react/no-array-index-key -- nowItems are translation strings keyed by stable position
+                  <li key={i}>
+                    <span className="text-primary/80">{['✓', '✓', '→', '◎'][i] ?? '·'}</span> {item}
+                  </li>
+                ))}
+                <li className="text-primary">● {t('hero.online')} · {date}</li>
+              </ul>
             </div>
-          </div>
-
-          <h1 className="ta-hero-title">{t('hero.title')}</h1>
-          <p className="ta-hero-sub">{t('hero.sub')}</p>
-
-          <div className="ta-hero-cta">
-            <a href="#work" className="ta-btn ta-btn-primary cursor-hover">
-              <span>{t('hero.cta_work')}</span>
-              <span className="ta-btn-arrow">→</span>
-            </a>
-            <a href="#contact" className="ta-btn ta-btn-ghost cursor-hover">
-              {t('hero.cta_contact')}
-            </a>
-          </div>
-        </div>
-
-        <div className="ta-hero-side">
-          <div className="ta-sidecard ta-glass">
-            <div className="ta-sidecard-head">
-              <span>{t('hero.now_title')}</span>
-              <span className="ta-dim">· {date}</span>
-            </div>
-            <ul className="ta-sidecard-list">
-              {nowItems.map((item, i) => (
-                // eslint-disable-next-line react/no-array-index-key -- nowItems are translation strings keyed by stable position
-                <li key={i}>
-                  <span className="ta-check">{['✓', '✓', '→', '◎'][i] ?? '·'}</span> {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="ta-sidecard ta-glass ta-side-skills">
-            <div className="ta-sidecard-head">
-              <span>{t('hero.stack_title')}</span>
-            </div>
-            {DAILY_STACK.map((s) => (
-              <div key={s.name} className="ta-side-skillrow">
-                <span>{s.name}</span>
-                <span className="ta-bar"><span style={{'--ta-bar-w': `${s.pct}%`} as React.CSSProperties} /></span>
-              </div>
-            ))}
-          </div>
-        </div>
+          </Card>
+        </Reveal>
       </div>
-      {/* hidden reference to lang to avoid unused warning */}
-      <span hidden>{lang}</span>
-    </section>
+    </Section>
   );
 }
 
 function Stats() {
   const {t} = useTranslation();
   return (
-    <section className="ta-stats-strip ta-glass">
-      {STATS.map((s) => (
-        <div key={s.labelKey} className="ta-stat-item">
-          <div className="ta-stat-val">{s.value}</div>
-          <div className="ta-stat-lab">{t(s.labelKey)}</div>
-        </div>
-      ))}
-    </section>
+    <Section className="py-4">
+      <Reveal>
+        <Card glass className="grid grid-cols-2 gap-2 p-2 md:grid-cols-4">
+          {STATS.map((s) => (
+            <div key={s.labelKey} className="rounded-lg px-4 py-5 text-center transition-colors duration-200 hover:bg-accent/40">
+              <div className="bg-[linear-gradient(135deg,var(--primary),var(--aurora-2))] bg-clip-text font-display text-3xl font-medium tracking-tight text-transparent md:text-4xl">
+                {s.value}
+              </div>
+              <div className="mt-1 font-mono text-xs text-muted-foreground">{t(s.labelKey)}</div>
+            </div>
+          ))}
+        </Card>
+      </Reveal>
+    </Section>
   );
 }
 
 function About() {
   const {t} = useTranslation();
   const paragraphs = t('about.paragraphs', {returnObjects: true}) as string[];
+  const chips = ['Business + IT', 'Symfony', 'React', 'Scrum', 'SAP', 'Anime'];
   return (
-    <section id="about" className="ta-section">
-      <Heading num={t('about.num')} code={t('about.code')} title={t('about.title')} />
-      <div className="ta-about-grid">
-        <div className="ta-about-main ta-glass">
+    <Section id="about" className="py-20 md:py-28">
+      <SectionLabel num={t('about.num')} code={t('about.code')}>{t('about.title')}</SectionLabel>
+      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-start">
+        <Card glass className="p-8">
           {paragraphs.map((p, i) => (
             // eslint-disable-next-line react/no-array-index-key -- about paragraphs are translation strings keyed by stable position
-            <p key={i} className={i === 0 ? 'ta-lead' : ''} data-reveal data-delay={String(i)}>{p}</p>
+            <Reveal key={i} delay={i * 0.08}>
+              <p className={cn(
+                'leading-relaxed text-muted-foreground',
+                i === 0 ? 'mb-4 font-display text-xl leading-snug font-normal text-foreground' : 'mb-4 last:mb-0',
+              )}
+              >
+                {p}
+              </p>
+            </Reveal>
           ))}
-        </div>
-        <div className="ta-about-side">
-          <div className="ta-glass ta-card-mini">
-            <div className="ta-card-head">{t('about.identity_title')}</div>
-            <pre className="ta-json">{`{
-  "from":    "Switzerland",
-  "edu":     "BSc Business IT",
-  "speaks":  ${LANGUAGES.length},
-  "ships":   "yes",
-  "anime":   true
+        </Card>
+        <Reveal delay={0.12}>
+          <Card glass hover className="p-6">
+            <div className="mb-3 font-mono text-xs text-primary">{t('about.identity_title')}</div>
+            <pre className="font-mono text-sm leading-7 text-muted-foreground">{`{
+  "from":   "Switzerland",
+  "edu":    "BSc Business IT",
+  "speaks": ${LANGUAGES.length},
+  "ships":  true,
+  "anime":  true
 }`}
             </pre>
-          </div>
-        </div>
+            <Separator className="my-5" />
+            <div className="flex flex-wrap gap-2">
+              {chips.map((x) => <Badge key={x} variant="secondary">{x}</Badge>)}
+            </div>
+          </Card>
+        </Reveal>
       </div>
-    </section>
+    </Section>
   );
 }
 
 function Skills() {
   const {t} = useTranslation();
   return (
-    <section id="stack" className="ta-section">
-      <Heading num={t('skills.num')} code={t('skills.code')} title={t('skills.title')} />
-      <div className="ta-stack-grid">
-        {SKILL_GROUPS.map((g, i) => (
-          <div key={g.key} className="ta-glass ta-stack-card cursor-hover" data-reveal data-delay={String(i)}>
-            <div className="ta-stack-head">
-              <span className="ta-dim">▸</span> {t(`skills.groups.${g.key}`)}/
-            </div>
-            <ul className="ta-stack-list">
-              {g.items.map((s, j) => (
-                <li key={s}>
-                  <span className="ta-dim">{String(j + 1).padStart(2, '0')}</span>
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <Section id="stack" className="py-20 md:py-28">
+      <SectionLabel num={t('skills.num')} code={t('skills.code')}>{t('skills.title')}</SectionLabel>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {SKILL_GROUPS.map((g, gi) => (
+          <Reveal key={g.key} delay={gi * 0.07}>
+            <Card glass hover className="h-full p-5">
+              <div className="mb-4 flex items-center gap-2 font-mono text-sm text-primary">
+                <span className="text-muted-foreground">▸</span> {t(`skills.groups.${g.key}`)}/
+              </div>
+              <ul className="space-y-1.5 font-mono text-sm">
+                {g.items.map((item, i) => (
+                  <li key={item} className="flex items-center gap-3 text-foreground/90 transition-colors duration-200 hover:text-foreground">
+                    <span className="text-xs text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </Reveal>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }
 
@@ -214,46 +260,70 @@ function Github() {
   const user = useGithubUser();
   const contrib = useContributions();
   const grid = useContribGraph(contrib);
+  const lvl = ['bg-muted/60', 'bg-primary/20', 'bg-primary/45', 'bg-primary/70', 'bg-primary'];
   return (
-    <section className="ta-section">
-      <div className="ta-glass ta-gh" data-reveal>
-        <div className="ta-gh-head">
-          <div>
-            <div className="ta-hcode"><span className="ta-dim">$</span> {t('github.code')}</div>
-            <h3 className="ta-gh-title">
-              github.com/<span className="ta-accent">D3strukt0r</span>
-            </h3>
-          </div>
-          {user && (
-            <div className="ta-gh-stats">
-              <div><b>{user.public_repos}</b><span>{t('github.repos')}</span></div>
-              <div><b>{user.followers}</b><span>{t('github.followers')}</span></div>
-              {contrib && (
-                <div><b>{contrib.total}</b><span>{t('github.contributions')}</span></div>
-              )}
-              <div><b>{user.created_at?.slice(0, 4)}</b><span>{t('github.joined')}</span></div>
+    <Section className="py-8">
+      <Reveal>
+        <Card glass className="p-5 sm:p-8">
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <Avatar size="lg" className="size-11 border border-border/70 sm:size-14">
+                <AvatarImage src={user?.avatar} alt="" />
+                <AvatarFallback className="font-display">M</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <div className="font-mono text-sm text-muted-foreground">
+                  <span className="opacity-50">$</span> {t('github.code')}
+                </div>
+                <h3 className="font-display text-xl font-medium tracking-tight break-all sm:text-2xl">
+                  github.com/<span className="text-primary">D3strukt0r</span>
+                </h3>
+              </div>
             </div>
-          )}
-        </div>
-        <div className="ta-contrib">
-          {grid.map((week, wi) => (
-            // eslint-disable-next-line react/no-array-index-key -- contribution grid is a fixed-size weeks/days matrix; index is the position
-            <div key={wi} className="ta-cc-col">
-              {week.map((v, di) => (
-                // eslint-disable-next-line react/no-array-index-key -- contribution grid is a fixed-size weeks/days matrix; index is the position
-                <div key={di} className={`ta-cc-cell tl${v}`} />
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="ta-gh-legend">
-          <span>{t('github.weeks')}</span>
-          <div className="ta-legend-cells">
-            {[0, 1, 2, 3, 4].map((l) => <div key={l} className={`ta-cc-cell tl${l}`} />)}
+            {user && (
+              <div className="grid w-full grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:w-auto sm:gap-7">
+                <div className="text-center">
+                  <div className="font-display text-2xl font-medium">{user.public_repos}</div>
+                  <div className="font-mono text-2xs tracking-wide text-muted-foreground uppercase">{t('github.repos')}</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-display text-2xl font-medium">{user.followers}</div>
+                  <div className="font-mono text-2xs tracking-wide text-muted-foreground uppercase">{t('github.followers')}</div>
+                </div>
+                {contrib && (
+                  <div className="text-center">
+                    <div className="font-display text-2xl font-medium">{contrib.total}</div>
+                    <div className="font-mono text-2xs tracking-wide text-muted-foreground uppercase">{t('github.contributions')}</div>
+                  </div>
+                )}
+                <div className="text-center">
+                  <div className="font-display text-2xl font-medium">{user.created_at?.slice(0, 4)}</div>
+                  <div className="font-mono text-2xs tracking-wide text-muted-foreground uppercase">{t('github.joined')}</div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-    </section>
+          <div className="flex gap-[0.1875rem] overflow-x-auto pb-2">
+            {grid.map((week, wi) => (
+              // eslint-disable-next-line react/no-array-index-key -- contribution grid is a fixed-size weeks/days matrix; index is the position
+              <div key={wi} className="flex flex-col gap-[0.1875rem]">
+                {week.map((v, di) => (
+                  // eslint-disable-next-line react/no-array-index-key -- contribution grid is a fixed-size weeks/days matrix; index is the position
+                  <div key={di} className={cn('size-3 rounded-[0.1875rem] transition-colors duration-200', lvl[v])} />
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center gap-2 font-mono text-xs text-muted-foreground">
+            <span>{t('github.weeks')}</span>
+            {lvl.map((c, i) => (
+              // eslint-disable-next-line react/no-array-index-key -- legend cells are a fixed 5-level scale keyed by position
+              <div key={i} className={cn('size-2.5 rounded-[0.1875rem]', c)} />
+            ))}
+          </div>
+        </Card>
+      </Reveal>
+    </Section>
   );
 }
 
@@ -267,38 +337,38 @@ function Projects() {
     }));
 
   return (
-    <section id="work" className="ta-section">
-      <Heading num={t('work.num')} code={t('work.code')} title={t('work.title')} />
+    <Section id="work" className="py-20 md:py-28">
+      <SectionLabel num={t('work.num')} code={t('work.code')}>{t('work.title')}</SectionLabel>
       {!repos && (
-        <div className="ta-loading" data-reveal>{`> ${t('github.fetching')}`}</div>
+        <Reveal>
+          <div className="mb-5 font-mono text-xs text-muted-foreground">{`> ${t('github.fetching')}`}</div>
+        </Reveal>
       )}
-      <div className="ta-proj-grid">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {list.slice(0, 9).map((r, i) => (
-          <a
-            key={r.name}
-            href={r.url}
-            target="_blank"
-            rel="noreferrer"
-            className="ta-glass ta-proj cursor-hover"
-            data-reveal
-            data-delay={String(i % 3)}
-          >
-            <div className="ta-proj-idx">{String(i + 1).padStart(2, '0')}</div>
-            <div className="ta-proj-body">
-              <div className="ta-proj-name">
-                <span className="ta-dim">~/</span>{r.name}
-              </div>
-              <p className="ta-proj-desc">{r.desc || t('work.no_desc')}</p>
-              <div className="ta-proj-meta">
-                <span className="ta-chip">{r.lang ?? 'misc'}</span>
-                <span className="ta-dim">★ {r.stars}</span>
-                <span className="ta-proj-arrow">↗</span>
-              </div>
-            </div>
-          </a>
+          <Reveal key={r.name} delay={(i % 3) * 0.07}>
+            <a href={r.url} target="_blank" rel="noreferrer" className="group block h-full cursor-hover">
+              <Card glass hover className="flex h-full flex-col p-5">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="font-mono text-xs text-primary">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="min-w-0 truncate font-mono text-sm font-medium">
+                    <span className="text-muted-foreground">~/</span>{r.name}
+                  </span>
+                  <span className="ml-auto font-mono text-xs text-muted-foreground">★ {r.stars}</span>
+                </div>
+                <p className="mb-4 line-clamp-2 min-h-10 font-mono text-sm leading-relaxed text-muted-foreground">
+                  {r.desc || t('work.no_desc')}
+                </p>
+                <div className="mt-auto flex items-center gap-2">
+                  <Badge variant="mono">{r.lang ?? 'misc'}</Badge>
+                  <span className="ml-auto text-muted-foreground transition-transform duration-200 group-hover:translate-x-1" aria-hidden>↗</span>
+                </div>
+              </Card>
+            </a>
+          </Reveal>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }
 
@@ -306,9 +376,9 @@ function Experience() {
   const {t, i18n} = useTranslation();
   const de = i18n.resolvedLanguage === 'de';
   return (
-    <section className="ta-section">
-      <Heading num={t('career.num')} code={t('career.code')} title={t('career.title')} />
-      <div className="ta-exp">
+    <Section className="py-20 md:py-28">
+      <SectionLabel num={t('career.num')} code={t('career.code')}>{t('career.title')}</SectionLabel>
+      <div className="flex flex-col gap-3">
         {[...EXPERIENCE]
           .sort((a, b) => b.endKey.localeCompare(a.endKey))
           .slice(0, 3)
@@ -318,30 +388,32 @@ function Experience() {
             const loc = de ? e.locationDe : e.locationEn;
             const role = de ? e.roleDe : e.roleEn;
             return (
-              <div key={`${e.company}-${e.sortKey}-${e.endKey}`} className="ta-glass ta-exp-row cursor-hover" data-reveal data-delay={String(i % 4)}>
-                <div className="ta-exp-timestamp">[{e.period}]</div>
-                <div className="ta-exp-body">
-                  <div className="ta-exp-company">
-                    <Sealed value={e.company} onLockedClick={openLockModal} />
-                    {' '}
-                    <span className="ta-dim">/ {role}</span>
-                  </div>
-                  <div className="ta-exp-dur">
-                    {[dur, emp].filter(Boolean).join(' · ')}
-                    {(dur || emp) && loc ? ' · ' : ''}
-                    <Sealed value={loc} onLockedClick={openLockModal} />
-                  </div>
-                  {e.stack.length > 0 && (
-                    <div className="ta-exp-stack">
-                      {e.stack.map((s) => <span key={s} className="ta-chip sm">{s}</span>)}
+              <Reveal key={`${e.company}-${e.sortKey}-${e.endKey}`} delay={i * 0.08}>
+                <Card glass hover className="grid items-center gap-5 p-6 sm:grid-cols-[10rem_1fr]">
+                  <div className="font-mono text-sm text-primary">[{e.period}]</div>
+                  <div>
+                    <div className="font-display text-lg font-medium">
+                      <Sealed value={e.company} onLockedClick={openLockModal} />
+                      {' '}
+                      <span className="text-muted-foreground">/ {role}</span>
                     </div>
-                  )}
-                </div>
-              </div>
+                    <div className="mt-1 mb-3 font-mono text-xs text-muted-foreground">
+                      {[dur, emp].filter(Boolean).join(' · ')}
+                      {(dur || emp) && loc ? ' · ' : ''}
+                      <Sealed value={loc} onLockedClick={openLockModal} />
+                    </div>
+                    {e.stack.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {e.stack.map((s) => <Badge key={s} variant="secondary">{s}</Badge>)}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </Reveal>
             );
           })}
       </div>
-    </section>
+    </Section>
   );
 }
 
@@ -349,78 +421,105 @@ function Meta() {
   const {t, i18n} = useTranslation();
   const de = i18n.resolvedLanguage === 'de';
   return (
-    <section id="meta" className="ta-section">
-      <Heading num={t('meta_section.num')} code={t('meta_section.code')} title={t('meta_section.title')} />
-      <div className="ta-meta-grid">
-        <div className="ta-glass ta-meta-card">
-          <div className="ta-card-head">{t('meta_section.languages')}</div>
-          <div className="ta-lang-list">
-            {LANGUAGES.map((l) => (
-              <div key={l.nameDe} className="ta-lang-row">
-                <Flag code={l.flagCode} className="ta-lang-flag" />
-                <span className="ta-lang-name">{de ? l.nameDe : l.nameEn}</span>
-                <span className="ta-lang-level">{l.level}</span>
-                <span className="ta-lang-bars">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <span key={n} className={n <= l.stars ? 'on' : ''} />
-                  ))}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="ta-glass ta-meta-card">
-          <div className="ta-card-head">{t('meta_section.certificates')}</div>
-          <div className="ta-cert-list">
-            {CERTIFICATES.map((c) => (
-              <div key={c.nameDe} className="ta-cert-row">
-                <span className="ta-cert-year">{c.year}</span>
-                <div>
-                  <div className="ta-cert-name">{de ? c.nameDe : c.nameEn}</div>
-                  <div className="ta-dim ta-cert-issuer">↳ {de ? c.issuerDe : c.issuerEn}</div>
+    <Section id="meta" className="py-20 md:py-28">
+      <SectionLabel num={t('meta_section.num')} code={t('meta_section.code')}>{t('meta_section.title')}</SectionLabel>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Reveal>
+          <Card glass className="h-full p-6">
+            <div className="mb-4 font-mono text-xs text-primary">{t('meta_section.languages')}</div>
+            <div className="space-y-3">
+              {LANGUAGES.map((l) => (
+                <div key={l.nameDe} className="flex items-center gap-3">
+                  <Flag code={l.flagCode} className="ta-flag shrink-0" />
+                  <span className="font-mono text-sm">{de ? l.nameDe : l.nameEn}</span>
+                  <span className="ml-auto font-mono text-2xs text-muted-foreground">{l.level}</span>
+                  <span className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <span key={n} className={cn('h-3 w-1 rounded-sm', n <= l.stars ? 'bg-primary' : 'bg-border')} />
+                    ))}
+                  </span>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="ta-glass ta-meta-card">
-          <div className="ta-card-head">{t('meta_section.writing')}</div>
-          {posts.slice(0, 3).map((p) => (
-            <a key={p.slug} href={postUrl(p)} className="ta-blog-entry cursor-hover">
-              <div className="ta-blog-date">{p.date}</div>
-              <div className="ta-blog-name">{p.title}</div>
-            </a>
-          ))}
-          <div className="ta-writing-foot">
-            <a href="/blog" className="ta-link cursor-hover">{t('meta_section.open_blog')}</a>
-          </div>
-        </div>
+              ))}
+            </div>
+          </Card>
+        </Reveal>
+        <Reveal delay={0.08}>
+          <Card glass className="h-full p-6">
+            <div className="mb-4 font-mono text-xs text-primary">{t('meta_section.certificates')}</div>
+            <div className="space-y-3">
+              {CERTIFICATES.map((c) => (
+                <div key={c.nameDe} className="grid grid-cols-[2.75rem_1fr] gap-3 border-b border-dashed border-border pb-3 last:border-0 last:pb-0">
+                  <span className="font-mono text-sm text-primary">{c.year}</span>
+                  <div>
+                    <div className="font-display text-sm leading-snug font-medium">{de ? c.nameDe : c.nameEn}</div>
+                    <div className="mt-0.5 font-mono text-xs text-muted-foreground">↳ {de ? c.issuerDe : c.issuerEn}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </Reveal>
+        <Reveal delay={0.16}>
+          <Card glass className="flex h-full flex-col p-6">
+            <div className="mb-4 font-mono text-xs text-primary">{t('meta_section.writing')}</div>
+            <div className="space-y-3">
+              {posts.slice(0, 3).map((p) => (
+                <Link
+                  key={p.slug}
+                  to={postUrl(p)}
+                  className="block rounded-lg border border-border bg-muted/40 p-4 font-mono text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 cursor-hover"
+                >
+                  <div className="text-xs text-primary">{p.date}</div>
+                  <div className="mt-1 truncate">{p.title}</div>
+                  {p.excerpt && <div className="mt-1 line-clamp-1 text-muted-foreground">↳ {p.excerpt}</div>}
+                </Link>
+              ))}
+            </div>
+            <Button asChild variant="ghost" size="sm" className="mt-auto justify-start px-2 pt-4 font-mono text-primary">
+              <Link to="/blog">{t('meta_section.open_blog')}</Link>
+            </Button>
+          </Card>
+        </Reveal>
       </div>
-    </section>
+    </Section>
   );
 }
+
+// Outbound social buttons in the Contact section. `key` doubles as the
+// `SOCIALS` href field and the `contact.<key>` i18n label key.
+const CONTACT_SOCIALS = [
+  {key: 'github'},
+  {key: 'linkedin'},
+  {key: 'twitter'},
+] as const satisfies ReadonlyArray<{key: keyof typeof SOCIALS}>;
 
 function Contact() {
   const {t} = useTranslation();
   return (
-    <section id="contact" className="ta-section">
-      <div className="ta-glass ta-contact">
-        <div className="ta-hcode" data-reveal>
-          <span className="ta-dim">$</span> {t('contact.code')}
-        </div>
-        <h2 className="ta-h1" data-reveal data-delay="1">{t('contact.title')}</h2>
-        <p className="ta-contact-sub" data-reveal data-delay="2">{t('contact.sub')}</p>
-        <a href={`mailto:${SOCIALS.email}`} className="ta-email cursor-hover" data-reveal data-delay="3">
-          <span className="ta-dim">→</span> {SOCIALS.email}
-        </a>
-        <div className="ta-contact-socials">
-          <a href={SOCIALS.github} target="_blank" rel="noreferrer" className="ta-socbtn cursor-hover">{t('contact.github')}</a>
-          <a href={SOCIALS.linkedin} target="_blank" rel="noreferrer" className="ta-socbtn cursor-hover">{t('contact.linkedin')}</a>
-          <a href={SOCIALS.twitter} target="_blank" rel="noreferrer" className="ta-socbtn cursor-hover">{t('contact.twitter')}</a>
-        </div>
-      </div>
-    </section>
+    <Section id="contact" className="py-20 md:py-28">
+      <Reveal>
+        <Card glass className="p-10 text-center md:p-16">
+          <div className="font-mono text-sm text-muted-foreground"><span className="opacity-50">$</span> {t('contact.code')}</div>
+          <h2 className="mx-auto mt-4 max-w-2xl text-balance font-display text-4xl font-medium tracking-tight md:text-5xl">
+            {t('contact.title')}
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-muted-foreground">{t('contact.sub')}</p>
+          <div className="mt-8 flex flex-col items-center gap-5">
+            <Button asChild variant="gradient" size="lg" className="font-mono">
+              <a href={`mailto:${SOCIALS.email}`}>
+                <span aria-hidden className="opacity-70">→</span> {SOCIALS.email}
+              </a>
+            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              {CONTACT_SOCIALS.map((s) => (
+                <Button key={s.key} asChild variant="outline" size="sm">
+                  <a href={SOCIALS[s.key]} target="_blank" rel="noreferrer">{t(`contact.${s.key}`)}</a>
+                </Button>
+              ))}
+            </div>
+          </div>
+        </Card>
+      </Reveal>
+    </Section>
   );
 }

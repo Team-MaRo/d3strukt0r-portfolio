@@ -1,0 +1,107 @@
+// Global base layer: theme-flip transitions + accessibility-preference
+// blankets. Colour tokens themselves live in `_tokens.scss`; this file only
+// wires up the per-property cross-fade and the reduced-motion / reduced-
+// transparency fallbacks. Structural `.ta-*` chrome stays in the `terminal/`
+// partials.
+
+@use 'mixins' as *;
+
+html {
+  scrollbar-gutter: stable;
+  // Nav is fixed near the top — keep anchored jumps (TOC links, footnote refs,
+  // heading hash links) from landing behind it.
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: clip;
+  color: var(--foreground);
+  background: var(--background);
+  min-height: 100dvh;
+  // Body only transitions `background-color`. Putting `color` here makes every
+  // descendant with its own themed `color` + a transition stall — Chrome
+  // re-targets the descendant's animation each frame against body's animating
+  // inherited colour, trickling over ~2× the intended duration. Per-utility
+  // color transitions are declared in `@layer base` below.
+  transition: background-color var(--theme-transition) ease;
+}
+
+// Theme-flip transitions split into two groups, both in @layer base so any
+// Tailwind utility `transition-[…]` (in @layer utilities) overrides cleanly.
+//
+// 1. Elements with only `bg-*` / `border-*` themed classes (no `text-*`):
+//    transition `background-color` + `border-color` ONLY. Don't include
+//    `color` — these elements inherit colour, and an unnecessary `color`
+//    entry in their transition makes them animate inherited colour and stall
+//    their descendants.
+// 2. Elements with a themed `text-*` class: full transition list. This rule
+//    comes AFTER the `:is(…)` block so elements with both `text-*` and `bg-*`
+//    (e.g. a Button's `bg-primary text-primary-foreground`) win the cascade
+//    and get all three property transitions.
+//
+// Class names enumerated from the shadcn `--color-*` aliases in `tailwind.css`.
+@layer base {
+  :is(
+    .bg-background, .bg-card, .bg-popover,
+    .bg-primary, .bg-secondary, .bg-muted, .bg-accent,
+    .bg-destructive,
+    .border-border, .border-input, .border-primary
+  ) {
+    transition:
+      background-color var(--theme-transition) ease,
+      border-color     var(--theme-transition) ease;
+  }
+  .text-foreground, .text-card-foreground, .text-popover-foreground,
+  .text-primary, .text-primary-foreground,
+  .text-secondary-foreground, .text-muted-foreground,
+  .text-accent-foreground, .text-destructive {
+    transition:
+      color            var(--theme-transition) ease,
+      background-color var(--theme-transition) ease,
+      border-color     var(--theme-transition) ease;
+  }
+}
+
+// Honor OS / app accessibility preferences. Single blanket rule catches every
+// transition + animation across the app without per-component @media guards.
+// `0.01ms` (not `0s`) keeps `transitionend` / `animationend` listeners firing.
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Reduced transparency: drop all backdrop blur (glass cards, nav, terminal,
+// seal modal) and solidify translucent surfaces so page content never bleeds
+// through once the blur is gone. The glass tokens carry baked-in alpha
+// (color-mix … transparent), so flip them to fully opaque counterparts.
+@media (prefers-reduced-transparency: reduce) {
+  // Legacy glass tokens (still consumed by markdown-content Sass) solidify.
+  :root {
+    --glass:        var(--card);
+    --glass-strong: var(--card);
+  }
+
+  // Glass `@utility` surfaces (cards, nav, mobile menu) flip fully opaque so
+  // page content can't bleed through once the blur is gone.
+  .ta-glass,
+  .ta-glass-strong,
+  .ta-glass-nav {
+    background-color: var(--card) !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

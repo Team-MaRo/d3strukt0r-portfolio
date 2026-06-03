@@ -1,6 +1,10 @@
 meta:
   site_title: Manuele
   tagline: Full-Stack Web Developer
+brand:
+  name: 'Manueles Portfolio'
+  short_name: 'Manueles Portfolio'
+  description: 'Persönliches Portfolio von Manuele — Full-Stack Web Developer.'
 nav:
   about: "./about"
   stack: "./stack"
@@ -157,6 +161,12 @@ cv_page:
 fourohfour:
   title: "In der Leere verloren."
   sub: "Diese URL lässt sich nicht auflösen. Vielleicht ein alter Link, vielleicht ein Tippfehler — ab nach Hause."
+  home: "cd ~"
+error:
+  not_found_title: "In der Leere verloren."
+  not_found_sub: "Diese URL lässt sich nicht auflösen. Vielleicht ein alter Link, vielleicht ein Tippfehler — ab nach Hause."
+  title: "Etwas ist kaputtgegangen."
+  sub: "Ein unerwarteter Fehler ist aufgetreten. Das Terminal hat ihn protokolliert — geh zurück nach Hause und lade neu."
   home: "cd ~"
 seal:
   unlock: "Private Angaben entsperren"
