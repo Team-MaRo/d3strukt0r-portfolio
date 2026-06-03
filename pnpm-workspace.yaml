@@ -20,3 +20,12 @@ minimumReleaseAgeExclude:
   - '@cloudflare/vite-plugin@1.39.2'
   - miniflare@4.20260601.0
   - wrangler@4.97.0
+  - '@shikijs/core@4.2.0'
+  - '@shikijs/engine-javascript@4.2.0'
+  - '@shikijs/engine-oniguruma@4.2.0'
+  - '@shikijs/langs@4.2.0'
+  - '@shikijs/primitive@4.2.0'
+  - '@shikijs/themes@4.2.0'
+  - '@shikijs/types@4.2.0'
+  - i18next@26.3.1
+  - shiki@4.2.0

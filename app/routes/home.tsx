@@ -344,14 +344,14 @@ function Projects() {
           <div className="mb-5 font-mono text-xs text-muted-foreground">{`> ${t('github.fetching')}`}</div>
         </Reveal>
       )}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {list.slice(0, 9).map((r, i) => (
           <Reveal key={r.name} delay={(i % 3) * 0.07}>
             <a href={r.url} target="_blank" rel="noreferrer" className="group block h-full cursor-hover">
               <Card glass hover className="flex h-full flex-col p-5">
                 <div className="mb-2 flex items-center gap-2">
                   <span className="font-mono text-xs text-primary">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="truncate font-mono text-sm font-medium">
+                  <span className="min-w-0 truncate font-mono text-sm font-medium">
                     <span className="text-muted-foreground">~/</span>{r.name}
                   </span>
                   <span className="ml-auto font-mono text-xs text-muted-foreground">★ {r.stars}</span>
