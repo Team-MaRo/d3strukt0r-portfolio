@@ -1,17 +1,17 @@
 // Build-time encryption of sensitive fields and image assets.
 //
-// Two consumption modes, switched via the `SSR` env var (the same one
-// `react-router.config.ts` reads — defaults to true; GitHub Pages sets it
-// to `false` to opt into SPA output):
+// Two consumption modes, switched via the `SSR`/`CLOUDFLARE` env vars:
 //
-//   - SPA build (`SSR=false`, GitHub Pages): the data key is wrapped under
-//     each `REVEAL_PASSWORDS` entry at build time and the wrapped keys are
-//     baked into `virtual:sealed-secrets`. No server runs in production, so
-//     passwords MUST be known at build time (matches the legacy flow).
+//   - Build-time wrap (`SSR=false` GitHub Pages SPA, or `CLOUDFLARE=true` Cloudflare
+//     Workers): the data key is wrapped under each `REVEAL_PASSWORDS` entry at
+//     build time and the wrapped keys are baked into `virtual:sealed-secrets`.
+//     Pages has no server runtime; for Workers, baking keeps PBKDF2 off the
+//     Worker entirely (see build() below for the full rationale). Either way
+//     passwords MUST be known at build time.
 //
-//   - SSR build (default, e.g. the Docker image): `wrapped[]` is left empty
-//     in `virtual:sealed-secrets`. The data key is read from `SEAL_DATA_KEY`
-//     (so it isn't bundled into the image) and re-wrapped at server start by
+//   - Runtime wrap (default Node/Nix Docker SSR): `wrapped[]` is left empty in
+//     `virtual:sealed-secrets`. The data key is read from `SEAL_DATA_KEY` (so
+//     it isn't bundled into the image) and re-wrapped at server start by
 //     `app/lib/seal.server.ts` against `process.env.REVEAL_PASSWORDS`. This
 //     lets the operator rotate the password list with a container restart
 //     instead of a rebuild.
@@ -197,7 +197,24 @@ function resolveBuildPasswords(strict: boolean): string[] {
 }
 
 async function build(opts: Options, strict: boolean): Promise<BuildState> {
-  const isSpaBuild = process.env.SSR === 'false';
+  // Bake the wrapped data keys at build time for any target where runtime
+  // key-wrapping is undesirable or impossible:
+  //   - SPA build (SSR=false, GitHub Pages): no server runs in production.
+  //   - Cloudflare Workers (CLOUDFLARE=true): baking keeps the per-password
+  //     PBKDF2 (600k iters) off the Worker. Running it at runtime would (a)
+  //     require SEAL_DATA_KEY + REVEAL_PASSWORDS as Worker runtime secrets, and
+  //     (b) burn ~tens-of-ms CPU per password at each isolate's cold start,
+  //     against the Worker's tight per-invocation CPU budget (esp. the ~10ms
+  //     free tier). workerd also historically hard-capped PBKDF2 at 100k iters
+  //     (DOMNotSupportedError); that constant is gone from open-source workerd
+  //     (600k/1M run fine on local `wrangler dev`) — it's now a per-isolate
+  //     LimitEnforcer (checkPbkdfIterations) whose production-edge value isn't
+  //     public, so 600k may still be rejected at the edge. Baking sidesteps the
+  //     whole question — the root loader short-circuits (returns {wrapped:null})
+  //     when wrapped[] is non-empty, so seal.server.ts never runs on the Worker.
+  // Both need SEAL_DATA_KEY + REVEAL_PASSWORDS at BUILD time; neither needs
+  // them at runtime.
+  const bakeWrapped = process.env.SSR === 'false' || process.env.CLOUDFLARE === 'true';
 
   const dataKeyRaw = resolveDataKey(strict);
   const dataKey = await importDataKey(dataKeyRaw, ['encrypt']);
@@ -216,7 +233,7 @@ async function build(opts: Options, strict: boolean): Promise<BuildState> {
   // SSR build: leave wrapped[] empty; the runtime fills it in via
   // `app/lib/seal.server.ts` from process.env.REVEAL_PASSWORDS.
   const wrapped: CipherText[] = [];
-  if (isSpaBuild) {
+  if (bakeWrapped) {
     const passwords = resolveBuildPasswords(strict);
     for (const pw of passwords) {
       const kek = await deriveKEK(pw, salt, PBKDF2_ITER);

@@ -1,10 +1,21 @@
 {
+  // Primary app project (browser + SSR/SPA/Node builds). Editors and ESLint's
+  // typescript project service resolve against this. Deliberately excludes the
+  // Cloudflare Workers slice (workers/ + worker-configuration.d.ts) so the
+  // Workers runtime globals — worker-configuration.d.ts redeclares
+  // `fetch`/`Response`/etc. with Workers signatures — never clobber the DOM
+  // `fetch`/`Response` types the app relies on. The worker slice is checked on
+  // its own via tsconfig.cloudflare.json (see the `typecheck` script).
   "extends": "@iwf-web/tsconfig/react-strict/tsconfig.json",
   "include": [
     "**/*",
     "**/.server/**/*",
     "**/.client/**/*",
     ".react-router/types/**/*"
+  ],
+  "exclude": [
+    "workers",
+    "worker-configuration.d.ts"
   ],
   "compilerOptions": {
     "types": ["node", "vite/client"],

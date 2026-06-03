@@ -2,12 +2,13 @@ import type {Route} from './+types/root';
 import type {CipherText} from './lib/seal';
 import {useEffect} from 'react';
 import {I18nextProvider, useTranslation} from 'react-i18next';
-import {isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData, useLocation} from 'react-router';
+import {isRouteErrorResponse, Link, Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData, useLocation} from 'react-router';
 import {CustomCursor} from './components/CustomCursor';
 import {TaBg} from './components/TaBg';
 import {TaFooter} from './components/TaFooter';
 import {TaNav} from './components/TaNav';
 import {TaTerminal} from './components/TaTerminal';
+import {Card} from './components/ui/card';
 import {smoothScrollToAnchor} from './hooks/useInternalLinkNav';
 import {THEME_COLOR_DARK, THEME_COLOR_LIGHT, useTheme} from './hooks/useTheme';
 import {i18n} from './i18n';
@@ -153,14 +154,48 @@ export default function App() {
 }
 
 export function ErrorBoundary({error}: Route.ErrorBoundaryProps) {
-  const message = isRouteErrorResponse(error)
-    ? `${error.status} ${error.statusText}`
-    : error instanceof Error
-      ? error.message
-      : 'Unknown error';
+  const {t} = useTranslation();
+
+  // Mirror the example's logic: route error responses surface their status
+  // (404 gets a dedicated copy), every other thrown value is a generic 500.
+  // In dev only, an `Error` instance also exposes its message + stack so the
+  // failing call site is visible; production ships the friendly copy alone.
+  const isRouteError = isRouteErrorResponse(error);
+  const status = isRouteError ? error.status : 500;
+  const is404 = isRouteError && error.status === 404;
+
+  const title = is404 ? t('error.not_found_title') : t('error.title');
+  const sub = is404
+    ? t('error.not_found_sub')
+    : isRouteError && error.statusText
+      ? error.statusText
+      : t('error.sub');
+
+  const isDev = import.meta.env.DEV;
+  const details = isDev && error instanceof Error ? error.message : undefined;
+  const stack = isDev && error instanceof Error ? error.stack : undefined;
+
   return (
-    <main className="ta-err-main">
-      <h1>{message}</h1>
-    </main>
+    <section className="w-full pt-32 pb-20 md:pt-40">
+      <div className="container">
+        <Card glass className="px-6 py-20 text-center">
+          <div className="font-mono text-sm text-muted-foreground">
+            <span className="opacity-50">$</span> ./recover --status {status} ·{' '}
+            <span className="text-primary">{is404 ? 'not found' : 'error'}</span>
+          </div>
+          <h1 className="mt-4 font-display text-4xl font-medium tracking-tight md:text-5xl">{title}</h1>
+          <p className="mx-auto mt-4 max-w-lg text-muted-foreground">{sub}</p>
+          {details != null && <p className="mx-auto mt-4 max-w-lg font-mono text-xs text-muted-foreground">{details}</p>}
+          {stack != null && (
+            <pre className="ta-err-stack mx-auto mt-6 max-w-full overflow-auto rounded-lg p-4 text-left font-mono text-xs">
+              <code>{stack}</code>
+            </pre>
+          )}
+          <Link to="/" className="mt-6 inline-flex items-center gap-2 font-mono text-primary cursor-hover hover:underline">
+            <span aria-hidden>→</span> {t('error.home')}
+          </Link>
+        </Card>
+      </div>
+    </section>
   );
 }

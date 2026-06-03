@@ -1,5 +1,6 @@
 import {join} from 'node:path';
 import process from 'node:process';
+import {cloudflare} from '@cloudflare/vite-plugin';
 import ViteYaml from '@modyfi/vite-plugin-yaml';
 import {reactRouter} from '@react-router/dev/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -23,6 +24,11 @@ const WEB_MANIFEST_ICONS = [
 ] as const;
 
 const isVitest = process.env.VITEST === 'true';
+// Cloudflare Workers SSR target. Opt in with CLOUDFLARE=true (the build:cf /
+// dev:cf scripts set it; Cloudflare Workers Builds runs build:cf). Coexists
+// with the default Node/Nix SSR build and the SSR=false GitHub Pages SPA build
+// — neither sets CLOUDFLARE, so the plugin stays out of their pipeline.
+const isCloudflare = process.env.CLOUDFLARE === 'true';
 // SSR serves the SEO artifacts as runtime resource routes; only the SPA
 // (GitHub Pages) build emits them as static files (host known at build time).
 const isSpa = process.env.SSR === 'false';
@@ -41,6 +47,15 @@ const blogPosts = isSpa ? loadPosts(POSTS_DIR) : [];
 
 export default defineConfig({
   plugins: [
+    // Cloudflare Workers environment plugin. Must run first so it can register
+    // the `ssr` Vite environment before reactRouter() wires its server build
+    // into it. Gated on CLOUDFLARE=true, never active under Vitest (it clashes with
+    // the test environment, same as reactRouter()).
+    ...(isCloudflare && !isVitest
+      ? [
+          cloudflare({viteEnvironment: {name: 'ssr'}}),
+        ]
+      : []),
     seal({
       rootDir: process.cwd(),
       contentDir: join(process.cwd(), 'content', 'linkedin'),

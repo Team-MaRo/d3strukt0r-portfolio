@@ -2,6 +2,12 @@ node_modules/
 build/
 .react-router/
 
+# Cloudflare Workers — local wrangler state + generated worker types.
+.wrangler
+.dev.vars*
+worker-configuration.d.ts
+.mf
+
 # Nix build outputs — host-specific symlinks into /nix/store, never useful to commit.
 result
 result-*
