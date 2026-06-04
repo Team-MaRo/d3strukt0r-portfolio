@@ -13,7 +13,7 @@ Design is **Terminal Aurora** — glassmorphism (indigo/pink aurora blobs on nea
 
 ## Runtime
 
-- **Node 24** everywhere: `.devcontainer/`, every CI workflow that touches JS, the Nix runtime closure (`pkgs.nodejs-slim_24`), and `engines.node` in `package.json`. Bump all four together.
+- **Node 24** everywhere: `.nvmrc` (read by CI's `setup-node` via `node-version-file`, by Cloudflare Workers Builds, and by local nvm), `.devcontainer/` (`node:1` feature — does **not** read `.nvmrc`), the Nix runtime closure (`pkgs.nodejs-slim_24`), and `engines.node` in `package.json`. Bump all four together.
 - **React 19** + **React Router v7** (framework mode). `react-router.config.ts` reads `ssr: process.env.SSR !== 'false'` — defaults to **SSR on** (Docker image); the Pages workflow sets `SSR=false`.
 
 ## Commands
@@ -156,7 +156,7 @@ Emitted by Vite plugins (`vite.config.ts`), no separate postbuild:
 
 - **Hash routing is *not* used** — Pages relies on `404.html = index.html` SPA fallback; the SSR image resolves routes server-side.
 - **i18n arrays** — `t('hero.now', { returnObjects: true })`. Without the option you get the key back as a string.
-- **Node version bump** — touch all four spots in lockstep: `package.json:engines.node`, `flake.nix` (nodejs-slim + pnpm refs), every CI workflow that calls `actions/setup-node`, and `.devcontainer/devcontainer.json`'s `node:1` feature `version`. Bumping the nixpkgs channel is often the easier path.
+- **Node version bump** — touch all four spots in lockstep: `package.json:engines.node`, `flake.nix` (nodejs-slim + pnpm refs), `.nvmrc` (CI workflows read it via `node-version-file`; Cloudflare Workers Builds auto-detects it — no dashboard `NODE_VERSION` var needed), and `.devcontainer/devcontainer.json`'s `node:1` feature `version` (the devcontainer feature does **not** read `.nvmrc`). Bumping the nixpkgs channel is often the easier path.
 - **`pnpmDeps.hash`** — every `pnpm-lock.yaml` change needs a paired hash bump in `flake.nix`. `bump-pnpm-hash.yml` handles it on `master`/`develop`; `ci.yml`'s trivy job auto-heals in-memory. For local manual `pnpm add`/`update`, run `./.github/scripts/bump-pnpm-hash.sh`.
 - **`--impure` is required for `nix build`** — `flake.nix` reads `SEAL_DATA_KEY` and `DOCKER_LABELS_JSON` via `builtins.getEnv`. Without `--impure` both come back empty and the build silently produces a broken bundle.
 - **`d3strukt0rs-portfolio` is in `streamLayeredImage.contents`** — only safe because its `installPhase` nests output under `$out/opt/d3strukt0rs-portfolio/`. dockerTools symlinks every top-level path of each contents package into rootfs; don't move files back to `$out/` root.
