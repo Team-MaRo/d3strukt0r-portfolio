@@ -10,7 +10,8 @@ import {SealedImage} from '~/components/SealedImage';
 import {Badge} from '~/components/ui/badge';
 import {Card} from '~/components/ui/card';
 import {useInternalLinkNav} from '~/hooks/useInternalLinkNav';
-import {CERTIFICATES, EXPERIENCE, LANGUAGES} from '~/lib/linkedin';
+import {useNow} from '~/hooks/useNow';
+import {CERTIFICATES, EXPERIENCE, formatDuration, LANGUAGES} from '~/lib/linkedin';
 import {openLockModal} from '~/lib/seal-modal';
 import {QUALIFICATIONS, SOCIALS} from '~/lib/site';
 import {cn} from '~/lib/utils';
@@ -63,6 +64,7 @@ function SkillRow({name, children}: {name: string; children: ReactNode}) {
 export default function CV() {
   const {t, i18n} = useTranslation();
   const de = i18n.resolvedLanguage === 'de';
+  const now = useNow();
   const timelineRef = useRef<HTMLDivElement>(null);
   useInternalLinkNav(timelineRef);
 
@@ -124,7 +126,7 @@ export default function CV() {
 
         <div ref={timelineRef} className="flex flex-col gap-3">
           {EXPERIENCE.map((e, i) => {
-            const dur = de ? e.durationDe : e.durationEn;
+            const dur = formatDuration(e.startedOn, e.finishedOn, de ? 'de' : 'en', now);
             const emp = de ? e.employmentTypeDe : e.employmentTypeEn;
             const loc = de ? e.locationDe : e.locationEn;
             const role = de ? e.roleDe : e.roleEn;

@@ -31,9 +31,14 @@ import './styles/main.scss';
 // misconfigured deployment instead fails at the first SSR request (the
 // import resolves, seal.server's module-init runs, the synchronous env
 // check throws, the loader rejects, the request 500s with the seal error).
-export async function loader(): Promise<{wrapped: CipherText[] | null}> {
+export async function loader(): Promise<{wrapped: CipherText[] | null; now: number}> {
+  // Request-time "now", serialized to the client so render-time durations/dates
+  // match across server and client (see `app/hooks/useNow.ts`). Read here in
+  // the loader's request context — on Cloudflare the clock is only frozen
+  // during module-init, not during request handling.
+  const now = Date.now();
   if (!import.meta.env.SSR) {
-    return {wrapped: null};
+    return {wrapped: null, now};
   }
   // SPA builds (`ssr: false`) still invoke this loader once during
   // index.html prerender with `import.meta.env.SSR === true`. In that
@@ -43,10 +48,10 @@ export async function loader(): Promise<{wrapped: CipherText[] | null}> {
   // a non-empty build-time `secrets.wrapped` and skip runtime wrap.
   const {default: secrets} = await import('virtual:sealed-secrets');
   if (secrets.wrapped.length > 0) {
-    return {wrapped: null};
+    return {wrapped: null, now};
   }
   const {getWrappedKeys} = await import('./lib/seal.server');
-  return {wrapped: await getWrappedKeys()};
+  return {wrapped: await getWrappedKeys(), now};
 }
 
 export const links: Route.LinksFunction = () => [
