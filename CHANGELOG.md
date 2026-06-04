@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.0...1.1.1) (2026-06-04)
+
+
+### 🐛 Bug Fixes
+
+* detect language per-request to stop SSR hydration mismatch ([d0aab41](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/d0aab41686b165f6643402077173235b607121fe))
+* keep unprefixed backdrop-filter in the production build ([f2c5d2d](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/f2c5d2da0047d4f38e907aabaf614fbde4646452))
+
 ## [1.1.0](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.0.1...1.1.0) (2026-06-03)
 
 
