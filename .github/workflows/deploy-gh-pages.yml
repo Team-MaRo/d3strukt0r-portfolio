@@ -39,28 +39,41 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
-      # Authoritative source for the deployed hostname. Vite's sitemap +
-      # robots plugins read SITE_HOST; fail fast if Settings → Pages →
-      # Custom domain isn't configured rather than silently shipping a
-      # sitemap pointing at localhost.
-      - name: Read Pages custom domain
-        id: pages_cname
+      # Resolve the deployed host + base path from the Pages API. Vite's `base`
+      # and the sitemap/robots plugins read SITE_HOST / BASE_PATH. A custom
+      # domain serves at the root; without one, Pages serves the project at
+      # https://<owner>.github.io/<repo>/, so derive the sub-path from html_url
+      # rather than failing on a null cname.
+      - name: Read Pages URL
+        id: pages
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          CNAME=$(gh api "repos/${{ github.repository }}/pages" --jq '.cname')
-          if [ -z "$CNAME" ] || [ "$CNAME" = "null" ]; then
-            echo "::error::Pages API returned no custom domain. Set one in Settings → Pages → Custom domain."
-            exit 1
+          PAGES=$(gh api "repos/${{ github.repository }}/pages")
+          CNAME=$(echo "$PAGES" | jq -r '.cname // ""')
+          HTML_URL=$(echo "$PAGES" | jq -r '.html_url')
+          if [ -n "$CNAME" ] && [ "$CNAME" != "null" ]; then
+            SITE_HOST="$CNAME"
+            BASE_PATH="/"
+          else
+            tmp="${HTML_URL#*://}"
+            SITE_HOST="${tmp%%/*}"
+            BASE_PATH="${tmp#"$SITE_HOST"}"
+            [ -z "$BASE_PATH" ] && BASE_PATH="/"
+            case "$BASE_PATH" in /*) ;; *) BASE_PATH="/$BASE_PATH" ;; esac
+            case "$BASE_PATH" in */) ;; *) BASE_PATH="$BASE_PATH/" ;; esac
           fi
-          echo "site_host=$CNAME" >> "$GITHUB_OUTPUT"
+          echo "site_host=$SITE_HOST" >> "$GITHUB_OUTPUT"
+          echo "base_path=$BASE_PATH" >> "$GITHUB_OUTPUT"
+          echo "Resolved SITE_HOST=$SITE_HOST BASE_PATH=$BASE_PATH"
 
       - name: Build (SPA / static)
         run: pnpm run build
         env:
           SSR: 'false'
-          SITE_HOST: ${{ steps.pages_cname.outputs.site_host }}
+          SITE_HOST: ${{ steps.pages.outputs.site_host }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
           SEAL_DATA_KEY: ${{ secrets.SEAL_DATA_KEY }}
           REVEAL_PASSWORDS: ${{ secrets.REVEAL_PASSWORDS }}
 
