@@ -78,18 +78,28 @@ function parseYm(ym: string | null): {y: number; m: number} | null {
   return {y, m: m != null && m !== 0 ? m : 1};
 }
 
-function duration(
+// `nowMs` is the request-time "now" stamped by the root loader and serialized
+// to the client (see `app/hooks/useNow.ts`). It MUST be passed in, never read
+// from `new Date()` here: this runs while `EXPERIENCE` is consumed at render,
+// and an ongoing position's end date has to be identical on server and client
+// or hydration mismatches (React #418). Computing it at module-load with
+// `new Date()` was the prod-only bug — Cloudflare Workers freeze the clock
+// during global-scope evaluation, so the server's module-init `new Date()` was
+// skewed vs the client's real clock. UTC getters keep the year/month identical
+// regardless of the runtime's timezone.
+export function formatDuration(
   startedOn: string | null,
   finishedOn: string | null,
   locale: 'en' | 'de',
+  nowMs: number,
 ): string {
   const s = parseYm(startedOn);
   if (!s) {
     return '';
   }
   const end = parseYm(finishedOn) ?? (() => {
-    const d = new Date();
-    return {y: d.getFullYear(), m: d.getMonth() + 1};
+    const d = new Date(nowMs);
+    return {y: d.getUTCFullYear(), m: d.getUTCMonth() + 1};
   })();
   let months = (end.y - s.y) * 12 + (end.m - s.m) + 1;
   if (months < 1) {
@@ -118,12 +128,15 @@ export interface ExpEntry {
   period: string;
   sortKey: string;
   endKey: string;
+  // Raw start/end (YYYY-MM[-DD] or null). Consumers compute the live duration
+  // at render via `formatDuration(startedOn, finishedOn, locale, now)` — never
+  // precomputed here (would freeze a module-load `new Date()`; see formatDuration).
+  startedOn: string | null;
+  finishedOn: string | null;
   roleEn: string;
   roleDe: string;
   locationEn: string;
   locationDe: string;
-  durationEn: string;
-  durationDe: string;
   employmentTypeEn: string;
   employmentTypeDe: string;
   stack: string[];
@@ -139,12 +152,12 @@ const POSITION_ENTRIES: ExpEntry[] = positions.map((p, i) => {
     period: period(p.startedOn, p.finishedOn),
     sortKey: p.startedOn ?? '',
     endKey: p.finishedOn ?? '9999',
+    startedOn: p.startedOn,
+    finishedOn: p.finishedOn,
     roleDe: p.titleDe ?? p.title,
     roleEn: p.titleEn ?? pickStr(en, p, 'title'),
     locationDe: p.location,
     locationEn: pickStr(en, p, 'location'),
-    durationDe: duration(p.startedOn, p.finishedOn, 'de'),
-    durationEn: duration(p.startedOn, p.finishedOn, 'en'),
     employmentTypeDe: (p.employmentTypeDe ?? en?.employmentTypeDe ?? p.employmentType ?? en?.employmentType ?? ''),
     employmentTypeEn: (en?.employmentType ?? p.employmentType ?? ''),
     stack: (en?.stack ?? p.stack ?? []),
@@ -161,12 +174,12 @@ const EDUCATION_ENTRIES: ExpEntry[] = education.map((e, i) => {
     period: period(e.startedOn, e.finishedOn),
     sortKey: e.startedOn ?? '',
     endKey: e.finishedOn ?? '9999',
+    startedOn: e.startedOn,
+    finishedOn: e.finishedOn,
     roleDe: e.degree,
     roleEn: pickStr(en, e, 'degree'),
     locationDe: e.location ?? '',
     locationEn: (en?.location ?? e.location ?? ''),
-    durationDe: duration(e.startedOn, e.finishedOn, 'de'),
-    durationEn: duration(e.startedOn, e.finishedOn, 'en'),
     employmentTypeDe: '',
     employmentTypeEn: '',
     stack: [],

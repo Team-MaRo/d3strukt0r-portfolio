@@ -1,7 +1,7 @@
 import type {Route} from './+types/root';
 import type {CipherText} from './lib/seal';
 import {useEffect} from 'react';
-import {I18nextProvider, useTranslation} from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import {isRouteErrorResponse, Link, Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData, useLocation} from 'react-router';
 import {CustomCursor} from './components/CustomCursor';
 import {TaBg} from './components/TaBg';
@@ -11,7 +11,7 @@ import {TaTerminal} from './components/TaTerminal';
 import {Card} from './components/ui/card';
 import {smoothScrollToAnchor} from './hooks/useInternalLinkNav';
 import {THEME_COLOR_DARK, THEME_COLOR_LIGHT, useTheme} from './hooks/useTheme';
-import {i18n} from './i18n';
+import {isLang, LANG_STORAGE} from './i18n-config';
 import {setWrapped} from './lib/seal';
 
 import './styles/tailwind.css';
@@ -31,9 +31,14 @@ import './styles/main.scss';
 // misconfigured deployment instead fails at the first SSR request (the
 // import resolves, seal.server's module-init runs, the synchronous env
 // check throws, the loader rejects, the request 500s with the seal error).
-export async function loader(): Promise<{wrapped: CipherText[] | null}> {
+export async function loader(): Promise<{wrapped: CipherText[] | null; now: number}> {
+  // Request-time "now", serialized to the client so render-time durations/dates
+  // match across server and client (see `app/hooks/useNow.ts`). Read here in
+  // the loader's request context — on Cloudflare the clock is only frozen
+  // during module-init, not during request handling.
+  const now = Date.now();
   if (!import.meta.env.SSR) {
-    return {wrapped: null};
+    return {wrapped: null, now};
   }
   // SPA builds (`ssr: false`) still invoke this loader once during
   // index.html prerender with `import.meta.env.SSR === true`. In that
@@ -43,10 +48,10 @@ export async function loader(): Promise<{wrapped: CipherText[] | null}> {
   // a non-empty build-time `secrets.wrapped` and skip runtime wrap.
   const {default: secrets} = await import('virtual:sealed-secrets');
   if (secrets.wrapped.length > 0) {
-    return {wrapped: null};
+    return {wrapped: null, now};
   }
   const {getWrappedKeys} = await import('./lib/seal.server');
-  return {wrapped: await getWrappedKeys()};
+  return {wrapped: await getWrappedKeys(), now};
 }
 
 export const links: Route.LinksFunction = () => [
@@ -83,8 +88,14 @@ export const links: Route.LinksFunction = () => [
 const themeBootstrap = `(function(){try{var k='d3strukt0rs-portfolio:theme';var s=localStorage.getItem(k);var t=(s==='light'||s==='dark')?s:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.classList.add(t,'js');var c=t==='dark'?'${THEME_COLOR_DARK}':'${THEME_COLOR_LIGHT}';document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.setAttribute('content',c);});}catch(e){document.documentElement.classList.add('dark','js');}})();`;
 
 export function Layout({children}: {children: React.ReactNode}) {
+  // Provider lives in the entry files (above the router), so `useTranslation`
+  // resolves here. `lang` tracks the rendered language: on the server it's the
+  // request-detected language, on the client's first paint it's the same value
+  // (entry.client seeds i18n from this very attribute), and it updates live
+  // when the user switches.
+  const {i18n} = useTranslation();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={i18n.language} suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -104,7 +115,7 @@ export function Layout({children}: {children: React.ReactNode}) {
         <Links />
       </head>
       <body suppressHydrationWarning>
-        <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -125,8 +136,23 @@ export default function App() {
     setWrapped(data.wrapped);
   }
   useEffect(() => {
-    document.documentElement.lang = i18n.resolvedLanguage ?? 'en';
-  }, [i18n.resolvedLanguage]);
+    // One-shot reconcile to the stored preference. The server renders the
+    // language from the `lng` cookie / Accept-Language, which normally already
+    // equals the user's choice. In the rare case it doesn't (e.g. a stored
+    // pref with no cookie yet on a browser whose Accept-Language differs), this
+    // switches after hydration — a tolerated re-render, never a #418 — and the
+    // detector writes the `lng` cookie so the next SSR is correct.
+    try {
+      const stored = localStorage.getItem(LANG_STORAGE);
+      if (isLang(stored) && stored !== i18n.language) {
+        void i18n.changeLanguage(stored);
+      }
+    } catch {
+      // localStorage may throw in private mode / sandboxed contexts; ignore.
+    }
+    // Mount-only: reconcile once, then leave language to user actions.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     if (!loc.hash) {
       return;

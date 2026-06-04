@@ -12,8 +12,9 @@ import {Button} from '~/components/ui/button';
 import {Card} from '~/components/ui/card';
 import {Separator} from '~/components/ui/separator';
 import {useContribGraph, useContributions, useGithubRepos, useGithubUser} from '~/hooks/useGithub';
+import {useNow} from '~/hooks/useNow';
 import {posts, postUrl} from '~/lib/content';
-import {CERTIFICATES, EXPERIENCE, LANGUAGES} from '~/lib/linkedin';
+import {CERTIFICATES, EXPERIENCE, formatDuration, LANGUAGES} from '~/lib/linkedin';
 import {openLockModal} from '~/lib/seal-modal';
 import {PROJECTS_FALLBACK, SKILL_GROUPS, SOCIALS, STATS} from '~/lib/site';
 import {cn} from '~/lib/utils';
@@ -88,7 +89,7 @@ function Hero() {
     return () => window.clearInterval(id);
   }, [full]);
 
-  const date = new Date().toISOString().slice(0, 10);
+  const date = new Date(useNow()).toISOString().slice(0, 10);
 
   return (
     <Section id="top" className="pt-32 pb-16 md:pt-40 md:pb-20">
@@ -375,6 +376,7 @@ function Projects() {
 function Experience() {
   const {t, i18n} = useTranslation();
   const de = i18n.resolvedLanguage === 'de';
+  const now = useNow();
   return (
     <Section className="py-20 md:py-28">
       <SectionLabel num={t('career.num')} code={t('career.code')}>{t('career.title')}</SectionLabel>
@@ -383,7 +385,7 @@ function Experience() {
           .sort((a, b) => b.endKey.localeCompare(a.endKey))
           .slice(0, 3)
           .map((e, i) => {
-            const dur = de ? e.durationDe : e.durationEn;
+            const dur = formatDuration(e.startedOn, e.finishedOn, de ? 'de' : 'en', now);
             const emp = de ? e.employmentTypeDe : e.employmentTypeEn;
             const loc = de ? e.locationDe : e.locationEn;
             const role = de ? e.roleDe : e.roleEn;
