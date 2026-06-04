@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.1](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.0...1.1.1) (2026-06-04)
+
+
+### 🐛 Bug Fixes
+
+* compute experience durations from a request-time now to stop SSR hydration mismatch ([38fe7fa](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/38fe7fadc898dfe6274107b0c6fca354f62bc492))
+* detect language per-request to stop SSR hydration mismatch ([5eacaf9](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/5eacaf9268e6477abb6a8a485999c8f1aa4eae2e))
+* keep unprefixed backdrop-filter in the production build ([7939abc](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/7939abcb633d94d0edbcc46b9a138693ac24a1e7))
+
 ## [1.1.0](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.0.1...1.1.0) (2026-06-03)
 
 
