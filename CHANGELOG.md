@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.1...1.1.2) (2026-06-08)
+
+
+### 🐛 Bug Fixes
+
+* support GitHub Pages project sub-path deploys ([67293ba](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/67293bafb310e94c5e5c1413cf5fccd8e8b5a899))
+* Update to new repo location & use new central Vagrantbox ([24304e0](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/24304e0f004b8f635b87bac57a0d8de2f853ff17))
+
+
+### 📚 Documentation
+
+* Add note about keep a changelog ([2460cbc](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/2460cbc4a4a7cb4a0d4246fbf0c4af2841e160fa))
+
 ## [1.1.1](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.0...1.1.1) (2026-06-04)
 
 
