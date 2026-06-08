@@ -31,6 +31,10 @@ interface Options {
   // Icon set, shared with the favicon rasteriser via `vite.config.ts` so the
   // PWA icons and the emitted rasters stay in lockstep.
   icons: readonly ManifestIcon[];
+  // Deployment base path (Vite `base`), ending in `/`. `/` for the root-served
+  // builds, `/<repo>/` for the GitHub Pages sub-path build. Prefixes icon srcs
+  // and sets start_url/scope/id so the PWA resolves correctly under a sub-path.
+  base?: string;
 }
 
 // Emits the PWA web app manifest at build time and serves it from
@@ -42,6 +46,7 @@ interface Options {
 // as JSON, and logs `Manifest: Line: 1, column: 1, Syntax error.`
 export function webManifest(opts: Options): Plugin {
   const {locale, out, keys, manifest: staticFields, icons} = opts;
+  const base = opts.base !== undefined && opts.base !== '' ? opts.base : '/';
   const route = `/${out}`;
 
   function buildManifest(): string {
@@ -56,9 +61,14 @@ export function webManifest(opts: Options): Plugin {
       name,
       ...(typeof shortName === 'string' && shortName !== '' ? {short_name: shortName} : {}),
       ...(typeof description === 'string' && description !== '' ? {description} : {}),
+      // Scope the PWA to the deployment base so install + navigation work under
+      // a project sub-path (and stay `/` for root deploys).
+      id: base,
+      start_url: base,
+      scope: base,
       ...staticFields,
       icons: icons.map((icon) => ({
-        src: `/${icon.out}`,
+        src: `${base}${icon.out}`,
         sizes: `${icon.size}x${icon.size}`,
         type: 'image/png',
         ...(icon.purpose === undefined ? {} : {purpose: icon.purpose}),

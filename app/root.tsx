@@ -54,20 +54,26 @@ export async function loader(): Promise<{wrapped: CipherText[] | null; now: numb
   return {wrapped: await getWrappedKeys(), now};
 }
 
-export const links: Route.LinksFunction = () => [
-  {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
-  {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap',
-  },
-  {rel: 'icon', type: 'image/png', sizes: '96x96', href: '/favicon-96x96.png'},
-  {rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg'},
-  {rel: 'shortcut icon', href: '/favicon.ico'},
-  {rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png'},
-  {rel: 'manifest', href: '/site.webmanifest'},
-  {rel: 'alternate', type: 'application/atom+xml', title: 'Manuele', href: '/atom.xml'},
-];
+export const links: Route.LinksFunction = () => {
+  // Vite's base (ends in `/`): `/` for the root-served Cloudflare/Docker builds,
+  // `/<repo>/` for the GitHub Pages sub-path build. Prefix every same-origin
+  // asset href with it so they resolve under a project sub-path.
+  const base = import.meta.env.BASE_URL;
+  return [
+    {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
+    {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap',
+    },
+    {rel: 'icon', type: 'image/png', sizes: '96x96', href: `${base}favicon-96x96.png`},
+    {rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg`},
+    {rel: 'shortcut icon', href: `${base}favicon.ico`},
+    {rel: 'apple-touch-icon', sizes: '180x180', href: `${base}apple-touch-icon.png`},
+    {rel: 'manifest', href: `${base}site.webmanifest`},
+    {rel: 'alternate', type: 'application/atom+xml', title: 'Manuele', href: `${base}atom.xml`},
+  ];
+};
 
 // Pre-hydration bootstrap. Runs in <head> before stylesheets evaluate — writes
 // to <html> (`document.documentElement`) because <body> doesn't exist yet

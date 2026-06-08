@@ -1,0 +1,77 @@
+# VM-only stack used by Vagrant. Brings up Traefik on :443 with the local
+# mkcert cert so https://d3strukt0r.test routes to the dev container
+# (Vite running inside `nix develop`).
+#
+# This file is the dist/template; the Vagrantfile copies it to
+# `compose.vm.yml` on first boot. Edit `compose.vm.yml` (gitignored) for
+# local customisation, or this file for project-wide changes.
+#
+# Bring it up: docker compose -f compose.vm.yml up
+
+services:
+  dev:
+    image: nixos/nix
+    container_name: d3strukt0rs-portfolio-dev
+    working_dir: /opt/d3strukt0rs-portfolio
+    command:
+      - nix
+      - --extra-experimental-features
+      - nix-command flakes
+      - develop
+      - --command
+      - sh
+      - -c
+      - pnpm install && pnpm run dev --host 0.0.0.0
+    volumes:
+      - .:/opt/d3strukt0rs-portfolio
+      - node_modules:/opt/d3strukt0rs-portfolio/node_modules
+      # Persist the nix store across container restarts so devShell realisation
+      # only happens once.
+      - nix-store:/nix
+    environment:
+      NODE_ENV: development
+      # Lets pnpm purge node_modules non-interactively when the persisted
+      # volume's layout disagrees with the current lockfile (no TTY here).
+      CI: "true"
+      REVEAL_PASSWORDS: hello
+    depends_on: [traefik]
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.dev.entrypoints: websecure
+      traefik.http.routers.dev.rule: Host(`d3strukt0r.test`)
+      traefik.http.routers.dev.tls: 'true'
+      traefik.http.services.dev.loadbalancer.server.port: '5173'
+
+  traefik:
+    image: traefik
+    init: true
+    command:
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.directory=/etc/traefik/dynamic_conf
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --entrypoints.websecure.address=:443
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./.docker/certs:/etc/ssl/certs/local:ro
+      - ./.docker/rootfs-local/traefik/etc/traefik/dynamic_conf/conf.yml:/etc/traefik/dynamic_conf/conf.yml:ro
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.traefik.entrypoints: websecure
+      traefik.http.routers.traefik.rule: Host(`traefik.d3strukt0r.test`)
+      traefik.http.routers.traefik.tls: 'true'
+      traefik.http.routers.traefik.service: api@internal
+
+volumes:
+  node_modules:
+  nix-store:
