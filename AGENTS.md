@@ -7,7 +7,7 @@ This file provides guidance to AI coding agents when working with code in this r
 Personal website for Manuele at https://d3strukt0r.dev. **React Router v7** (Remix successor) app shipped two ways from one codebase:
 
 1. **GitHub Pages** — `SSR=false pnpm run build` → static SPA in `build/client/`; `actions/deploy-pages` publishes it. Default production deploy.
-2. **Docker Hub image** `d3strukt0r/d3strukt0r.github.io` — SSR via `react-router-serve`, packaged as a **Nix-built OCI image** (no Dockerfile). For self-hosting.
+2. **Docker Hub image** `d3strukt0r/portfolio` — SSR via `react-router-serve`, packaged as a **Nix-built OCI image** (no Dockerfile). For self-hosting.
 
 Design is **Terminal Aurora** — glassmorphism (indigo/pink aurora blobs on near-black, JetBrains Mono / Space Grotesk / Inter, frosted glass cards, custom cursor, EN/DE + dark/light toggles, terminal easter egg).
 

@@ -46,3 +46,9 @@ folder:
   #smb:
   #  username:
   #  password:
+
+docker:
+  login: true
+  compose_file: compose.vm.yml
+  pull: true
+  build: true

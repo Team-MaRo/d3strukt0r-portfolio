@@ -2,7 +2,7 @@
 
 Personal portfolio site for [Manuele](https://github.com/D3strukt0r) — React Router v7 (Remix successor), Tailwind v4, Sass, Node 24. Shipped two ways: GitHub Pages (SPA) and a Docker image (SSR via `react-router-serve`).
 
-[![License](https://img.shields.io/github/license/d3strukt0r/d3strukt0r.github.io?label=License)](LICENSE.txt)
+[![License](https://img.shields.io/github/license/Team-MaRo/d3strukt0r-portfolio?label=License)](LICENSE.txt)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa)][code-of-conduct]
 [![Docker Stars](https://img.shields.io/docker/stars/d3strukt0r/portfolio)][docker]
 [![Docker Pulls](https://img.shields.io/docker/pulls/d3strukt0r/portfolio)][docker]
@@ -114,8 +114,8 @@ Or use the included devcontainer (`.devcontainer/devcontainer.json`) — works i
 ### Setup
 
 ```shell
-git clone git@github.com:D3strukt0r/d3strukt0r.github.io.git
-cd d3strukt0r.github.io
+git clone git@github.com:Team-MaRo/d3strukt0r-portfolio.git
+cd d3strukt0r-portfolio
 pnpm install
 pnpm run dev
 ```
@@ -229,7 +229,7 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 This project currently uses no third-party libraries or copied code.
 
 [docker]: https://hub.docker.com/r/d3strukt0r/portfolio
-[gh-tags]: https://github.com/D3strukt0r/d3strukt0r.github.io/tags
-[gh-contributors]: https://github.com/D3strukt0r/d3strukt0r.github.io/contributors
-[contributing]: https://github.com/D3strukt0r/.github/blob/master/CONTRIBUTING.md
-[code-of-conduct]: https://github.com/D3strukt0r/.github/blob/master/CODE_OF_CONDUCT.md
+[gh-tags]: https://github.com/Team-MaRo/d3strukt0r-portfolio/tags
+[gh-contributors]: https://github.com/Team-MaRo/d3strukt0r-portfolio/contributors
+[contributing]: https://github.com/Team-MaRo/.github/blob/master/CONTRIBUTING.md
+[code-of-conduct]: https://github.com/Team-MaRo/.github/blob/master/CODE_OF_CONDUCT.md

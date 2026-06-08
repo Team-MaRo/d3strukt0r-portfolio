@@ -43,3 +43,9 @@ updates:
       interval: weekly
       time: '09:30'
       timezone: Europe/Zurich
+    # Bundle all flake inputs (nixpkgs, nix-utils, ...) into a single PR so the
+    # lock file is updated once per run instead of one PR per input.
+    groups:
+      flake:
+        patterns:
+          - "*"
