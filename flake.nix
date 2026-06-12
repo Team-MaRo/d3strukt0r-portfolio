@@ -42,13 +42,15 @@
 
             nativeBuildInputs = [
               pkgs.nodejs-slim_24
-              pkgs.pnpm_10.configHook
+              pkgs.pnpm_10
+              pkgs.pnpmConfigHook
             ];
 
-            pnpmDeps = pkgs.pnpm_10.fetchDeps {
+            pnpmDeps = pkgs.fetchPnpmDeps {
               inherit (finalAttrs) pname version src;
-              fetcherVersion = 2;
-              hash = "sha256-UjY1AffahuNrfQqqzwButwxv9p5pvFQ19wUoh/5R0qc=";
+              pnpm = pkgs.pnpm_10;
+              fetcherVersion = 3;
+              hash = "sha256-JIpfG62i3xeuMg7vO3fmrO66Glx9ol0QgMTpUmCDBpo=";
             };
 
             SEAL_DATA_KEY = builtins.getEnv "SEAL_DATA_KEY";
@@ -99,7 +101,7 @@
 
           inherit (nix-utils.lib.oci) secondsToNanos createdFromDate;
 
-          fixHistoryScript = nix-utils.packages.${pkgs.system}.fixOciImageHistory;
+          fixHistoryScript = nix-utils.packages.${pkgs.stdenv.hostPlatform.system}.fixOciImageHistory;
 
           # Healthcheck only hits localhost over plain HTTP, so strip
           # everything but TLS. `curlMinimal` upstream still keeps gss + scp
