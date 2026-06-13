@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.2...1.1.3) (2026-06-13)
+
+
+### 🐛 Bug Fixes
+
+* **security:** patch esbuild path traversal, suppress unactionable nix CVEs ([6e5a862](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/6e5a8623375cee507a1c895ca8edf357c8d00a2f))
+
 ## [1.1.2](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.1...1.1.2) (2026-06-08)
 
 
