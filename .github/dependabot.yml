@@ -13,7 +13,8 @@ updates:
     labels:
       - "dependabot :robot:"
     schedule:
-      interval: weekly # on monday
+      interval: weekly
+      day: monday # required: weekly does NOT default to Monday for already-onboarded repos (GitHub keeps the repo's original slot — here Friday). Do not remove.
       time: '09:30'
       timezone: Europe/Zurich
 
@@ -24,6 +25,7 @@ updates:
       - "dependabot :robot:"
     schedule:
       interval: weekly
+      day: monday # keep in sync with github-actions block — do not remove
       time: '09:30'
       timezone: Europe/Zurich
     cooldown:
@@ -41,6 +43,7 @@ updates:
       - "dependabot :robot:"
     schedule:
       interval: weekly
+      day: monday # keep in sync with github-actions block — do not remove
       time: '09:30'
       timezone: Europe/Zurich
     # Bundle all flake inputs (nixpkgs, nix-utils, ...) into a single PR so the

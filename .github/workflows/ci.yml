@@ -133,6 +133,21 @@ jobs:
           DOCKER_LABELS_JSON: ''
         run: ./.github/scripts/bump-pnpm-hash.sh
 
+      # Eval-only deprecation gate: instantiating the image derivation forces
+      # every `lib.warn` in the flake (deprecated pnpm hooks, fetcherVersion,
+      # renamed attrs) without building anything. `abort-on-warn` turns those
+      # eval warnings into a hard failure, surfacing deprecations as a named
+      # step instead of scrolling past in the build log below.
+      - name: Nix eval (fail on deprecation warnings)
+        id: nix-eval
+        continue-on-error: true
+        env:
+          SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          DOCKER_LABELS_JSON: ''
+        run: |
+          bash .github/scripts/summarize-step.sh "Nix eval (deprecation warnings)" \
+            nix eval --impure .#dockerImage.drvPath --option abort-on-warn true
+
       - name: Build OCI image with Nix
         env:
           SEAL_DATA_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
@@ -202,7 +217,8 @@ jobs:
       - name: Fail if any scan failed
         if: always()
         run: |
-          if [ "${{ steps.vuln.outcome }}" = "failure" ] \
+          if [ "${{ steps.nix-eval.outcome }}" = "failure" ] \
+             || [ "${{ steps.vuln.outcome }}" = "failure" ] \
              || [ "${{ steps.secret.outcome }}" = "failure" ] \
              || [ "${{ steps.misconfig.outcome }}" = "failure" ] \
              || [ "${{ steps.compliance.outcome }}" = "failure" ]; then
