@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.4...1.1.5) (2026-06-24)
+
+
+### 🐛 Bug Fixes
+
+* drop gray-matter to remove vulnerable transitive js-yaml 3.x ([03a4528](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/03a4528d5c7d52c07acb5da40860d26bbf408a8d))
+
 ## [1.1.4](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.3...1.1.4) (2026-06-24)
 
 
