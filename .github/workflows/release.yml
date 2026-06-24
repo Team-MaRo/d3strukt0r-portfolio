@@ -6,7 +6,6 @@ name: Release
 # Release + git tag. The tag push fires docker.yml (which triggers on
 # `tags: ['*.*.*']`) to build and publish the multi-arch OCI image.
 #
-# Config lives in `release-please-config.json` + `.release-please-manifest.json`.
 # `flake.nix` is tracked as an `extra-files` entry — its `version = "0.0.0"; # x-release-please-version`
 # line gets rewritten on each bump so the OCI image tag stays in sync with
 # package.json.
@@ -32,6 +31,8 @@ jobs:
         id: release
         uses: googleapis/release-please-action@v5
         with:
+          config-file: .github/release-please-config.json
+          manifest-file: .github/release-please-manifest.json
           # PAT instead of GITHUB_TOKEN: GitHub suppresses workflow triggers
           # for tags created via GITHUB_TOKEN, which would prevent docker.yml
           # from firing on the release tag. GH_PAT is the same repo PAT used

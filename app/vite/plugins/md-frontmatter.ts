@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {basename, join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import matter from 'gray-matter';
-import yaml from 'js-yaml';
+import {load} from 'js-yaml';
 import {marked} from 'marked';
 import markedFootnote from 'marked-footnote';
 import {createHighlighter} from 'shiki';
@@ -369,7 +369,7 @@ export function addHeadingIds(html: string): string {
 async function loadSiteVars(root: string): Promise<Record<string, unknown>> {
   try {
     const raw = await readFile(join(root, 'content', 'site.yml'), 'utf8');
-    const parsed = yaml.load(raw);
+    const parsed = load(raw);
     return (parsed != null && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
   } catch {
     return {};

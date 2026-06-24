@@ -1,6 +1,6 @@
 import type {Education} from './schema';
 import {existsSync, readFileSync} from 'node:fs';
-import yaml from 'js-yaml';
+import {load} from 'js-yaml';
 import {isNonEmpty} from '~/lib/guards';
 
 // Merge hand-edited fields from an existing education.de.yml onto freshly
@@ -10,7 +10,8 @@ export function preserveEducationLocation(outPath: string, entries: Education[])
   if (!existsSync(outPath)) {
     return entries;
   }
-  const parsed = yaml.load(readFileSync(outPath, 'utf8'));
+  const text = readFileSync(outPath, 'utf8');
+  const parsed = text.trim() === '' ? null : load(text);
   if (!Array.isArray(parsed)) {
     return entries;
   }
