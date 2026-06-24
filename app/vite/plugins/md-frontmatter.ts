@@ -3,12 +3,12 @@ import type {Plugin} from 'vite';
 import {readFile} from 'node:fs/promises';
 import {basename, join} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import matter from 'gray-matter';
 import {load} from 'js-yaml';
 import {marked} from 'marked';
 import markedFootnote from 'marked-footnote';
 import {createHighlighter} from 'shiki';
 import {isNonEmpty} from '../../lib/guards';
+import {matter} from './frontmatter';
 
 const SHIKI_LANGS = [
   'ts', 'tsx', 'js', 'jsx', 'json', 'yaml', 'md', 'markdown',

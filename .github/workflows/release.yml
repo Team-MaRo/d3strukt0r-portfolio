@@ -48,6 +48,10 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.pr != '' }}
     runs-on: ubuntu-latest
+    # Cosmetic best-effort: rewrites the release-PR commit author to the bot. If
+    # the release PR is merged before this runs, its branch is deleted and the
+    # checkout below can't fetch it — don't fail the release workflow over that.
+    continue-on-error: true
     env:
       # release-please's branch name varies by config (`release-please--branches--<base>`
       # for single-package, with extra `--components--<name>` segments for component mode).
