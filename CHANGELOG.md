@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.3...1.1.4) (2026-06-24)
+
+
+### 🐛 Bug Fixes
+
+* upgrade to react-router 8 + js-yaml 5, restructure dependabot/CI ([0523f28](https://github.com/Team-MaRo/d3strukt0r-portfolio/commit/0523f284a533da73afa49e8982e8f4620c66b74e))
+
 ## [1.1.3](https://github.com/Team-MaRo/d3strukt0r-portfolio/compare/1.1.2...1.1.3) (2026-06-13)
 
 
