@@ -61,7 +61,6 @@
     "csv-parse": "^6.2.1",
     "culori": "^4.0.2",
     "eslint": "^10.5.0",
-    "gray-matter": "^4.0.3",
     "jiti": "^2.7.0",
     "jpeg-js": "^0.4.4",
     "js-yaml": "^5.1.0",

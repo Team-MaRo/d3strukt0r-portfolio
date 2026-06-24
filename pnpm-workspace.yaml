@@ -16,13 +16,3 @@ overrides:
   # GHSA path-traversal in the dev server (esbuild >= 0.27.3 < 0.28.1); pulled
   # transitively at 0.27.3/0.27.7/0.28.0. Force the patched release.
   esbuild: '>=0.28.1'
-  gray-matter>js-yaml: '>=3.14.2 <4'
-
-auditConfig:
-  ignoreGhsas:
-    # js-yaml merge-key quadratic DoS — only fixed in js-yaml >=4.1.2, but
-    # gray-matter@4 requires the js-yaml 3.x API (`safeLoad`), so its transitive
-    # js-yaml can't move off 3.x. Only reached at build time to parse our own
-    # trusted blog-post frontmatter (no untrusted YAML, no merge-key aliases),
-    # so the DoS isn't exploitable here. Drop once gray-matter ships on js-yaml 4.
-    - GHSA-h67p-54hq-rp68
