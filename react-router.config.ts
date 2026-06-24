@@ -18,13 +18,4 @@ export default {
   // sub-path build (custom domain disabled → project site at /<repo>/). RR
   // wants no trailing slash; Vite `base` keeps it.
   basename: BASENAME,
-  // Opt into the React Router v8 behaviours early (silences the build-log
-  // future-flag warnings and de-risks the eventual v8 bump).
-  future: {
-    v8_middleware: true,
-    v8_splitRouteModules: true,
-    v8_viteEnvironmentApi: true,
-    v8_passThroughRequests: true,
-    v8_trailingSlashAwareDataRequests: true,
-  },
 } satisfies Config;

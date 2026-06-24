@@ -42,7 +42,7 @@ import {dirname, extname, isAbsolute, join, resolve} from 'node:path';
 import process from 'node:process';
 import {encode as blurhashEncode} from 'blurhash';
 import jpeg from 'jpeg-js';
-import yaml from 'js-yaml';
+import {load} from 'js-yaml';
 import {
   aesGcmEncrypt,
   b64encode,
@@ -246,7 +246,7 @@ async function build(opts: Options, strict: boolean): Promise<BuildState> {
   const ymlSource = new Map<string, string>();
   const photos: Record<string, SealedPhotoMeta> = {};
 
-  const spec = yaml.load(readFileSync(opts.sensitiveFile, 'utf8')) as SensitiveSpec | null;
+  const spec = load(readFileSync(opts.sensitiveFile, 'utf8')) as SensitiveSpec | null;
   if (spec == null || typeof spec !== 'object') {
     throw new Error('[seal] sensitive.yml must be a mapping with `fields` and/or `photos` keys');
   }
@@ -263,7 +263,7 @@ async function build(opts: Options, strict: boolean): Promise<BuildState> {
       } catch {
         continue;
       }
-      const data = yaml.load(raw);
+      const data = raw.trim() === '' ? null : load(raw);
       if (data == null) {
         continue;
       }

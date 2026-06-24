@@ -14,9 +14,28 @@ updates:
       - "dependabot :robot:"
     schedule:
       interval: weekly
-      day: monday # required: weekly does NOT default to Monday for already-onboarded repos (GitHub keeps the repo's original slot — here Friday). Do not remove.
+      day: monday
       time: '09:30'
       timezone: Europe/Zurich
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: devcontainers
+    directory: /
+    target-branch: develop
+    labels:
+      - "dependabot :robot:"
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:30'
+      timezone: Europe/Zurich
+    groups:
+      devcontainers:
+        patterns:
+          - "*"
 
   - package-ecosystem: npm
     directory: /
@@ -25,13 +44,27 @@ updates:
       - "dependabot :robot:"
     schedule:
       interval: weekly
-      day: monday # keep in sync with github-actions block — do not remove
+      day: monday
       time: '09:30'
       timezone: Europe/Zurich
     cooldown:
       default-days: 1 # Match pnpm 11 default minimumReleaseAge (1440 min = 1 day)
+    ignore:
+      # Node version is pinned by hand (.nvmrc / engines.node / flake) — Dependabot
+      # must not bump @types/node out from under the chosen Node major.
+      - dependency-name: "@types/node"
     groups:
-      npm-minor-patch:
+      # Group react-router + its siblings (@react-router/*) so a major lands as a
+      # single coordinated PR — they must version in lockstep. Minor/patch bumps
+      # don't match this major-only group, so they fall through to npm-non-breaking
+      # below and auto-merge like every other non-breaking update.
+      react-router:
+        patterns:
+          - "react-router"
+          - "@react-router/*"
+        update-types:
+          - major
+      npm-non-breaking:
         update-types:
           - minor
           - patch
@@ -43,7 +76,7 @@ updates:
       - "dependabot :robot:"
     schedule:
       interval: weekly
-      day: monday # keep in sync with github-actions block — do not remove
+      day: monday
       time: '09:30'
       timezone: Europe/Zurich
     # Bundle all flake inputs (nixpkgs, nix-utils, ...) into a single PR so the
