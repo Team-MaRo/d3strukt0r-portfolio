@@ -72,4 +72,22 @@ jobs:
           fi
           git add flake.nix
           git commit -m "chore: bump pnpmDeps.hash"
-          git push origin "HEAD:${GITHUB_REF#refs/heads/}"
+
+          # Back-to-back Dependabot merges move the branch while the Nix probe
+          # runs, so a plain push gets rejected and the hash stays stale.
+          # Rebase onto the new tip and retry. A rebase conflict means another
+          # bump commit already touched the hash line — that run wins.
+          branch="${GITHUB_REF#refs/heads/}"
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:$branch"; then
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt); rebasing onto origin/$branch."
+            if ! git pull --rebase origin "$branch"; then
+              git rebase --abort
+              echo "::notice::flake.nix changed upstream; leaving the hash to that commit's bump run."
+              exit 0
+            fi
+          done
+          echo "::error::Could not push the pnpmDeps.hash bump after 3 attempts."
+          exit 1
