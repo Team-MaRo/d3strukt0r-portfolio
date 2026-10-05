@@ -50,7 +50,7 @@
               inherit (finalAttrs) pname version src;
               pnpm = pkgs.pnpm_10;
               fetcherVersion = 3;
-              hash = "sha256-orClr9OVCq5k1htCJkrGq30Ez/NphSvbt9ckBW3+HBQ=";
+              hash = "sha256-BUowC0FRoR5NBKucBZBf2S1IlpGAgyoCu9WByx3ixYA=";
             };
 
             SEAL_DATA_KEY = builtins.getEnv "SEAL_DATA_KEY";
