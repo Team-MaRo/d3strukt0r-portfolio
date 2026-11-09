@@ -32,7 +32,7 @@
     "clsx": "^2.1.1",
     "feed": "^6.0.0",
     "gsap": "^3.15.1",
-    "i18next": "^26.6.0",
+    "i18next": "^27.0.1",
     "i18next-browser-languagedetector": "^8.3.0",
     "isbot": "^5.2.2",
     "marked-footnote": "^1.4.0",
