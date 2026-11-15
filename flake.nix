@@ -23,7 +23,7 @@
         default = pkgs.mkShell {
           packages = [
             pkgs.nodejs_24
-            pkgs.pnpm_11
+            pkgs.pnpm_12
             pkgs.curl
             pkgs.cacert
           ];
@@ -42,15 +42,15 @@
 
             nativeBuildInputs = [
               pkgs.nodejs-slim_24
-              pkgs.pnpm_11
+              pkgs.pnpm_12
               pkgs.pnpmConfigHook
             ];
 
             pnpmDeps = pkgs.fetchPnpmDeps {
               inherit (finalAttrs) pname version src;
-              pnpm = pkgs.pnpm_11;
+              pnpm = pkgs.pnpm_12;
               fetcherVersion = 3;
-              hash = "sha256-De90R0ebHQST4vc+86AJup85K5FoG9lPM3DKOLgZlXE=";
+              hash = "sha256-r7Ejb1VjVURbNM4roZdcrOo8eXvSeE3j7T6wroplNxI=";
             };
 
             SEAL_DATA_KEY = builtins.getEnv "SEAL_DATA_KEY";
@@ -75,8 +75,13 @@
               pnpm run build
 
               # Drop devDependencies (~280 MB → ~40 MB) and pnpm's CAS mirror
-              # (already hardlinked into the workspace).
-              pnpm prune --prod
+              # (already hardlinked into the workspace). Not `pnpm prune --prod`:
+              # before pnpm 12.15 prune ignores trustLockfile and re-verifies the
+              # lockfile against the registry, which hangs in the sandbox. A prod
+              # install over the existing tree keeps the dev packages in
+              # node_modules/.pnpm, so reinstall from scratch.
+              rm -rf node_modules
+              pnpm install --prod --offline --frozen-lockfile --ignore-scripts
               rm -rf node_modules/.pnpm/node_modules
 
               runHook postBuild
