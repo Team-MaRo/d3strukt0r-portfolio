@@ -16,3 +16,12 @@ overrides:
   # GHSA path-traversal in the dev server (esbuild >= 0.27.3 < 0.28.1); pulled
   # transitively at 0.27.3/0.27.7/0.28.0. Force the patched release.
   esbuild: '>=0.28.1'
+  # GHSA memory exhaustion on oversized input (zod < 4.6.6); pulled transitively
+  # at 4.4.3 via @iwf-web/eslint-coding-standard. Force the patched release.
+  zod: '>=4.6.6'
+  # GHSA quadratic-complexity selector parsing (postcss-selector-parser
+  # >= 7.0.0 < 7.1.6); pulled transitively at 7.1.4. Force the patched release.
+  postcss-selector-parser@>=7 <7.1.6: '>=7.1.6'
+  # GHSA ReDoS (minimatch >= 7.0.0 < 11.0.1), patched only in 11.0.1+; pulled
+  # transitively at 10.2.6 via eslint. Scoped so unaffected majors stay put.
+  minimatch@>=7 <11.0.1: '>=11.0.1'

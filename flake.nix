@@ -23,7 +23,7 @@
         default = pkgs.mkShell {
           packages = [
             pkgs.nodejs_24
-            pkgs.pnpm_10
+            pkgs.pnpm_11
             pkgs.curl
             pkgs.cacert
           ];
@@ -42,15 +42,15 @@
 
             nativeBuildInputs = [
               pkgs.nodejs-slim_24
-              pkgs.pnpm_10
+              pkgs.pnpm_11
               pkgs.pnpmConfigHook
             ];
 
             pnpmDeps = pkgs.fetchPnpmDeps {
               inherit (finalAttrs) pname version src;
-              pnpm = pkgs.pnpm_10;
+              pnpm = pkgs.pnpm_11;
               fetcherVersion = 3;
-              hash = "sha256-Fu5rWsjUSJRc396VUz+NxcABJnMXIFl7U4WNvQ7O+V4=";
+              hash = "sha256-De90R0ebHQST4vc+86AJup85K5FoG9lPM3DKOLgZlXE=";
             };
 
             SEAL_DATA_KEY = builtins.getEnv "SEAL_DATA_KEY";
